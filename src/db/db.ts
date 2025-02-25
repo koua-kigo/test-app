@@ -2,6 +2,7 @@ import { users } from "@/db/schema";
 import type { User } from "@clerk/nextjs/server";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { eq, lt, gte, ne } from "drizzle-orm";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -15,4 +16,8 @@ export async function createUser(user: User) {
 		email: user.emailAddresses[0].emailAddress,
 		name: `${user.firstName} ${user.lastName}`,
 	});
+}
+
+export async function getUserByClerkId(clerkId: string) {
+	return await db.select().from(users).where(eq(users.clerkId, clerkId));
 }

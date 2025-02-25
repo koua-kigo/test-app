@@ -1,15 +1,21 @@
-import { useUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth";
+import { auth } from "@clerk/nextjs/server";
 
-export default function AdminLayout({
+import { getUserByClerkId } from "@/db/db";
+
+export default async function AdminLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
-	const { user } = useUser();
+	const { userId, ...rest } = await auth();
+	const user = await getUserByClerkId(userId);
+	console.log("🚀 ~ userId:", userId);
 
-	if (!user || !isAdmin(user)) {
+	console.log("🚀 ~ rest:", rest);
+
+	if (!userId || !isAdmin(user)) {
 		// Redirect non-admin users
 		redirect("/");
 	}

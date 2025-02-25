@@ -15,18 +15,18 @@ const ADMIN_USER_IDS = [
  * Check if a user has admin privileges
  */
 export function isAdmin(user: User | null): boolean {
+	console.log("🚀 ~ isAdmin ~ user:", user);
+
 	if (!user) return false;
-	return user.emailAddresses.some(
-		(email: EmailAddress) => email.emailAddress === "liamhellis@gmail.com",
-	);
+	return user?.primaryEmailAddress?.emailAddress === "liamhellis@gmail.com";
 }
 
 /**
  * Check if a user can access an admin resource
  * This can be extended with more granular permissions as needed
  */
-export function canAccessAdminResource(userId: string | null): boolean {
-	return isAdmin(userId);
+export function canAccessAdminResource(user: string | null): boolean {
+	return isAdmin(user);
 }
 
 /**
@@ -34,11 +34,11 @@ export function canAccessAdminResource(userId: string | null): boolean {
  * This is just an example of how you might implement resource-specific permissions
  */
 export function canEditRestaurant(
-	userId: string | null,
+	user: string | null,
 	restaurantId: string,
 ): boolean {
 	// Admin can edit any restaurant
-	if (isAdmin(userId)) return true;
+	if (isAdmin(user)) return true;
 
 	// In a real app, you might check if the user is the owner of the restaurant
 	// or has been granted specific permissions
