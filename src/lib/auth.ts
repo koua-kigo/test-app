@@ -1,0 +1,46 @@
+/**
+ * Helper functions for authentication and authorization
+ */
+
+import type { EmailAddress, User } from "@clerk/nextjs/server";
+
+// List of admin user IDs
+// In a real application, you might store this in a database
+// or use Clerk's organization features for role management
+const ADMIN_USER_IDS = [
+	"user_2NM3vax1Cx5dmPSsKvCEyGxfZXn", // Replace with your actual admin user IDs
+];
+
+/**
+ * Check if a user has admin privileges
+ */
+export function isAdmin(user: User | null): boolean {
+	if (!user) return false;
+	return user.emailAddresses.some(
+		(email: EmailAddress) => email.emailAddress === "liamhellis@gmail.com",
+	);
+}
+
+/**
+ * Check if a user can access an admin resource
+ * This can be extended with more granular permissions as needed
+ */
+export function canAccessAdminResource(userId: string | null): boolean {
+	return isAdmin(userId);
+}
+
+/**
+ * Check if a user can edit a specific restaurant
+ * This is just an example of how you might implement resource-specific permissions
+ */
+export function canEditRestaurant(
+	userId: string | null,
+	restaurantId: string,
+): boolean {
+	// Admin can edit any restaurant
+	if (isAdmin(userId)) return true;
+
+	// In a real app, you might check if the user is the owner of the restaurant
+	// or has been granted specific permissions
+	return false;
+}
