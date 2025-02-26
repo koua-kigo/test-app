@@ -26,6 +26,7 @@ export const restaurants = pgTable("restaurants", {
 	description: text("description").notNull(),
 	imageUrl: text("image_url").notNull(),
 	address: text("address").notNull(),
+	qrCodeUrl: text("qr_code_url"),
 });
 
 /* PUNCH CARDS */

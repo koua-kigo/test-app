@@ -1,38 +1,56 @@
-import { currentUser } from "@clerk/nextjs";
+"use client";
+
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 
-export default async function AdminDashboard() {
-  const user = await currentUser();
-  
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-      
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Welcome, {user?.firstName}</h2>
-          <p className="text-sm text-gray-500">Logged in as {user?.emailAddresses[0]?.emailAddress}</p>
-        </div>
-        
-        <p className="mb-4">This is a protected admin dashboard. Only users with admin privileges can access this page.</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Link href="/admin/users" className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-          <h3 className="text-lg font-semibold mb-2">User Management</h3>
-          <p className="text-gray-600">View and manage user accounts</p>
-        </Link>
-        
-        <Link href="/admin/restaurants" className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-          <h3 className="text-lg font-semibold mb-2">Restaurant Management</h3>
-          <p className="text-gray-600">Add, edit, or remove restaurants</p>
-        </Link>
-        
-        <Link href="/admin/settings" className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-          <h3 className="text-lg font-semibold mb-2">Settings</h3>
-          <p className="text-gray-600">Configure application settings</p>
-        </Link>
-      </div>
-    </div>
-  );
+export default function AdminDashboard() {
+	const { user } = useUser();
+
+	console.log("🚀 ~ AdminDashboard ~ user:", user);
+
+	return (
+		<div>
+			<h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+
+			<div className="bg-white rounded-lg shadow p-6 mb-6">
+				<div className="flex justify-between items-center mb-4">
+					<h2 className="text-xl font-semibold">Welcome, {user?.firstName}</h2>
+					<p className="text-sm text-gray-500">
+						Logged in as {user?.emailAddresses[0]?.emailAddress}
+					</p>
+				</div>
+
+				<p className="mb-4">
+					This is a protected admin dashboard. Only users with admin privileges
+					can access this page.
+				</p>
+			</div>
+
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<Link
+					href="/admin/users"
+					className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+				>
+					<h3 className="text-lg font-semibold mb-2">User Management</h3>
+					<p className="text-gray-600">View and manage user accounts</p>
+				</Link>
+
+				<Link
+					href="/admin/restaurants"
+					className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+				>
+					<h3 className="text-lg font-semibold mb-2">Restaurant Management</h3>
+					<p className="text-gray-600">Add, edit, or remove restaurants</p>
+				</Link>
+
+				<Link
+					href="/admin/settings"
+					className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+				>
+					<h3 className="text-lg font-semibold mb-2">Settings</h3>
+					<p className="text-gray-600">Configure application settings</p>
+				</Link>
+			</div>
+		</div>
+	);
 }
