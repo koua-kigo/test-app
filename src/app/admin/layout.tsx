@@ -1,40 +1,60 @@
 "use client";
 
 import { redirect } from "next/navigation";
-// import { isAdmin } from "@/lib/auth";
-import { auth } from "@clerk/nextjs/server";
 import { useUser } from "@clerk/nextjs";
-import { getUserByClerkId } from "@/db/db";
 import { isAdmin } from "@/lib/auth";
+import Sidebar from "@/components/admin/Sidebar";
+import { SidebarProvider, useSidebar } from "@/components/admin/SidebarContext";
 
+// Main content component
+function AdminContent({ children }: { children: React.ReactNode }) {
+  const { collapsed } = useSidebar();
+  
+  return (
+    <>
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Main content area */}
+      <div 
+        className={`transition-all duration-300 min-h-screen ${
+          collapsed ? 'md:ml-20' : 'md:ml-64'
+        }`}
+      >
+        {/* Header */}
+        <header className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+            <h1 className="text-lg font-semibold text-gray-900">Admin Dashboard</h1>
+          </div>
+        </header>
+
+        {/* Main content */}
+        <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          {children}
+        </main>
+      </div>
+    </>
+  );
+}
+
+// Main layout wrapper
 export default function AdminLayout({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	// const { userId, ...rest } = await auth();
-	const { user } = useUser();
+  const { user } = useUser();
 
-	console.log("🚀 ~ user:", user);
+  if (!user || !isAdmin(user)) {
+    // Redirect non-admin users
+    redirect("/");
+  }
 
-	// const user = await getUserByClerkId(userId);
-	// console.log("🚀 ~ userId:", userId);
-
-	// console.log("🚀 ~ rest:", rest);
-
-	if (!user || !isAdmin(user)) {
-		// Redirect non-admin users
-		redirect("/");
-	}
-
-	return (
-		<div className="min-h-screen">
-			<div className="bg-black text-white p-4">
-				<div className="max-w-7xl mx-auto">
-					<p className="text-sm">Admin Dashboard</p>
-				</div>
-			</div>
-			<div className="max-w-7xl mx-auto p-4">{children}</div>
-		</div>
-	);
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen bg-gray-100">
+        <AdminContent>{children}</AdminContent>
+      </div>
+    </SidebarProvider>
+  );
 }
