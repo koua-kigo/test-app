@@ -2,6 +2,7 @@ import {
 	createPunchCard,
 	getUserPunchCardForRestaurant,
 } from "@/db/models/punch-cards/punch-cards";
+import { convertBigInts } from "@/lib/utils";
 
 export async function POST(request: Request) {
 	const { qrData, userId } = await request.json();
@@ -14,19 +15,19 @@ export async function POST(request: Request) {
 
 	if (restaurantId && userId) {
 		const punchCardExists = await getUserPunchCardForRestaurant(
-			BigInt(userId),
-			BigInt(restaurantId),
+			userId,
+			restaurantId,
 		);
 		console.log("🚀 ~ POST ~ punchCardExists:", punchCardExists);
 		if (punchCardExists) {
 			return Response.json({
 				message: "Punch card already exists",
-				data: punchCardExists,
+				data: convertBigInts(punchCardExists),
 			});
 		}
 		const punchCard = await createPunchCard({
-			userId: BigInt(userId),
-			restaurantId: BigInt(restaurantId),
+			userId,
+			restaurantId,
 			punches: 1,
 			completed: true,
 		}).then((res) => res[0]);
@@ -35,17 +36,7 @@ export async function POST(request: Request) {
 
 		return Response.json({
 			message: "Punch card created successfully",
-			data: punchCard,
+			data: convertBigInts(punchCard),
 		});
 	}
-
-	// const punchCardExists = await getUserPunchCardForRestaurant(
-	// 			BigInt(userId),
-	// 			BigInt(restaurantId),
-	// 		);
-
-	return Response.json({
-		message: "WIP",
-		data: null,
-	});
 }

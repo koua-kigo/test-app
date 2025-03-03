@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { toast, useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,7 @@ export function UserScanQrCode({ user }: { user: User }) {
 	const [scanResult, setScanResult] = useState<Record<string, string> | null>(
 		null,
 	);
+	const [checkingPunchCardStatus, setCheckingPunchCardStatus] = useState(false);
 	// const { isConnected, sendMessage, addMessageListener } =
 	// 	useServerSentEvent("/api/sse");
 
@@ -66,28 +67,28 @@ export function UserScanQrCode({ user }: { user: User }) {
 	// }, []);
 
 	const requestCameraPermission = useCallback(() => {
-		setIsScanning(true);
+		setIsScanning((prev) => !prev);
 		// try {
-		// 	const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-		// 	// Check if permissions need to be updated
+		// const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+		// // Check if permissions need to be updated
 
-		// 	console.log("🚀 ~ requestCameraPermission ~ stream:", stream);
+		// console.log("🚀 ~ requestCameraPermission ~ stream:", stream);
 
-		// 	const tracks = stream.getVideoTracks();
-		// 	if (tracks.length > 0 && tracks[0].enabled === false) {
-		// 		const permissionResult = await navigator.permissions.query({
-		// 			name: "camera" as PermissionName,
+		// const tracks = stream.getVideoTracks();
+		// if (tracks.length > 0 && tracks[0].enabled === false) {
+		// 	const permissionResult = await navigator.permissions.query({
+		// 		name: "camera" as PermissionName,
+		// 	});
+		// 	if (permissionResult.state === "prompt") {
+		// 		toast({
+		// 			title: "Camera Access Required",
+		// 			description:
+		// 				"Please allow camera access in your browser settings to continue scanning",
+		// 			variant: "default",
 		// 		});
-		// 		if (permissionResult.state === "prompt") {
-		// 			toast({
-		// 				title: "Camera Access Required",
-		// 				description:
-		// 					"Please allow camera access in your browser settings to continue scanning",
-		// 				variant: "default",
-		// 			});
-		// 		}
 		// 	}
-		// 	// stream.getTracks().forEach((track) => track.stop()); // Clean up stream
+		// }
+		// // stream.getTracks().forEach((track) => track.stop()); // Clean up stream
 		// 	setIsScanning(true);
 		// 	// const videoTracks = stream.getVideoTracks();
 
@@ -125,38 +126,50 @@ export function UserScanQrCode({ user }: { user: User }) {
 	const handleScan = useCallback(
 		(data: string | null) => {
 			console.log("🚀 ~ handleScan ~ data:", data);
-
-			if (data && !qrCodeData) {
-				const { text } = JSON.parse(data);
-				setQrCodeData(text);
+			if (qrCodeData) {
+				return;
+			}
+			if (data?.text && !qrCodeData) {
+				setQrCodeData(data.text);
+				setIsScanning(false);
+				setCheckingPunchCardStatus(true);
+				navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+					stream.getTracks().forEach((track) => track.stop());
+				});
+				// Check if permissions need to be updated
 			}
 		},
 		[qrCodeData],
 	);
 
 	const checkScanResult = useCallback(async () => {
-		if (qrCodeData && !scanResult) {
-			// Send scanned QR code data to the API route
-			const res = await fetch("/api/scan", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ qrData: qrCodeData, userId: BigInt(user.id) }), // replace with real user ID
-			});
-			const data = await res.json();
+		// Send scanned QR code data to the API route
+		const res = await fetch("/api/scan", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ qrData: qrCodeData, userId: Number(user.id) }), // replace with real user ID
+		});
+		const data = await res.json();
 
-			console.log("🚀 ~ data:", data);
-			if (data) {
-				setScanResult(data);
-				toast({
-					title: "Success",
-					description: "Scan successful",
-					variant: "default",
-				});
-			}
+		console.log("🚀 ~ data:", data);
+		if (data) {
+			setScanResult(data);
+			setCheckingPunchCardStatus(false);
+			toast({
+				title: "Success",
+				description: "Scan successful",
+				variant: "default",
+			});
 
 			console.log("🚀 ~ handleScan ~ res:", res);
 		}
-	}, [qrCodeData, scanResult, user.id, toast]);
+	}, [qrCodeData, user, toast]);
+
+	useEffect(() => {
+		if (qrCodeData && !scanResult) {
+			checkScanResult();
+		}
+	}, [checkScanResult, qrCodeData, scanResult]);
 
 	const handleError = (err: Error) => {
 		toast({
@@ -188,16 +201,16 @@ export function UserScanQrCode({ user }: { user: User }) {
 	};
 
 	return (
-		<div className="max-w-md mx-auto space-y-6">
+		<div className="max-w-md space-y-6">
 			<Card>
 				<CardHeader>
-					<CardTitle>Staff Portal</CardTitle>
+					<CardTitle>QR Code Scanner</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<div className="mb-6">
 						<p className="text-muted-foreground">
-							Scan customer QR codes to validate their purchases and add punches
-							to their cards.
+							Scan QR codes from participating restaurants to validate your
+							purchase and punche your punch card.
 						</p>
 						<div className="mt-2">
 							<span

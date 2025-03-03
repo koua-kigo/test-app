@@ -2,7 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { db } from "../../db";
-import { punchCards } from "../../schema";
+import { punchCards, restaurants } from "../../schema";
 
 export const getPunchCards = async () => {
 	return await db.select().from(punchCards);
@@ -20,6 +20,29 @@ export const getPunchCardsByUserId = async (userId: bigint) => {
 	return await db
 		.select()
 		.from(punchCards)
+		.where(eq(punchCards.userId, userId));
+};
+
+export const getPunchCardsByUserIdWithRestaurants = async (userId: bigint) => {
+	return await db
+		.select({
+			id: punchCards.id,
+			userId: punchCards.userId,
+			restaurantId: punchCards.restaurantId,
+			punches: punchCards.punches,
+			completed: punchCards.completed,
+			updatedAt: punchCards.updatedAt,
+			restaurant: {
+				id: restaurants.id,
+				name: restaurants.name,
+				description: restaurants.description,
+				imageUrl: restaurants.imageUrl,
+				address: restaurants.address,
+				qrCodeUrl: restaurants.qrCodeUrl,
+			},
+		})
+		.from(punchCards)
+		.innerJoin(restaurants, eq(punchCards.restaurantId, restaurants.id))
 		.where(eq(punchCards.userId, userId));
 };
 

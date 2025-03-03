@@ -23,17 +23,24 @@ export default async function Home() {
 
 	return (
 		<div className="grid grid-rows-[60px_1fr_20px] items-center justify-items-center min-h-screen p-2 gap-16 font-geistSans">
-			<nav className="w-full row-start-1 flex justify-between items-center">
+			<nav className="w-full row-start-1 flex justify-between items-center px-8">
 				<div className="flex items-center gap-6">
-					<h1 className="text-xl font-bold text-black">Restaurant Passport</h1>
-					<Link
-						href="/restaurants"
-						className="text-gray-700 hover:text-blue-600 transition-colors"
-					>
-						Restaurants
+					<Link href="/">
+						<Image
+							src="/logo.png"
+							alt="Restaurant Passport Logo"
+							width={100}
+							height={100}
+						/>
 					</Link>
 				</div>
 				<div className="flex gap-4">
+					<Link
+						href="/restaurants"
+						className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] text-sm h-10 px-4"
+					>
+						Restaurants
+					</Link>
 					{userid ? (
 						<>
 							<Link

@@ -35,7 +35,7 @@ export function QRCodeManager({
 			? `${window.location.protocol}//${window.location.host}`
 			: "https://your-app-domain.com";
 
-	const qrCodeValue = `${baseUrl}/restaurants/${restaurantId}`;
+	const qrCodeValue = `/restaurants/${restaurantId}`;
 
 	// Generate QR code and show save/cancel buttons
 	const handleGenerate = () => {
