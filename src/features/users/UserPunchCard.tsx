@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function UserPunchCard() {
+export function UserPunchCard() {
 	return (
 		<div className="max-w-md mx-auto">
 			<Card>

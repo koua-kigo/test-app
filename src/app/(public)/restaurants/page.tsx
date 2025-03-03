@@ -1,9 +1,8 @@
-import { db } from "@/db/db";
-import { restaurants } from "@/db/schema";
-import { desc } from "drizzle-orm";
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
+import { getRestaurants } from "@/db/models/restaurants/restaurants";
+import type { Restaurant } from "@/types/db";
 
 // Loading component
 function RestaurantsLoading() {
@@ -63,27 +62,10 @@ function RestaurantCard({ restaurant }: { restaurant: any }) {
 }
 
 // Restaurants list component
-async function RestaurantsList() {
-	// Fetch restaurants from the database
-	const restaurantsList = await db
-		.select()
-		.from(restaurants)
-		.orderBy(desc(restaurants.id));
-
-	if (restaurantsList.length === 0) {
-		return (
-			<div className="text-center py-12">
-				<h3 className="text-xl font-medium mb-4">No restaurants found</h3>
-				<p className="text-gray-600 mb-6">
-					There are no restaurants in the database yet.
-				</p>
-			</div>
-		);
-	}
-
+async function RestaurantsList({ restaurants }: { restaurants: any }) {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-			{restaurantsList.map((restaurant) => (
+			{restaurants.map((restaurant: Restaurant) => (
 				<RestaurantCard
 					key={restaurant.id.toString()}
 					restaurant={restaurant}
@@ -94,7 +76,8 @@ async function RestaurantsList() {
 }
 
 // Main page component
-export default function RestaurantsPage() {
+export default async function RestaurantsPage() {
+	const restaurants = await getRestaurants();
 	return (
 		<div className="container mx-auto px-4 py-8">
 			<div className="flex justify-between items-center mb-8">
@@ -115,7 +98,7 @@ export default function RestaurantsPage() {
 			</div>
 
 			<Suspense fallback={<RestaurantsLoading />}>
-				<RestaurantsList />
+				<RestaurantsList restaurants={restaurants} />
 			</Suspense>
 		</div>
 	);

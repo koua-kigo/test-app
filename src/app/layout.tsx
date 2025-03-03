@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { LocationProvider } from "@/context/location-context";
-
+import { Analytics } from "@vercel/analytics/react";
 const geistSans = Geist({
 	variable: "--font-geist-sans",
 	subsets: ["latin"],
@@ -32,14 +32,10 @@ export default function RootLayout({
 						className={`${geistSans.variable} ${geistMono.variable} antialiased `}
 					>
 						{children}
+						<Analytics />
 					</body>
 				</html>
 			</LocationProvider>
 		</ClerkProvider>
 	);
 }
-// background-color: #e5e5f7;
-// opacity: 0.2;
-// background-size: 6px 6px;
-// background-image: repeating-linear-gradient(45deg, #8f8a91 0, #8f8a91 0.6000000000000001px, #e5e5f7 0, #e5e5f7 50%);
-// [mask-image:radial-gradient(1200px_circle_at_center,white,transparent)]
