@@ -31,6 +31,15 @@ import type { z } from "zod";
 // Declare the type for our restaurant
 type Restaurant = z.infer<typeof restaurantSchema>;
 
+// Define the meta interfaces for TanStack Table
+interface ColumnMeta {
+	editable?: boolean;
+}
+
+interface TableMeta {
+	updateData: (rowIndex: number, columnId: string, value: unknown) => void;
+}
+
 // Create a custom cell type that includes editing capabilities
 type EditableCellProps = {
 	getValue: () => unknown;
@@ -52,7 +61,7 @@ const EditableCell = ({ getValue, row, column, table }: EditableCellProps) => {
 	const [editing, setEditing] = useState(false);
 
 	const onBlur = () => {
-		table.options.meta?.updateData(row.index, columnId, value);
+		(table.options.meta as TableMeta).updateData(row.index, columnId, value);
 		setEditing(false);
 	};
 
@@ -66,12 +75,15 @@ const EditableCell = ({ getValue, row, column, table }: EditableCellProps) => {
 	};
 
 	const onSaveClick = () => {
-		table.options.meta?.updateData(row.index, columnId, value);
+		(table.options.meta as TableMeta).updateData(row.index, columnId, value);
 		setEditing(false);
 	};
 
 	// If the column is not editable or it's the id column, just show the value
-	if (columnId === "id" || column.columnDef.meta?.editable === false) {
+	if (
+		columnId === "id" ||
+		(column.columnDef.meta as ColumnMeta)?.editable === false
+	) {
 		return <div className="py-2">{value?.toString()}</div>;
 	}
 
@@ -118,11 +130,6 @@ const EditableCell = ({ getValue, row, column, table }: EditableCellProps) => {
 	);
 };
 
-// Define the meta type for the table
-type TableMeta = {
-	updateData: (rowIndex: number, columnId: string, value: unknown) => void;
-};
-
 export function RestaurantsTable({
 	restaurants: initialData,
 }: { restaurants: Restaurant[] }) {
@@ -140,7 +147,7 @@ export function RestaurantsTable({
 			),
 			meta: {
 				editable: false,
-			},
+			} as ColumnMeta,
 		},
 		{
 			accessorKey: "name",

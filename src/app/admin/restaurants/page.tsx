@@ -5,32 +5,33 @@ import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
 import { getRestaurants } from "@/db/models";
-import type { restaurantSchema } from "@/types";
+import type { restaurantSchema } from "@/types/schemas";
+import { RestaurantsTable } from "@/components/admin/restaurants-table";
+import type { z } from "zod";
+
+// Type for restaurant data
+type Restaurant = z.infer<typeof restaurantSchema>;
 
 // Loading component
 function RestaurantsLoading() {
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-			{[...Array(6)].map((_, i) => (
-				<div
-					key={i}
-					className="bg-white rounded-lg shadow-md p-0 overflow-hidden animate-pulse"
-				>
-					<div className="h-48 bg-gray-200 w-full" />
-					<div className="p-4">
-						<div className="h-6 bg-gray-200 w-3/4 mb-2" />
-						<div className="h-4 bg-gray-200 w-full mb-2" />
-						<div className="h-4 bg-gray-200 w-full mb-2" />
-						<div className="h-4 bg-gray-200 w-1/2" />
-					</div>
-				</div>
-			))}
+		<div className="w-full p-8 bg-white rounded-lg shadow-md animate-pulse">
+			<div className="h-8 bg-gray-200 w-1/4 mb-6" />
+			<div className="h-4 bg-gray-200 w-full mb-2" />
+			<div className="h-4 bg-gray-200 w-full mb-2" />
+			<div className="h-4 bg-gray-200 w-full mb-2" />
+			<div className="h-4 bg-gray-200 w-full mb-2" />
+			<div className="h-4 bg-gray-200 w-full mb-2" />
+			<div className="h-4 bg-gray-200 w-3/4 mb-6" />
+			<div className="flex justify-end">
+				<div className="h-8 bg-gray-200 w-24" />
+			</div>
 		</div>
 	);
 }
 
 // Restaurant card component
-function RestaurantCard({ restaurant }: { restaurant: restaurantSchema }) {
+function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
 	console.log("🚀 ~ RestaurantCard ~ restaurant:", restaurant);
 
 	return (
@@ -64,8 +65,8 @@ function RestaurantCard({ restaurant }: { restaurant: restaurantSchema }) {
 	);
 }
 
-// Restaurants list component
-async function RestaurantsList({ restaurants }: { restaurants: any }) {
+// Restaurants list component with table
+async function RestaurantsList({ restaurants }: { restaurants: Restaurant[] }) {
 	// Fetch restaurants from the database
 
 	if (restaurants.length === 0) {
@@ -79,16 +80,7 @@ async function RestaurantsList({ restaurants }: { restaurants: any }) {
 		);
 	}
 
-	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-			{restaurants.map((restaurant: unknown) => (
-				<RestaurantCard
-					key={restaurant.id.toString()}
-					restaurant={restaurant}
-				/>
-			))}
-		</div>
-	);
+	return <RestaurantsTable restaurants={restaurants} />;
 }
 
 // Main page component
@@ -101,18 +93,26 @@ export default async function RestaurantsPage() {
 		<div className="container mx-auto px-4 py-8">
 			<div className="flex justify-between items-center mb-8">
 				<h1 className="text-3xl font-bold">Restaurants</h1>
-				<Link
-					href="/"
-					className="text-blue-600 hover:text-blue-800 transition-colors"
-				>
-					Back to Home
-				</Link>
+				<div className="flex space-x-4">
+					<Link
+						href="/admin/restaurants/new"
+						className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition-colors"
+					>
+						Add Restaurant
+					</Link>
+					<Link
+						href="/admin"
+						className="text-blue-600 hover:text-blue-800 transition-colors"
+					>
+						Back to Dashboard
+					</Link>
+				</div>
 			</div>
 
 			<div className="mb-8">
 				<p className="text-gray-600">
-					Explore our partner restaurants and start collecting stamps on your
-					food passport!
+					Manage your partner restaurants. Edit details directly in the table
+					below or click on View Details for more options.
 				</p>
 			</div>
 
