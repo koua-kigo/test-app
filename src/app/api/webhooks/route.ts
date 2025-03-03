@@ -1,8 +1,7 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import type { User, WebhookEvent } from "@clerk/nextjs/server";
-import { users } from "@/db/schema";
-import { createUser, db } from "@/db/db";
+import { createUser } from "@/db/models/users";
 
 export async function POST(req: Request) {
 	const SIGNING_SECRET = process.env.SIGNING_SECRET;
@@ -31,36 +30,33 @@ export async function POST(req: Request) {
 
 	// Get body
 	const payload = await req.json();
-	const body = JSON.stringify(payload);
 
-	let evt: WebhookEvent;
-
-	// Verify payload with headers
+	console.log("🚀 ~ POST ~ payload:", payload);
 	try {
-		evt = wh.verify(body, {
-			"svix-id": svix_id,
-			"svix-timestamp": svix_timestamp,
-			"svix-signature": svix_signature,
-		}) as WebhookEvent;
+		const { data, type } = payload;
+
+		if (type === "user.created") {
+			const { id: clerkId, email_addresses, first_name, last_name } = data;
+			const email = email_addresses[0].email_address;
+			const name = `${first_name} ${last_name}`;
+
+			const user = await createUser({
+				clerkId,
+				name,
+				email,
+			});
+
+			console.log("🚀 ~ POST ~ user:", user);
+
+			return Response.json({
+				message: "User created",
+				data: user,
+			});
+		}
 	} catch (err) {
 		console.error("Error: Could not verify webhook:", err);
 		return new Response("Error: Verification error", {
 			status: 400,
 		});
 	}
-
-	// Do something with payload
-	// For this guide, log payload to console
-	const { id } = evt.data;
-	const eventType = evt.type;
-	console.log(`Received webhook with ID ${id} and event type of ${eventType}`);
-	console.log("Webhook payload:", body);
-
-	if (evt.type === "user.created") {
-		console.log("userId:", evt.data.id);
-		// TODO: Create a new user in the database
-		await createUser(evt.data as unknown as User);
-	}
-
-	return new Response("Webhook received", { status: 200 });
 }

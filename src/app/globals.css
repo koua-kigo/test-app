@@ -69,6 +69,10 @@
 		--sidebar-border: 220 13% 91%;
 
 		--sidebar-ring: 217.2 91.2% 59.8%;
+
+		--ring-color: #7788ff;
+		--ring-color-80: #7788ff80;
+		--ring-color-20: #7788ff20;
 	}
 	.dark {
 		--background: 240 10% 3.9%;
@@ -145,3 +149,48 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+body {
+	background: radial-gradient(600px circle at center, white, transparent);
+	/* -webkit-mask-image: radial-gradient(
+		600px circle at center,
+		white,
+		transparent
+	); */
+	color: black;
+}
+
+*,
+:before,
+:after {
+	box-sizing: border-box;
+	border-width: 0;
+	border-style: solid;
+	border-color: #e5e7eb;
+}
+/* 
+#sidebar {
+	box-sizing: border-box;
+	border-width: 0;
+	border-style: solid;
+	border-color: #e5e7eb;
+	scrollbar-color: initial;
+	display: flex;
+	width: 18rem;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: .5rem;
+	scrollbar-width: none;
+	margin: .375rem;
+	margin-right: 0;
+	height: auto;
+	border-radius: .375rem;
+	background-color: transparent;
+	--tw-backdrop-blur: ;
+	backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness)
+		var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale)
+		var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+		var(--tw-backdrop-opacity) var(--tw-backdrop-saturate)
+		var(--tw-backdrop-sepia);
+	transform: none;
+} */

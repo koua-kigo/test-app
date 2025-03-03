@@ -15,6 +15,13 @@
       "when": 1740526982366,
       "tag": "0001_exotic_vengeance",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1740982802973,
+      "tag": "0002_quick_alex_power",
+      "breakpoints": true
     }
   ]
 }

@@ -3,6 +3,7 @@
  */
 
 import type { EmailAddress, User } from "@clerk/nextjs/server";
+import type { User as DBUser } from "@/types/db";
 
 // List of admin user IDs
 // In a real application, you might store this in a database
@@ -14,10 +15,11 @@ const ADMIN_USER_IDS = [
 /**
  * Check if a user has admin privileges
  */
-export function isAdmin(user: User | null): boolean {
+export function isAdmin(user: User | unknown | DBUser | null): boolean {
 	console.log("🚀 ~ isAdmin ~ user:", user);
 
 	if (!user) return false;
+	// @ts-ignore
 	return user?.primaryEmailAddress?.emailAddress === "liamhellis@gmail.com";
 }
 

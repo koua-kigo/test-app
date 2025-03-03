@@ -1,23 +1,31 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { SignInButton, SignOutButton, useAuth, useUser } from "@clerk/nextjs";
+import { auth, type Session, type Auth } from "@clerk/nextjs/server";
 import { isAdmin } from "@/lib/auth";
+import { getUserByClerkId } from "@/db/models/users/users";
+import type { User } from "@/types/db";
 
-export default function Home() {
-	const { user } = useUser();
+export default async function Home() {
+	// const { user } = useUser();
+	const session = await auth();
+	const { sessionClaims } = session;
+	console.log("🚀 ~ Home ~ session:", session);
 
+	console.log("🚀 ~ Home ~ sessionClaims:", sessionClaims);
+
+	const userid = session?.userId;
+
+	const user: User | null = userid ? await getUserByClerkId(userid) : null;
 	console.log("🚀 ~ Home ~ user:", user);
 
-	const isSignedIn = !!user;
-	const userIsAdmin = user ? isAdmin(user) : false;
+	const userIsAdmin = user?.isAdmin || isAdmin(user);
 
 	return (
-		<div className="grid grid-rows-[60px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+		<div className="grid grid-rows-[60px_1fr_20px] items-center justify-items-center min-h-screen p-2 gap-16 font-geistSans">
 			<nav className="w-full row-start-1 flex justify-between items-center">
 				<div className="flex items-center gap-6">
-					<h1 className="text-xl font-bold">Restaurant Passport</h1>
+					<h1 className="text-xl font-bold text-black">Restaurant Passport</h1>
 					<Link
 						href="/restaurants"
 						className="text-gray-700 hover:text-blue-600 transition-colors"
@@ -26,10 +34,10 @@ export default function Home() {
 					</Link>
 				</div>
 				<div className="flex gap-4">
-					{isSignedIn ? (
+					{userid ? (
 						<>
 							<Link
-								href="/profile"
+								href={`/users/${userid}/profile`}
 								className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] text-sm h-10 px-4"
 							>
 								My Profile
@@ -80,7 +88,7 @@ export default function Home() {
 				</p>
 
 				<div className="flex gap-4 items-center flex-col sm:flex-row mt-8">
-					{isSignedIn ? (
+					{userid ? (
 						<div className="flex gap-4">
 							<Link
 								href="/profile"

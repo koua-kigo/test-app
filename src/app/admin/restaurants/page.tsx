@@ -4,6 +4,8 @@ import { desc } from "drizzle-orm";
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
+import { getRestaurants } from "@/db/models";
+import type { restaurantSchema } from "@/types";
 
 // Loading component
 function RestaurantsLoading() {
@@ -28,7 +30,7 @@ function RestaurantsLoading() {
 }
 
 // Restaurant card component
-function RestaurantCard({ restaurant }: { restaurant: any }) {
+function RestaurantCard({ restaurant }: { restaurant: restaurantSchema }) {
 	console.log("🚀 ~ RestaurantCard ~ restaurant:", restaurant);
 
 	return (
@@ -63,16 +65,10 @@ function RestaurantCard({ restaurant }: { restaurant: any }) {
 }
 
 // Restaurants list component
-async function RestaurantsList() {
+async function RestaurantsList({ restaurants }: { restaurants: any }) {
 	// Fetch restaurants from the database
 
-	const restaurantsList = await db
-		.select()
-		.from(restaurants)
-		.orderBy(desc(restaurants.id));
-	console.log("🚀 ~ RestaurantsList ~ restaurantsList:", restaurantsList);
-
-	if (restaurantsList.length === 0) {
+	if (restaurants.length === 0) {
 		return (
 			<div className="text-center py-12">
 				<h3 className="text-xl font-medium mb-4">No restaurants found</h3>
@@ -85,7 +81,7 @@ async function RestaurantsList() {
 
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-			{restaurantsList.map((restaurant) => (
+			{restaurants.map((restaurant: unknown) => (
 				<RestaurantCard
 					key={restaurant.id.toString()}
 					restaurant={restaurant}
@@ -96,7 +92,11 @@ async function RestaurantsList() {
 }
 
 // Main page component
-export default function RestaurantsPage() {
+export default async function RestaurantsPage() {
+	const restaurants = await getRestaurants();
+
+	console.log("🚀 ~ RestaurantsPage ~ restaurants:", restaurants);
+
 	return (
 		<div className="container mx-auto px-4 py-8">
 			<div className="flex justify-between items-center mb-8">
@@ -117,7 +117,7 @@ export default function RestaurantsPage() {
 			</div>
 
 			<Suspense fallback={<RestaurantsLoading />}>
-				<RestaurantsList />
+				<RestaurantsList restaurants={restaurants} />
 			</Suspense>
 		</div>
 	);
