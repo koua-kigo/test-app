@@ -9,41 +9,23 @@ export const getPunchCards = async () => {
 };
 
 export const getPunchCardById = async (id: bigint) => {
-	return await db
-		.select()
-		.from(punchCards)
-		.where(eq(punchCards.id, id))
-		.limit(1);
+	return await db.query.punchCards.findFirst({
+		where: eq(punchCards.id, id),
+		with: {
+			restaurant: true,
+			user: true,
+		},
+	});
 };
 
 export const getPunchCardsByUserId = async (userId: bigint) => {
-	return await db
-		.select()
-		.from(punchCards)
-		.where(eq(punchCards.userId, userId));
-};
-
-export const getPunchCardsByUserIdWithRestaurants = async (userId: bigint) => {
-	return await db
-		.select({
-			id: punchCards.id,
-			userId: punchCards.userId,
-			restaurantId: punchCards.restaurantId,
-			punches: punchCards.punches,
-			completed: punchCards.completed,
-			updatedAt: punchCards.updatedAt,
-			restaurant: {
-				id: restaurants.id,
-				name: restaurants.name,
-				description: restaurants.description,
-				imageUrl: restaurants.imageUrl,
-				address: restaurants.address,
-				qrCodeUrl: restaurants.qrCodeUrl,
-			},
-		})
-		.from(punchCards)
-		.innerJoin(restaurants, eq(punchCards.restaurantId, restaurants.id))
-		.where(eq(punchCards.userId, userId));
+	return await db.query.punchCards.findMany({
+		where: eq(punchCards.userId, userId),
+		with: {
+			restaurant: true,
+			user: true,
+		},
+	});
 };
 
 export const getUserPunchCardForRestaurant = async (

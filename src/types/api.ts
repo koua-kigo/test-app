@@ -151,3 +151,24 @@ export type AdminDashboardStats = {
 	totalPrizeRedemptions: number;
 	activeUsersLast30Days: number;
 };
+
+/**
+ * User Leaderboard Entry
+ */
+export type UserLeaderboardEntry = {
+	userId: bigint;
+	userName: string;
+	punchCardCount: number;
+	rank: number;
+};
+
+/**
+ * Restaurant Leaderboard Entry
+ */
+export type RestaurantLeaderboardEntry = {
+	restaurantId: bigint;
+	restaurantName: string;
+	imageUrl: string;
+	punchCardCount: number;
+	rank: number;
+};

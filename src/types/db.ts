@@ -13,6 +13,10 @@ export type User = {
 	isAdmin?: boolean | undefined;
 	email: string;
 	phone?: string | null;
+	punchCards?: PunchCard[];
+	achievements?: Achievement[];
+	pointBalances?: PointBalance[];
+	raffleEntries?: RaffleEntry[];
 };
 
 /**

@@ -9,7 +9,7 @@ import {
 	punchCards,
 	restaurants,
 	raffleEntries,
-} from "../src/db/schema";
+} from "./schema";
 
 export const achievementsRelations = relations(achievements, ({ one }) => ({
 	user: one(users, {

@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Check, X, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import type { restaurantSchema } from "@/types/schemas";
 import type { z } from "zod";
+import { QRCodeManager } from "@/app/admin/restaurants/qr-code-manager";
 
 // Declare the type for our restaurant
 type Restaurant = z.infer<typeof restaurantSchema>;
@@ -155,9 +156,12 @@ export function RestaurantsTable({
 			cell: EditableCell,
 		},
 		{
-			accessorKey: "description",
-			header: "Description",
-			cell: EditableCell,
+			accessorKey: "qrCodeUrl",
+			header: "QR Code",
+			cell: ({ row }) => {
+				const restaurant = row.original;
+				return <QRCodeManager restaurant={restaurant as Restaurant} />;
+			},
 		},
 		{
 			accessorKey: "address",

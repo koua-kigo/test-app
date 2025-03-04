@@ -3,20 +3,37 @@ import {
 	getUserPunchCardForRestaurant,
 } from "@/db/models/punch-cards/punch-cards";
 import { convertBigInts } from "@/lib/utils";
-
+const { auth } = await import("@clerk/nextjs/server");
 export async function POST(request: Request) {
 	const { qrData, userId } = await request.json();
-	console.log("🚀 ~ POST ~ userId:", userId);
+	// Get the URL from the request
 
-	console.log("🚀 ~ POST ~ qrData:", qrData);
-	const restaurantId = qrData.split("/").pop();
+	const url = new URL(request.url);
 
-	console.log("🚀 ~ POST ~ restaurantId:", restaurantId);
+	const qrCodeUrl = new URL(qrData);
+
+	// Get the current user from Clerk
+
+	// Get path parameters from the URL
+	const pathname = qrCodeUrl.pathname;
+
+	const restaurantId = pathname.split("/").filter(Boolean).pop();
+
+	// For dynamic route segments like /api/scan/[id], you can access them from pathSegments
+	// Example: if the route is /api/scan/123, then pathSegments would be ['api', 'scan', '123']
+	// The last segment would be pathSegments[pathSegments.length - 1]
+
+	// You can also extract route parameters from the URL path
+	// For example, if your route is /api/scan/[restaurantId]/[action]
+	// You could access them like:
+	// const restaurantIdFromPath = pathSegments[2]; // Assuming the structure is ['api', 'scan', 'restaurantId', 'action']
+	// const actionFromPath = pathSegments[3];
+	// Check if scan parameter is 'true'
 
 	if (restaurantId && userId) {
 		const punchCardExists = await getUserPunchCardForRestaurant(
 			userId,
-			restaurantId,
+			BigInt(restaurantId),
 		);
 		console.log("🚀 ~ POST ~ punchCardExists:", punchCardExists);
 		if (punchCardExists) {
@@ -27,7 +44,7 @@ export async function POST(request: Request) {
 		}
 		const punchCard = await createPunchCard({
 			userId,
-			restaurantId,
+			restaurantId: BigInt(restaurantId),
 			punches: 1,
 			completed: true,
 		}).then((res) => res[0]);

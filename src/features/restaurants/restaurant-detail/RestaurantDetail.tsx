@@ -1,7 +1,7 @@
 "use client";
 
 import { getRestaurantByIdWithPrizes } from "@/db/models/restaurants/restaurants";
-import { getUserById } from "@/db/models/users/users";
+import { getUserByClerkId } from "@/db/models/users/users";
 import { UserScanQrCode } from "@/features/users";
 import { GetUserRestaurantPunchCard } from "@/features/users/GetUserPunchCard";
 import { UserPunchCard } from "@/features/users/UserPunchCard";
@@ -9,7 +9,8 @@ import type { PunchCard, RestaurantDetailPayload, User } from "@/types/db";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
-import QRCode from "react-qr-code";
+import { useEffect, useState } from "react";
+
 export function RestaurantDetail({
 	restaurant: restaurantDetail,
 	userPunchCard,
@@ -19,6 +20,19 @@ export function RestaurantDetail({
 	user: User;
 	userPunchCard: PunchCard;
 }) {
+	const [userData, setUserData] = useState<User | null>(user);
+	const [userPunchCardData, setUserPunchCardData] = useState<PunchCard | null>(
+		null,
+	);
+
+	const { user: userAuth }: any = useUser();
+
+	useEffect(() => {
+		if (userAuth?.id && !userData) {
+			getUserByClerkId(userAuth?.id).then((res) => setUserData(res));
+		}
+	}, [userAuth, userData]);
+
 	console.log("🚀 ~ user:", user);
 
 	console.log("🚀 ~ userPunchCard:", userPunchCard);
@@ -29,15 +43,12 @@ export function RestaurantDetail({
 		<div>
 			<div className="relative h-64 w-full mb-8 rounded-lg overflow-hidden">
 				<Image
-					src={
-						restaurant.imageUrl ||
-						"https://via.placeholder.com/1200x400?text=Restaurant"
-					}
+					src={restaurant.imageUrl || "RWP.jpg"}
 					alt={restaurant.name}
-					fill
 					className="object-cover"
 					priority
-					sizes="100vw"
+					height={500}
+					width={500}
 				/>
 				<div className="absolute inset-0 bg-black bg-opacity-30" />
 				<div className="absolute bottom-0 left-0 p-6">
@@ -75,7 +86,7 @@ export function RestaurantDetail({
 							/>
 						</div>
 					)}
-					{user && !userPunchCard && <UserScanQrCode />}
+					{user?.id && <UserScanQrCode user={user} />}
 				</div>
 
 				{prizes.length > 0 ? (

@@ -10,7 +10,6 @@ import {
 	integer,
 	uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 export const restaurants = pgTable("restaurants", {
 	id: bigserial({ mode: "bigint" }).primaryKey().notNull(),

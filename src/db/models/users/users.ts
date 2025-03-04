@@ -1,3 +1,5 @@
+"use server";
+
 import { eq } from "drizzle-orm";
 import { db } from "../../db";
 import { users } from "../../schema";
@@ -8,27 +10,56 @@ export const getUsers = async () => {
 };
 
 export const getUserById = async (id: bigint) => {
-	return await db
-		.select()
-		.from(users)
-		.where(eq(users.id, id))
-		.limit(1)
-		.then((res) => res[0]);
+	return await db.query.users.findFirst({
+		where: eq(users.id, id),
+		with: {
+			punchCards: {
+				with: {
+					restaurant: true,
+				},
+			},
+			achievements: true,
+			pointBalances: true,
+			raffleEntries: true,
+		},
+	});
 };
 
-export const getUserByClerkId = async (
-	clerkId: string,
-): Promise<User | null> => {
-	// @ts-ignore
-	// TODO: fix this
-	return await db
-		.select()
-		.from(users)
-		.where(eq(users.clerkId, clerkId))
-		.limit(1)
-		.then((res) => res[0]);
+export const getUserByClerkId = async (clerkId: string) => {
+	const user = await db.query.users.findFirst({
+		where: eq(users.clerkId, clerkId),
+		with: {
+			punchCards: {
+				with: {
+					restaurant: true,
+				},
+			},
+			achievements: true,
+			pointBalances: true,
+			raffleEntries: true,
+		},
+	});
+	console.log(user);
+	return user;
 };
 
+export const getUserByClerkIdWithPunchCards = async (clerkId: string) => {
+	const user = await db.query.users.findFirst({
+		where: eq(users.clerkId, clerkId),
+		with: {
+			punchCards: {
+				with: {
+					restaurant: true,
+				},
+			},
+			achievements: true,
+			pointBalances: true,
+			raffleEntries: true,
+		},
+	});
+	console.log(user);
+	return user;
+};
 export const createUser = async (data: {
 	clerkId: string;
 	name: string;

@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Restaurant Data Scraper
 
-## Getting Started
+This project scrapes restaurant information from a list of URLs. It extracts:
 
-First, run the development server:
+- Restaurant name
+- Address information (particularly in Maple Grove, Minnesota)
+- Restaurant image (logo or photo)
+
+## Prerequisites
+
+- Node.js 16 or higher
+- npm or yarn package manager
+
+## Installation
+
+1. Clone this repository or download the code
+2. Install dependencies:
 
 ```bash
-npm run dev
+npm install
 # or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## How to Use
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Make sure your `scripts/restaurants.json` file contains an array of restaurant URLs
+2. Run the scraper using either:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Using npm script
+npm start
 
-## Learn More
+# Or using the shell script (recommended)
+npm run scrape
+# or directly
+bash scripts/run-scraper.sh
+```
 
-To learn more about Next.js, take a look at the following resources:
+3. The scraper will process the URLs in batches and save the results to `restaurant-data.json` in the project root
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Output Format
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The output file `restaurant-data.json` contains:
 
-## Deploy on Vercel
+- `scrapedAt`: Timestamp of when the scraping was performed
+- `totalScraped`: Total number of URLs processed
+- `validResults`: Number of URLs that yielded usable data
+- `restaurants`: Array of restaurant data objects with:
+  - `name`: The name of the restaurant
+  - `address`: The address information found
+  - `imageUrl`: URL of a restaurant image (logo or photo)
+  - `sourceUrl`: The original URL that was scraped
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+.
+├── scripts/
+│   ├── restaurants.json     # List of restaurant URLs to scrape
+│   ├── scrape-restaurants.js # Main scraper script
+│   └── run-scraper.sh       # Helper shell script
+├── restaurant-data.json     # Output file (generated after running)
+├── package.json
+└── README.md
+```
+
+## Limitations
+
+- Some websites may block web scraping or have unusual structures that the scraper can't handle
+- The address extraction prioritizes finding information about Maple Grove, MN
+- Image extraction attempts to find meaningful restaurant images, but may sometimes fail
+
+## Customization
+
+You can modify the selectors in the `scrapeRestaurantInfo` function to better target specific websites if needed.
+
+## License
+
+MIT

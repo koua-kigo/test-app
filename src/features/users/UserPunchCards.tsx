@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import type { User } from "@/types/db";
 
 type PunchCardWithRestaurant = {
 	id: bigint;
@@ -27,7 +28,7 @@ type PunchCardWithRestaurant = {
 export function UserPunchCards({
 	punchCards,
 }: {
-	punchCards: PunchCardWithRestaurant[];
+	punchCards: User["punchCards"];
 }) {
 	// Default punch threshold (can be made dynamic later)
 	const PUNCH_THRESHOLD = 10;

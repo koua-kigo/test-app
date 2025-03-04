@@ -2,97 +2,28 @@
 
 import React, { useState, useRef } from "react";
 import QRCode from "react-qr-code";
-import { saveQRCodeUrl } from "./actions";
-import Image from "next/image";
 
-interface Restaurant {
-	id: bigint;
-	name: string;
-	description: string;
-	imageUrl: string;
-	address: string;
-	qrCodeUrl?: string | null;
-}
+import Image from "next/image";
+import { useHandleQRCode } from "@/hooks/use-handle-qrCode";
+import type { Restaurant } from "@/types/db";
 
 interface QRCodeManagerProps {
-	restaurantId: string;
 	restaurant: Restaurant;
 }
 
-export function QRCodeManager({
-	restaurantId,
-	restaurant,
-}: QRCodeManagerProps) {
-	const [generating, setGenerating] = useState(false);
-	const [saving, setSaving] = useState(false);
-	const [success, setSuccess] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
-	const qrRef = useRef<HTMLDivElement>(null);
-
-	const baseUrl =
-		typeof window !== "undefined"
-			? `${window.location.protocol}//${window.location.host}`
-			: "https://your-app-domain.com";
-
-	const qrCodeValue = `/restaurants/${restaurantId}`;
-
-	// Generate QR code and show save/cancel buttons
-	const handleGenerate = () => {
-		setGenerating(true);
-		setError(null);
-		setSuccess(false);
-	};
-
-	// Cancel QR code generation
-	const handleCancel = () => {
-		setGenerating(false);
-		setError(null);
-	};
-
-	// Download QR code as image
-	const handleDownload = () => {
-		if (!qrCodeDataUrl) return;
-
-		const link = document.createElement("a");
-		link.href = qrCodeDataUrl;
-		link.download = `${restaurant.name.replace(/\s+/g, "-").toLowerCase()}-qrcode.svg`;
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-	};
-
-	// Save QR code URL to database
-	const handleSave = async () => {
-		try {
-			setSaving(true);
-			setError(null);
-
-			// Convert QR code to data URL
-			const svgElement = qrRef.current?.querySelector("svg");
-			if (!svgElement) {
-				throw new Error("QR code not found");
-			}
-
-			const svgData = new XMLSerializer().serializeToString(svgElement);
-			const dataUrl = `data:image/svg+xml;base64,${btoa(svgData)}`;
-
-			// Save to database
-			const result = await saveQRCodeUrl(restaurantId, dataUrl);
-
-			if (result) {
-				setSuccess(true);
-				setGenerating(false);
-				setQrCodeDataUrl(dataUrl);
-			} else {
-				throw new Error("Failed to save QR code");
-			}
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "An error occurred");
-		} finally {
-			setSaving(false);
-		}
-	};
+export function QRCodeManager({ restaurant }: QRCodeManagerProps) {
+	const {
+		generating,
+		saving,
+		success,
+		error,
+		qrRef,
+		qrCodeValue,
+		handleGenerate,
+		handleCancel,
+		handleSave,
+		handleDownload,
+	} = useHandleQRCode({ restaurant: restaurant as Restaurant });
 
 	return (
 		<div>

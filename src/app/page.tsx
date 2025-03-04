@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { SignInButton, SignOutButton, useAuth, useUser } from "@clerk/nextjs";
+import {
+	SignInButton,
+	SignOutButton,
+	SignUpButton,
+	useAuth,
+	useUser,
+} from "@clerk/nextjs";
 import { auth, type Session, type Auth } from "@clerk/nextjs/server";
 import { isAdmin } from "@/lib/auth";
 import { getUserByClerkId } from "@/db/models/users/users";
@@ -34,55 +40,7 @@ export default async function Home() {
 						/>
 					</Link>
 				</div>
-				<div className="flex gap-4">
-					<Link
-						href="/restaurants"
-						className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] text-sm h-10 px-4"
-					>
-						Restaurants
-					</Link>
-					{userid ? (
-						<>
-							<Link
-								href={`/users/${userid}/profile`}
-								className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] text-sm h-10 px-4"
-							>
-								My Profile
-							</Link>
-							{userIsAdmin && (
-								<Link
-									href="/admin"
-									className="rounded-full border border-solid border-purple-500 text-purple-600 transition-colors flex items-center justify-center hover:bg-purple-50 text-sm h-10 px-4"
-								>
-									Admin
-								</Link>
-							)}
-							<SignOutButton>
-								<button
-									type="button"
-									className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm h-10 px-4"
-								>
-									Sign Out
-								</button>
-							</SignOutButton>
-						</>
-					) : (
-						<>
-							<Link
-								href="/sign-in"
-								className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] text-sm h-10 px-4"
-							>
-								Sign In
-							</Link>
-							<Link
-								href="/sign-up"
-								className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm h-10 px-4"
-							>
-								Sign Up
-							</Link>
-						</>
-					)}
-				</div>
+				<div className="flex gap-4">{!userid && <SignUpButton />}</div>
 			</nav>
 
 			<main className="flex flex-col gap-8 row-start-2 items-center">
@@ -98,14 +56,8 @@ export default async function Home() {
 					{userid ? (
 						<div className="flex gap-4">
 							<Link
-								href="/profile"
-								className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-							>
-								Go to My Profile
-							</Link>
-							<Link
 								href="/restaurants"
-								className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+								className="rounded-full bg-[#e0d9d1] border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#e0d9d1] dark:hover:bg-[#1a1a1a] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
 							>
 								Browse Restaurants
 							</Link>
@@ -114,13 +66,13 @@ export default async function Home() {
 						<div className="flex gap-4">
 							<Link
 								href="/sign-up"
-								className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+								className="rounded-full  border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
 							>
 								Get Started
 							</Link>
 							<Link
 								href="/restaurants"
-								className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+								className="rounded-full bg-[#e0d9d1]  border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
 							>
 								Browse Restaurants
 							</Link>

@@ -56,13 +56,8 @@ export default function AdminLayout({
 
 	return (
 		<SidebarProvider>
-			<div className="min-h-screen  min-w-screen bg-gray-100 relative">
+			<div className="min-h-screen  min-w-screen relative">
 				<AdminContent>{children}</AdminContent>
-				<DotPattern
-					className={cn(
-						"[mask-image:radial-gradient(1200px_circle_at_center,white,transparent)]",
-					)}
-				/>
 			</div>
 		</SidebarProvider>
 	);

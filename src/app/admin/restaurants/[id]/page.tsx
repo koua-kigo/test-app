@@ -6,7 +6,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@clerk/nextjs/server";
-import { QRCodeManager } from "./qr-code-manager";
+import { QRCodeManager } from "../qr-code-manager";
 import {
 	getRestaurantById,
 	getPrizesByRestaurantId,
@@ -42,10 +42,7 @@ async function RestaurantDetail(params: { id: string }) {
 		<div>
 			<div className="relative h-64 w-full mb-8 rounded-lg overflow-hidden">
 				<Image
-					src={
-						restaurant.imageUrl ||
-						"https://via.placeholder.com/1200x400?text=Restaurant"
-					}
+					src={restaurant.imageUrl || "/RWP.jpg"}
 					alt={restaurant.name}
 					fill
 					className="object-cover"
@@ -82,10 +79,7 @@ async function RestaurantDetail(params: { id: string }) {
 							</div>
 						</div>
 					) : isAuthenticated ? (
-						<QRCodeManager
-							restaurantId={restaurant.id.toString()}
-							restaurant={restaurant}
-						/>
+						<QRCodeManager restaurant={restaurant} />
 					) : (
 						<p className="text-gray-600">No QR code has been generated yet.</p>
 					)}
