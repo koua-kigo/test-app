@@ -19,7 +19,7 @@ export default async function ProfilePage() {
 				<h1 className="text-2xl font-bold">My Profile</h1>
 				<UserButton />
 			</div>
-			<div className="bg-white shadow rounded-lg p-6 mb-6">
+			<div className="bg-white shadow-sm rounded-lg p-6 mb-6">
 				<div className="flex items-center space-x-4">
 					<div className="font-medium">
 						<div>{user.name}</div>

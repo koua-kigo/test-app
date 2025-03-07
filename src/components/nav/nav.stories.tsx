@@ -161,7 +161,7 @@ export const WithTabChangeCallback: Story = {
 			return (
 				<div className="flex flex-col h-screen">
 					<div className="flex-1 flex items-center justify-center">
-						<div className="p-4 border rounded-md shadow-sm">
+						<div className="p-4 border rounded-md shadow-xs">
 							<h3 className="text-lg font-medium mb-2">Tab Navigation Demo</h3>
 							<p className="text-sm text-muted-foreground mb-4">
 								Click on different tabs in the navigation bar below to see this

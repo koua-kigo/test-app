@@ -71,7 +71,7 @@ export default function List01({ items = ITEMS, className }: List01Props) {
                 "w-full max-w-2xl mx-auto p-4",
                 "bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl",
                 "rounded-3xl border border-white/20 dark:border-zinc-800/50",
-                "shadow-sm",
+                "shadow-xs",
                 className
             )}
         >
@@ -87,7 +87,7 @@ export default function List01({ items = ITEMS, className }: List01Props) {
                             "transition-all duration-300 ease-out",
                             "rounded-2xl",
                             "border border-white/20 dark:border-zinc-700/50",
-                            "shadow-xs hover:shadow-sm"
+                            "shadow-2xs hover:shadow-xs"
                         )}
                     >
                         <div
@@ -97,7 +97,7 @@ export default function List01({ items = ITEMS, className }: List01Props) {
                                 iconStyles[
                                     item.iconStyle as keyof typeof iconStyles
                                 ],
-                                "shadow-xs border border-white/10 dark:border-zinc-700/50",
+                                "shadow-2xs border border-white/10 dark:border-zinc-700/50",
                                 "transition-colors duration-300"
                             )}
                         >
@@ -114,7 +114,7 @@ export default function List01({ items = ITEMS, className }: List01Props) {
                                         className={cn(
                                             "px-2.5 py-0.5 rounded-full text-xs font-medium",
                                             "transition-colors duration-300",
-                                            "shadow-xs",
+                                            "shadow-2xs",
                                             badgeVariants[
                                                 item.badge
                                                     .variant as keyof typeof badgeVariants

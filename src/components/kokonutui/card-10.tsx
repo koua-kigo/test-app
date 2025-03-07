@@ -6,7 +6,7 @@ import Image from "next/image";
 export default function Card_10() {
     return (
         <div className="w-full max-w-sm mx-auto">
-            <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-2xl shadow-xs border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
+            <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-2xl shadow-2xs border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
                 <div className="p-5 border-b border-zinc-200/50 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xs">
                     <div className="flex items-start justify-between mb-2">
                         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">

@@ -77,7 +77,7 @@ export default function List02({
                 "w-full max-w-2xl mx-auto",
                 "bg-white dark:bg-zinc-900/70",
                 "border border-zinc-100 dark:border-zinc-800",
-                "rounded-3xl shadow-sm backdrop-blur-xl",
+                "rounded-3xl shadow-xs backdrop-blur-xl",
                 className
             )}
         >
@@ -105,7 +105,7 @@ export default function List02({
                                 "p-3 -mx-3 rounded-2xl",
                                 "transition-all duration-300 ease-out",
                                 "hover:bg-zinc-100 dark:hover:bg-zinc-800/50",
-                                "hover:shadow-sm",
+                                "hover:shadow-xs",
                                 "border border-transparent",
                                 "hover:border-zinc-300 dark:hover:border-zinc-700/50"
                             )}
@@ -122,7 +122,7 @@ export default function List02({
                                     "transition-all duration-300",
                                     "group-hover:shadow-lg",
                                     "border border-zinc-200/50 dark:border-zinc-700/50",
-                                    "shadow-xs"
+                                    "shadow-2xs"
                                 )}
                             >
                                 <transaction.icon className="w-5 h-5" />

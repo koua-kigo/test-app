@@ -96,7 +96,7 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 
 	return (
 		<nav className="fixed bottom-0 left-1/2 -translate-x-1/2 py-4 z-20">
-			<div className="flex justify-around px-4 py-1 w-content border rounded-full bg-[#e0d9d1] backdrop-blur ">
+			<div className="flex justify-around px-4 py-1 w-content border rounded-full bg-[#e0d9d1] backdrop-blur-sm ">
 				{navItems.map((item) => (
 					<Button
 						key={item.id}
