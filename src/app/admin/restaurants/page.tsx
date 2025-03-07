@@ -69,17 +69,6 @@ function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
 async function RestaurantsList({ restaurants }: { restaurants: Restaurant[] }) {
 	// Fetch restaurants from the database
 
-	if (restaurants.length === 0) {
-		return (
-			<div className="text-center py-12">
-				<h3 className="text-xl font-medium mb-4">No restaurants found</h3>
-				<p className="text-gray-600 mb-6">
-					There are no restaurants in the database yet.
-				</p>
-			</div>
-		);
-	}
-
 	return <RestaurantsTable restaurants={restaurants} />;
 }
 
@@ -115,10 +104,18 @@ export default async function RestaurantsPage() {
 					below or click on View Details for more options.
 				</p>
 			</div>
-
-			<Suspense fallback={<RestaurantsLoading />}>
-				<RestaurantsList restaurants={restaurants} />
-			</Suspense>
+			{restaurants.length === 0 ? (
+				<div className="text-center py-12">
+					<h3 className="text-xl font-medium mb-4">No restaurants found</h3>
+					<p className="text-gray-600 mb-6">
+						There are no restaurants in the database yet.
+					</p>
+				</div>
+			) : (
+				<Suspense fallback={<RestaurantsLoading />}>
+					<RestaurantsTable restaurants={restaurants} />
+				</Suspense>
+			)}
 		</div>
 	);
 }

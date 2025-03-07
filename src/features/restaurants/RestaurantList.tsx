@@ -48,7 +48,7 @@ export function RestaurantsList({
 				},
 			}}
 		>
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-7xl px-4">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-7xl px-4 auto-rows-fr">
 				{restaurants.map((restaurant: Restaurant) => (
 					<motion.div
 						variants={{
@@ -60,7 +60,7 @@ export function RestaurantsList({
 							},
 						}}
 						key={restaurant.id.toString()}
-						className="w-full"
+						className="w-full min-h-[300px]"
 					>
 						<RestaurantCard restaurant={restaurant} />
 					</motion.div>

@@ -1,32 +1,112 @@
 import Image from "next/image";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { ArrowUpRight } from "lucide-react";
+import type { Restaurant } from "@/types/db";
+// export function RestaurantCard({ restaurant }: { restaurant: any }) {
+// 	console.log("🚀 ~ RestaurantCard ~ restaurant:", restaurant);
 
-export function RestaurantCard({ restaurant }: { restaurant: any }) {
-	console.log("🚀 ~ RestaurantCard ~ restaurant:", restaurant);
+// 	return (
+// 		<div className="rounded-lg shadow-md p-0 overflow-hidden transition-all hover:shadow-lg w-auto">
+// 			<Image
+// 				src={"/RWP.jpg"}
+// 				alt={restaurant.name}
+// 				height={200}
+// 				width={200}
+// 				className="object-cover"
+// 				// sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+// 			/>
 
+// 			<div className="p-4">
+// 				<h3 className="text-xl font-semibold mb-2">{restaurant.name}</h3>
+// 				<p className="text-gray-600 text-sm mb-2 line-clamp-2">
+// 					{restaurant.description}
+// 				</p>
+// 				<p className="text-gray-500 text-sm mb-4">{restaurant.address}</p>
+// 				<Link
+// 					href={`/restaurants/${restaurant.id}`}
+// 					className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
+// 				>
+// 					View Details
+// 				</Link>
+// 			</div>
+// 		</div>
+// 	);
+// }
+
+export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
 	return (
-		<div className="rounded-lg shadow-md p-0 overflow-hidden transition-all hover:shadow-lg w-auto">
-			<Image
-				src={"/RWP.jpg"}
-				alt={restaurant.name}
-				height={200}
-				width={200}
-				className="object-cover"
-				// sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-			/>
+		<div className="block w-full group h-full">
+			<div
+				className={cn(
+					"relative overflow-hidden rounded-lg",
+					"bg-white/80 dark:bg-zinc-900/80",
+					"backdrop-blur-xl",
+					"border border-zinc-200/50 dark:border-zinc-800/50",
+					"shadow-md",
+					"transition-all duration-300",
+					"hover:shadow-lg",
+					"hover:border-zinc-300/50 dark:hover:border-zinc-700/50 h-full",
+				)}
+			>
+				<div className="relative h-[200px] w-full overflow-hidden">
+					<Image
+						src={"/RWP.jpg"}
+						alt={restaurant.name}
+						fill
+						className="object-cover h-full w-full"
+					/>
+				</div>
 
-			<div className="p-4">
-				<h3 className="text-xl font-semibold mb-2">{restaurant.name}</h3>
-				<p className="text-gray-600 text-sm mb-2 line-clamp-2">
-					{restaurant.description}
-				</p>
-				<p className="text-gray-500 text-sm mb-4">{restaurant.address}</p>
-				<Link
-					href={`/restaurants/${restaurant.id}`}
-					className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
-				>
-					View Details
-				</Link>
+				<div
+					className={cn(
+						"absolute inset-0",
+						"bg-gradient-to-t from-black/90 via-black/40 to-transparent",
+					)}
+				/>
+
+				<div className="absolute top-3 right-3">
+					<span
+						className={cn(
+							"px-2.5 py-1 rounded-full text-xs font-medium",
+							"bg-white/90 text-zinc-800",
+							"dark:bg-zinc-900/90 dark:text-zinc-200",
+							"backdrop-blur-md",
+							"shadow-xs",
+							"border border-white/20 dark:border-zinc-800/50",
+						)}
+					>
+						New
+					</span>
+				</div>
+
+				<div className="absolute bottom-0 left-0 right-0 p-5">
+					<div className="flex items-center justify-between gap-3">
+						<div className="space-y-1.5">
+							<h3 className="text-lg font-semibold text-white dark:text-zinc-100 leading-snug">
+								{restaurant.name}
+							</h3>
+							<p className="text-sm text-zinc-200 dark:text-zinc-300 line-clamp-2">
+								{restaurant.description}
+							</p>
+							<p className="text-xs text-zinc-300 dark:text-zinc-400">
+								{restaurant.address}
+							</p>
+						</div>
+						<Link
+							href={`/restaurants/${restaurant.id}`}
+							className={cn(
+								"p-2 rounded-full",
+								"bg-white/10 dark:bg-zinc-800/50",
+								"backdrop-blur-md",
+								"group-hover:bg-white/20 dark:group-hover:bg-zinc-700/50",
+								"transition-colors duration-300",
+							)}
+						>
+							<ArrowUpRight className="w-4 h-4 text-white group-hover:-rotate-12 transition-transform duration-300" />
+						</Link>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
