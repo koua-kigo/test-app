@@ -65,8 +65,9 @@ export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
 					)}
 				/>
 
-				<div className="absolute top-3 right-3">
-					<span
+				<div className="absolute top-3 right-3 z-10">
+					<Link
+						href={`/restaurants/${restaurant.id}`}
 						className={cn(
 							"px-2.5 py-1 rounded-full text-xs font-medium",
 							"bg-white/90 text-zinc-800",
@@ -77,7 +78,7 @@ export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
 						)}
 					>
 						New
-					</span>
+					</Link>
 				</div>
 
 				<div className="absolute bottom-0 left-0 right-0 p-5">
@@ -94,7 +95,9 @@ export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
 							</p>
 						</div>
 						<Link
-							href={`/restaurants/${restaurant.id}`}
+							href={`${restaurant.address}`}
+							target="_blank"
+							rel="noopener noreferrer"
 							className={cn(
 								"p-2 rounded-full",
 								"bg-white/10 dark:bg-zinc-800/50",

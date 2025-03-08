@@ -8,8 +8,6 @@ export async function POST(request: Request) {
 	const { qrData, userId } = await request.json();
 	// Get the URL from the request
 
-	const url = new URL(request.url);
-
 	const qrCodeUrl = new URL(qrData);
 
 	// Get the current user from Clerk
@@ -17,7 +15,11 @@ export async function POST(request: Request) {
 	// Get path parameters from the URL
 	const pathname = qrCodeUrl.pathname;
 
+	console.log("🚀 ~ POST ~ pathname:", pathname);
+
 	const restaurantId = pathname.split("/").filter(Boolean).pop();
+
+	console.log("🚀 ~ POST ~ restaurantId:", restaurantId);
 
 	// For dynamic route segments like /api/scan/[id], you can access them from pathSegments
 	// Example: if the route is /api/scan/123, then pathSegments would be ['api', 'scan', '123']
