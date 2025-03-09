@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import type { OnResultFunction } from "react-qr-reader";
+import { processQrScan } from "@/actions/scan-actions";
 
 interface QrData {
 	userId: string;
@@ -17,16 +18,26 @@ interface QrResultObject {
 	[key: string]: unknown;
 }
 
+// Define a type for scan result
+interface ScanResult {
+	message: string;
+	data: Record<string, unknown>;
+	restaurantName?: string;
+	isExisting?: boolean;
+	error?: string;
+	status?: number;
+}
+
 export interface UseScanQrCodeOptions {
 	userId?: string | number;
-	onScanSuccess?: (result: Record<string, string>) => void;
+	onScanSuccess?: (result: ScanResult) => void;
 }
 
 export interface UseScanQrCodeReturn {
 	qrCodeData: string;
 	isScanning: boolean;
 	checkingPunchCardStatus: boolean;
-	scanResult: Record<string, string> | null;
+	scanResult: ScanResult | null;
 	toggleScanner: () => void;
 	handleScan: OnResultFunction;
 	handleError: (err: Error) => void;
@@ -41,9 +52,7 @@ export function useScanQrCode({
 	const [isScanning, setIsScanning] = useState<boolean>(false);
 	const [checkingPunchCardStatus, setCheckingPunchCardStatus] =
 		useState<boolean>(false);
-	const [scanResult, setScanResult] = useState<Record<string, string> | null>(
-		null,
-	);
+	const [scanResult, setScanResult] = useState<ScanResult | null>(null);
 
 	// Toggle scanner on/off
 	const toggleScanner = useCallback(() => {
@@ -127,21 +136,21 @@ export function useScanQrCode({
 		});
 	}, []);
 
-	// Process scan result
+	// Process scan result using Server Action
 	const checkScanResult = useCallback(async () => {
-		if (!qrCodeData) return;
+		if (!qrCodeData || !userId) return;
 
 		try {
-			const res = await fetch("/api/scan", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ qrData: qrCodeData, userId }),
+			setCheckingPunchCardStatus(true);
+
+			// Use the server action directly instead of fetch
+			const data = await processQrScan({
+				qrData: qrCodeData,
+				userId,
 			});
 
-			const data = await res.json();
-
 			if (data) {
-				setScanResult(data);
+				setScanResult(data as ScanResult);
 				setCheckingPunchCardStatus(false);
 
 				toast({
@@ -150,7 +159,7 @@ export function useScanQrCode({
 					variant: "default",
 				});
 
-				onScanSuccess?.(data);
+				onScanSuccess?.(data as ScanResult);
 			}
 		} catch (error) {
 			handleError(

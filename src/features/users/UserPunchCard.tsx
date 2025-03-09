@@ -1,20 +1,22 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PunchCard, PUNCH_THRESHOLD } from "@/components/ui/punch-card";
+import type { PunchCardWithRestaurant } from "@/types/api";
 
-export function UserPunchCard() {
+interface UserPunchCardProps {
+	punchCard: PunchCardWithRestaurant;
+}
+
+export function UserPunchCard({ punchCard }: UserPunchCardProps) {
 	return (
-		<div className="max-w-md mx-auto">
-			<Card>
-				<CardHeader>
-					<CardTitle>Your Punch Card</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<p className="text-muted-foreground">
-						Your punch card details will appear here.
-					</p>
-				</CardContent>
-			</Card>
-		</div>
+		<PunchCard
+			restaurantName={punchCard.restaurant.name}
+			restaurantImage={punchCard.restaurant.imageUrl}
+			restaurantId={punchCard.restaurantId}
+			currentPunches={punchCard.punches}
+			totalPunches={PUNCH_THRESHOLD}
+			completed={punchCard.completed}
+			lastUpdated={punchCard.updatedAt}
+		/>
 	);
 }
