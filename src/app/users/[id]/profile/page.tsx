@@ -31,7 +31,7 @@ export default async function ProfilePage() {
 			{/* <BentoGrid items={user.punchCards.map((punchCard) => ({ */}
 
 			{/* Display user's punch cards */}
-			{user?.punchCards && <UserPunchCards punchCards={user?.punchCards} />}
+			{/* {user?.punchCards && <UserPunchCards punchCards={user?.punchCards} />} */}
 
 			{user?.id && <UserScanQrCode user={user} />}
 		</div>

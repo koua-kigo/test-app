@@ -1,4 +1,5 @@
-import type { prizeSchema } from "../../../types/schemas";
+"use server";
+
 import { eq } from "drizzle-orm";
 import { db } from "../../db";
 import { restaurants, prizes } from "../../schema";

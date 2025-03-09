@@ -201,7 +201,7 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 		{
 			id: "restaurants",
 			icon: Utensils,
-			label: "Restaurants",
+			label: "Food",
 			href: "/restaurants",
 		},
 
@@ -351,7 +351,7 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 							variant="ghost"
 							size="sm"
 							className={cn(
-								"flex flex-col p-4 gap-1 mx-2 h-auto",
+								"flex flex-col p-1 gap-1 mx-2 h-auto",
 								activeTab === item.id && "text-primary",
 							)}
 							onClick={() => handleTabChange(item.href)}
