@@ -13,6 +13,7 @@ import {
 	getRestaurantByIdWithPrizes,
 } from "@/db/models";
 import { RestaurantLoading } from "@/features/restaurants/RestaurantLoading";
+import { PrizeCard } from "@/features/prizes/prize-card/PrizeCard";
 
 // Loading component
 

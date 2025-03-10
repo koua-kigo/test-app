@@ -1,3 +1,4 @@
+"use client";
 import { useState, useMemo } from "react";
 import type { Restaurant } from "@/types/db";
 import Fuse from "fuse.js";

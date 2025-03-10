@@ -1,4 +1,6 @@
-function PrizeCard({ prize }: { prize: any }) {
+import Image from 'next/image';
+
+export function PrizeCard({ prize }: { prize: any }) {
 	return (
 		<div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
 			<div className="relative h-32 w-full mb-3">

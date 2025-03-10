@@ -2,6 +2,7 @@
 
 import { getRestaurantByIdWithPrizes } from "@/db/models/restaurants/restaurants";
 import { getUserByClerkId } from "@/db/models/users/users";
+import { PrizeCard } from "@/features/prizes/prize-card/PrizeCard";
 import { UserScanQrCode } from "@/features/users";
 import { GetUserRestaurantPunchCard } from "@/features/users/GetUserPunchCard";
 import { UserPunchCard } from "@/features/users/UserPunchCard";
