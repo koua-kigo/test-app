@@ -34,6 +34,8 @@ export default async function ProfilePage() {
 			{/* {user?.punchCards && <UserPunchCards punchCards={user?.punchCards} />} */}
 
 			{user?.id && <UserScanQrCode user={user} />}
+
+			{/* TODO: Add Bento Grid UI header */}
 		</div>
 	);
 }

@@ -20,7 +20,10 @@ export function isAdmin(user: User | unknown | DBUser | null): boolean {
 
 	if (!user) return false;
 	// @ts-ignore
-	return user?.primaryEmailAddress?.emailAddress === "liamhellis@gmail.com";
+	return (
+		user?.primaryEmailAddress?.emailAddress === "liamhellis@gmail.com" ||
+		user?.primaryEmailAddress?.emailAddress === "sam@clubhausagency.com" ||  user?.publicMetadata?.role === "admin";
+	);
 }
 
 /**
