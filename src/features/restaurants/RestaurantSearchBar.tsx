@@ -1,3 +1,5 @@
+"use client";
+
 import type { ChangeEvent } from "react";
 import { Search, ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/ui/input";

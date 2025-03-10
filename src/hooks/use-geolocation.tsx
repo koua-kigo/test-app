@@ -1,4 +1,5 @@
-// hooks/useGeolocation.js
+// hoo"ks/useGeolocation.js
+"use client";
 import { useState, useEffect } from "react";
 
 export const useGeolocation = () => {
