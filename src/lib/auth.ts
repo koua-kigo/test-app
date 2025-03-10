@@ -5,13 +5,6 @@
 import type { EmailAddress, User } from "@clerk/nextjs/server";
 import type { User as DBUser } from "@/types/db";
 
-// List of admin user IDs
-// In a real application, you might store this in a database
-// or use Clerk's organization features for role management
-const ADMIN_USER_IDS = [
-	"user_2NM3vax1Cx5dmPSsKvCEyGxfZXn", // Replace with your actual admin user IDs
-];
-
 /**
  * Check if a user has admin privileges
  */
@@ -22,7 +15,8 @@ export function isAdmin(user: User | unknown | DBUser | null): boolean {
 	// @ts-ignore
 	return (
 		user?.primaryEmailAddress?.emailAddress === "liamhellis@gmail.com" ||
-		user?.primaryEmailAddress?.emailAddress === "sam@clubhausagency.com" ||  user?.publicMetadata?.role === "admin";
+		user?.primaryEmailAddress?.emailAddress === "sam@clubhausagency.com" ||
+		user?.publicMetadata?.role === "admin"
 	);
 }
 
