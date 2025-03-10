@@ -7,6 +7,12 @@ import { RestaurantsList } from "@/features/restaurants/RestaurantList";
 
 export default async function RestaurantsPage() {
 	const restaurants = await getRestaurants();
+
+	// Apply default sorting (A-Z by name)
+	const sortedRestaurants = [...restaurants].sort((a, b) =>
+		a.name.localeCompare(b.name),
+	);
+
 	return (
 		<div className="px-4 py-8 h-full w-full overflow-auto">
 			<div className="flex justify-between items-center mb-8">
@@ -26,7 +32,7 @@ export default async function RestaurantsPage() {
 				</p>
 			</div>
 
-			<RestaurantsList restaurants={restaurants} />
+			<RestaurantsList restaurants={sortedRestaurants} />
 		</div>
 	);
 }

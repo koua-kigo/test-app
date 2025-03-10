@@ -36,6 +36,9 @@ import {
 	deleteRestaurantAction,
 } from "@/actions/restaurants";
 import { toast } from "sonner";
+import { useRestaurantSearch } from "@/hooks/useRestaurantSearch";
+import { AdminRestaurantSearchBar } from "@/features/restaurants/AdminRestaurantSearchBar";
+import { RestaurantQuickView } from "./restaurant-quick-view";
 
 // Styled components imports
 import {
@@ -215,6 +218,19 @@ export function RestaurantsTable({
 		React.useState<RestaurantData | null>(null);
 	const router = useRouter();
 
+	// Add restaurant search hook
+	const {
+		filteredRestaurants,
+		searchTerm,
+		setSearchTerm,
+		sortOption,
+		setSortOption,
+		isSearching,
+	} = useRestaurantSearch({
+		restaurants: data,
+		initialSortOption: "name-asc",
+	});
+
 	// Update local data when initialData changes
 	React.useEffect(() => {
 		setData(initialData);
@@ -302,6 +318,45 @@ export function RestaurantsTable({
 			},
 		},
 		{
+			accessorKey: "punchCardCount",
+			header: ({ column }) => (
+				<div className="flex items-center gap-0.5">
+					Punch Cards
+					<Button
+						size="sm"
+						variant="ghost"
+						className="h-8 w-8 ml-1 p-0"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					>
+						{getSortingIcon(column.getIsSorted())}
+					</Button>
+				</div>
+			),
+			cell: ({ row }) => {
+				const restaurant = row.original as Restaurant & {
+					punchCardCount?: number;
+				};
+				return (
+					<div className="font-medium text-sm">
+						{restaurant.punchCardCount || 0}
+					</div>
+				);
+			},
+		},
+		{
+			id: "quickView",
+			header: "Quick View",
+			cell: ({ row }) => {
+				const restaurant = row.original;
+				return (
+					<div className="flex justify-center">
+						<RestaurantQuickView restaurantId={restaurant.id} />
+					</div>
+				);
+			},
+			meta: { editable: false } as ColumnMeta,
+		},
+		{
 			id: "actions",
 			header: "",
 			cell: ({ row }) => {
@@ -385,44 +440,47 @@ export function RestaurantsTable({
 		}
 	};
 
+	// Define data table using TanStack
 	const table = useReactTable({
-		data,
+		data: filteredRestaurants, // Use filtered restaurants instead of all data
 		columns,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		onSortingChange: setSorting,
 		state: {
 			sorting,
 		},
+		onSortingChange: setSorting,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
 		meta: {
 			updateData: (rowIndex, columnId, value) => {
-				setData((old) =>
-					old.map((row, index) => {
-						if (index === rowIndex) {
-							return {
-								...old[rowIndex],
-								[columnId]: value,
-							};
-						}
-						return row;
-					}),
-				);
+				// Find actual restaurant by ID to handle filtered restaurants correctly
+				const restaurantId = filteredRestaurants[rowIndex].id;
+				const dataIndex = data.findIndex((r) => r.id === restaurantId);
 
-				// Save changes to the database after a small delay to allow for multiple quick edits
-				const debounceTimeout = setTimeout(() => {
-					if (columnId !== "id") {
-						handleSave(rowIndex, data[rowIndex]);
-					}
-				}, 1000);
+				if (dataIndex >= 0) {
+					const newData = [...data];
+					newData[dataIndex] = {
+						...newData[dataIndex],
+						[columnId]: value,
+					};
+					setData(newData);
 
-				return () => clearTimeout(debounceTimeout);
+					// Save changes to the database
+					handleSave(dataIndex, newData[dataIndex]);
+				}
 			},
 		} as TableMeta,
 	});
 
 	return (
-		<>
+		<div className="space-y-4">
+			<AdminRestaurantSearchBar
+				searchTerm={searchTerm}
+				onSearchChange={setSearchTerm}
+				sortOption={sortOption}
+				onSortChange={setSortOption}
+			/>
+
 			<div className="rounded-md border">
 				<Table>
 					<TableHeader>
@@ -442,7 +500,7 @@ export function RestaurantsTable({
 						))}
 					</TableHeader>
 					<TableBody>
-						{table.getRowModel().rows.length ? (
+						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
 								<TableRow
 									key={row.id}
@@ -465,7 +523,9 @@ export function RestaurantsTable({
 									colSpan={columns.length}
 									className="h-24 text-center"
 								>
-									No restaurants found.
+									{isSearching
+										? "No restaurants found matching your search"
+										: "No restaurants."}
 								</TableCell>
 							</TableRow>
 						)}
@@ -515,6 +575,6 @@ export function RestaurantsTable({
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-		</>
+		</div>
 	);
 }

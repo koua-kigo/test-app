@@ -2,11 +2,30 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "../../db";
-import { restaurants, prizes } from "../../schema";
+import { restaurants, prizes, punchCards } from "../../schema";
 import { getPrizesByRestaurantId } from "@/db/models/prizes";
 
 export const getRestaurants = async () => {
-	return await db.select().from(restaurants);
+	// Get all restaurants with their punchCards relation loaded
+	const restaurantsList = await db.select().from(restaurants);
+
+	// For each restaurant, fetch all its punch cards
+	const restaurantsWithPunchCards = await Promise.all(
+		restaurantsList.map(async (restaurant) => {
+			const restaurantPunchCards = await db
+				.select()
+				.from(punchCards)
+				.where(eq(punchCards.restaurantId, restaurant.id));
+
+			return {
+				...restaurant,
+				punchCards: restaurantPunchCards,
+				punchCardCount: restaurantPunchCards.length,
+			};
+		}),
+	);
+
+	return restaurantsWithPunchCards;
 };
 
 export const getRestaurantById = async (id: bigint) => {
@@ -35,6 +54,38 @@ export const getRestaurantByIdWithPrizes = async (id: bigint) => {
 		prizes: restaurantPrizes,
 	};
 };
+
+export const getRestaurantByIdWithAll = async (id: bigint) => {
+	// Get the restaurant
+	const restaurant = await db
+		.select()
+		.from(restaurants)
+		.where(eq(restaurants.id, id))
+		.limit(1)
+		.then((res) => res[0]);
+
+	if (!restaurant) {
+		return null;
+	}
+
+	// Get the restaurant's prizes
+	const restaurantPrizes = await getPrizesByRestaurantId(id);
+
+	// Get the restaurant's punch cards
+	const restaurantPunchCards = await db
+		.select()
+		.from(punchCards)
+		.where(eq(punchCards.restaurantId, id));
+
+	// Return the restaurant with associated data
+	return {
+		...restaurant,
+		prizes: restaurantPrizes,
+		punchCards: restaurantPunchCards,
+		punchCardCount: restaurantPunchCards.length,
+	};
+};
+
 export const createRestaurant = async (data: {
 	name: string;
 	description: string;

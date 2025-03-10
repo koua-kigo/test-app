@@ -2,6 +2,8 @@ import * as motion from "motion/react-client";
 
 import { InView } from "@/components/ui/in-view";
 import { RestaurantCard } from "./RestaurantCard";
+import { RestaurantSearchBar } from "./RestaurantSearchBar";
+import { useRestaurantSearch } from "@/hooks/useRestaurantSearch";
 import type { Restaurant } from "@/types/db";
 
 // Loading component
@@ -33,39 +35,67 @@ export function RestaurantsLoading() {
 export function RestaurantsList({
 	restaurants,
 }: { restaurants: Restaurant[] }) {
+	const {
+		filteredRestaurants,
+		searchTerm,
+		setSearchTerm,
+		sortOption,
+		setSortOption,
+		isSearching,
+	} = useRestaurantSearch({ restaurants });
+
 	return (
-		<InView
-			viewOptions={{}}
-			variants={{
-				hidden: {
-					opacity: 0,
-				},
-				visible: {
-					opacity: 1,
-					transition: {
-						staggerChildren: 0.09,
-					},
-				},
-			}}
-		>
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-7xl px-4 auto-rows-fr">
-				{restaurants.map((restaurant: Restaurant) => (
-					<motion.div
-						variants={{
-							hidden: { opacity: 0, scale: 0.8, filter: "blur(10px)" },
-							visible: {
-								opacity: 1,
-								scale: 1,
-								filter: "blur(0px)",
+		<>
+			<RestaurantSearchBar
+				searchTerm={searchTerm}
+				onSearchChange={setSearchTerm}
+				sortOption={sortOption}
+				onSortChange={setSortOption}
+			/>
+
+			{filteredRestaurants.length === 0 ? (
+				<div className="text-center py-10">
+					<h3 className="text-lg font-medium mb-2">No restaurants found</h3>
+					<p className="text-gray-500">
+						Try adjusting your search or filters to find what you're looking
+						for.
+					</p>
+				</div>
+			) : (
+				<InView
+					viewOptions={{}}
+					variants={{
+						hidden: {
+							opacity: 0,
+						},
+						visible: {
+							opacity: 1,
+							transition: {
+								staggerChildren: 0.09,
 							},
-						}}
-						key={restaurant.id.toString()}
-						className="w-full min-h-[300px]"
-					>
-						<RestaurantCard restaurant={restaurant} />
-					</motion.div>
-				))}
-			</div>
-		</InView>
+						},
+					}}
+				>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-7xl px-4 auto-rows-fr">
+						{filteredRestaurants.map((restaurant: Restaurant) => (
+							<motion.div
+								variants={{
+									hidden: { opacity: 0, scale: 0.8, filter: "blur(10px)" },
+									visible: {
+										opacity: 1,
+										scale: 1,
+										filter: "blur(0px)",
+									},
+								}}
+								key={restaurant.id.toString()}
+								className="w-full min-h-[300px]"
+							>
+								<RestaurantCard restaurant={restaurant} />
+							</motion.div>
+						))}
+					</div>
+				</InView>
+			)}
+		</>
 	);
 }

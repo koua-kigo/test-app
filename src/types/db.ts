@@ -29,6 +29,8 @@ export type Restaurant = {
 	imageUrl: string;
 	address: string;
 	qrCodeUrl: string | null;
+	punchCardCount?: number;
+	punchCards?: PunchCard[];
 };
 
 /**
