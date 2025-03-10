@@ -1,6 +1,3 @@
-import { db } from "@/db/db";
-import { restaurants } from "@/db/schema";
-import { desc } from "drizzle-orm";
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";

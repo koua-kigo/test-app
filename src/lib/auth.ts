@@ -5,13 +5,21 @@
 import type { EmailAddress, User } from "@clerk/nextjs/server";
 import type { User as DBUser } from "@/types/db";
 
+const ADMIN_AUTH_IDS = [
+	"user_2tYiqnTGiP8byuUu4XBmfu6eNZ0",
+	"user_2su5eFUSw9IPPmzZAxT6s8VFOnY",
+];
+
 /**
  * Check if a user has admin privileges
  */
-export function isAdmin(user: User | unknown | DBUser | null): boolean {
-	console.log("🚀 ~ isAdmin ~ user:", user);
 
+export function isAdmin(user: User | unknown | DBUser | null): boolean {
 	if (!user) return false;
+
+	console.log("🚀 ~ isAdmin ~ user:", user);
+	if (ADMIN_AUTH_IDS.includes(user?.id || user?.clerkId)) return true;
+
 	// @ts-ignore
 	return (
 		user?.primaryEmailAddress?.emailAddress === "liamhellis@gmail.com" ||

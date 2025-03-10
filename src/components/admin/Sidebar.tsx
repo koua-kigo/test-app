@@ -63,7 +63,7 @@ const menuItems = [
 	},
 ];
 
-export default function Sidebar() {
+export function AdminSidebar() {
 	const { user } = useUser();
 	const pathname = usePathname();
 	const { collapsed, toggleCollapse } = useSidebar();
@@ -107,7 +107,7 @@ export default function Sidebar() {
 			{/* Overlay for mobile */}
 			{mobileOpen && (
 				<div
-					className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+					className="md:hidden fixed inset-0 bg-black/80  z-30"
 					onClick={() => setMobileOpen(false)}
 				/>
 			)}

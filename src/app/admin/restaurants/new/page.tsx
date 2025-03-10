@@ -1,5 +1,5 @@
-import React from "react";
 import { RestaurantForm } from "@/components/admin/restaurant-form";
+import React from "react";
 
 export const metadata = {
 	title: "Add Restaurant | Admin Dashboard",

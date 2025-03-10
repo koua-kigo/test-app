@@ -11,6 +11,7 @@ import {
 	SignOutButton,
 	SignUp,
 	SignUpButton,
+	useSession,
 	useUser,
 } from "@clerk/nextjs";
 import {
@@ -105,23 +106,27 @@ type NavScannerProps = {
 
 export const NavScanner = ({ onScanClick }: NavScannerProps) => {
 	return (
-		<div>
-			<Button
-				onClick={onScanClick}
-				variant="ghost"
-				size="sm"
-				className={cn("flex flex-col p-4 gap-1 mx-2 h-auto", "text-primary")}
-			>
-				<QrCode className="h-5 w-5" />
-				<span className="text-xs">Scan</span>
-			</Button>
-		</div>
+		<Button
+			onClick={onScanClick}
+			variant="ghost"
+			size="sm"
+			className={cn(
+				"flex flex-col p-4 gap-1 mx-2 h-auto !w-auto rounded-full items-center justify-center",
+				"text-primary",
+			)}
+		>
+			<QrCode className="h-5 w-5" />
+		</Button>
 	);
 };
 
 export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 	const [activeTab, setActiveTab] = useState(initialActiveTab);
 	const { isSignedIn, user } = useUser();
+	const { session } = useSession();
+
+	console.log("🚀 ~ Nav ~ session:", session);
+
 	const [showModal, setShowModal] = useState(false);
 	const router = useRouter();
 
@@ -190,11 +195,15 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 
 	console.log("🚀 ~ Nav ~ userIsAdmin:", userIsAdmin);
 
-	const handleTabChange = (tabId?: string) => {
-		if (tabId) {
-			router.push(tabId);
-		}
-	};
+	const navigateToPage = useCallback(
+		(page: string) => {
+			console.log("🚀 ~ navigateToPage ~ page:", page);
+			if (page) {
+				router.push(page);
+			}
+		},
+		[router],
+	);
 
 	const staticNavItems: NavItem[] = [
 		// { id: "home", icon: Home, label: "Home", href: "/" },
@@ -344,22 +353,19 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 			</AnimatePresence>
 
 			<nav className="fixed bottom-0 left-1/2 -translate-x-1/2 py-4 z-20 ">
-				<div className="flex justify-around px-4 py-1 w-content border rounded-full bg-[#e0d9d1] backdrop-blur-sm ">
+				<div className="flex justify-evenly px-4w py-1 w-content border rounded-full bg-[#e0d9d1] backdrop-blur-sm ">
 					{navItems.map((item) => (
 						<Button
 							key={item.id}
 							variant="ghost"
 							size="sm"
 							className={cn(
-								"flex flex-col p-1 gap-1 mx-2 h-auto",
+								"flex flex-col p-1 gap-1 mx-2 h-auto !w-auto rounded-full items-center justify-center",
 								activeTab === item.id && "text-primary",
 							)}
-							onClick={() => handleTabChange(item.href)}
+							onClick={() => navigateToPage(item.href)}
 						>
 							{item.icon && <item.icon className="h-5 w-5" />}
-							{item.action === "signOut" ? null : (
-								<span className="text-xs">{item.label}</span>
-							)}
 						</Button>
 					))}
 					{isSignedIn ? (
@@ -370,7 +376,7 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 								<Button
 									variant="ghost"
 									size="sm"
-									className="flex flex-col p-4 gap-1 mx-2 h-auto"
+									className="flex flex-col p-4 gap-1 mx-2 h-auto w-auto rounded-full"
 								>
 									<UserPlus className="h-5 w-5" />
 									<span className="text-xs">Sign In</span>
