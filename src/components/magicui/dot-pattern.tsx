@@ -76,16 +76,12 @@ export function DotPattern({
 	const id = useId();
 	const containerRef = useRef<SVGSVGElement>(null);
 	const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-	const [dots, setDots] = useState<
-		Array<{ x: number; y: number; delay: number; duration: number }>
-	>([]);
 
 	useEffect(() => {
 		const updateDimensions = () => {
 			if (containerRef.current) {
-				const { width: containerWidth, height: containerHeight } =
-					containerRef.current.getBoundingClientRect();
-				setDimensions({ width: containerWidth, height: containerHeight });
+				const { width, height } = containerRef.current.getBoundingClientRect();
+				setDimensions({ width, height });
 			}
 		};
 
@@ -94,30 +90,23 @@ export function DotPattern({
 		return () => window.removeEventListener("resize", updateDimensions);
 	}, []);
 
-	// Generate dots on the client side only, after dimensions are known
-	useEffect(() => {
-		if (dimensions.width === 0 || dimensions.height === 0) return;
-
-		const newDots = Array.from(
-			{
-				length:
-					Math.ceil(dimensions.width / width) *
-					Math.ceil(dimensions.height / height),
-			},
-			(_, i) => {
-				const col = i % Math.ceil(dimensions.width / width);
-				const row = Math.floor(i / Math.ceil(dimensions.width / width));
-				return {
-					x: col * width + cx,
-					y: row * height + cy,
-					delay: Math.random() * 5,
-					duration: Math.random() * 3 + 2,
-				};
-			},
-		);
-
-		setDots(newDots);
-	}, [dimensions, width, height, cx, cy]);
+	const dots = Array.from(
+		{
+			length:
+				Math.ceil(dimensions.width / width) *
+				Math.ceil(dimensions.height / height),
+		},
+		(_, i) => {
+			const col = i % Math.ceil(dimensions.width / width);
+			const row = Math.floor(i / Math.ceil(dimensions.width / width));
+			return {
+				x: col * width + cx,
+				y: row * height + cy,
+				delay: Math.random() * 5,
+				duration: Math.random() * 3 + 2,
+			};
+		},
+	);
 
 	return (
 		<svg
@@ -137,7 +126,7 @@ export function DotPattern({
 			</defs>
 			{dots.map((dot, index) => (
 				<motion.circle
-					key={`${dot.x}-${dot.y}-${index}`}
+					key={`${dot.x}-${dot.y}`}
 					cx={dot.x}
 					cy={dot.y}
 					r={cr}

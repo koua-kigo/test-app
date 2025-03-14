@@ -210,3 +210,85 @@ body {
 ::file-selector-button {
 	border-color: var(--color-gray-200, currentColor);
 }
+
+/* Mobile-specific optimizations */
+@layer base {
+	/* Improve tap highlight on mobile */
+	* {
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	/* Improve text selection */
+	::selection {
+		@apply bg-primary/20 text-primary-foreground;
+	}
+
+	/* Improve focus states for accessibility */
+	:focus-visible {
+		@apply outline-none ring-2 ring-ring ring-offset-2;
+	}
+
+	/* Handle notched devices with safe area insets */
+	.px-safe {
+		padding-left: env(safe-area-inset-left);
+		padding-right: env(safe-area-inset-right);
+	}
+
+	.py-safe {
+		padding-top: env(safe-area-inset-top);
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+
+	.pt-safe {
+		padding-top: env(safe-area-inset-top);
+	}
+
+	.pb-safe {
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+
+	.pl-safe {
+		padding-left: env(safe-area-inset-left);
+	}
+
+	.pr-safe {
+		padding-right: env(safe-area-inset-right);
+	}
+
+	/* Improve touch experience */
+	.touch-manipulation {
+		touch-action: manipulation;
+	}
+
+	/* Fix 100vh issue on mobile browsers */
+	.h-screen {
+		height: 100vh; /* fallback */
+		height: 100svh; /* modern browsers with safe viewport height */
+	}
+
+	/* Fix scrolling issues on iOS */
+	.ios-scroll-fix {
+		-webkit-overflow-scrolling: touch;
+	}
+}
+
+/* Media queries for responsive design */
+@layer utilities {
+	/* Hide scrollbar on mobile */
+	@media (max-width: 640px) {
+		.scrollbar-hide-mobile {
+			scrollbar-width: none;
+			-ms-overflow-style: none;
+		}
+		.scrollbar-hide-mobile::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	/* Add breathing room for form elements on mobile */
+	@media (max-width: 640px) {
+		.form-mobile-spacing > * + * {
+			margin-top: 1.25rem;
+		}
+	}
+}

@@ -41,21 +41,59 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
 	) => {
 		const [isAnimating, setIsAnimating] = React.useState(false);
 		const [punchPosition, setPunchPosition] = React.useState({ x: 0, y: 0 });
+		const buttonRef = React.useRef<HTMLButtonElement>(null);
 
-		const handleAddPunch = (e: React.MouseEvent<HTMLButtonElement>) => {
+		const handleAddPunch = (
+			e:
+				| React.MouseEvent<HTMLButtonElement>
+				| React.TouchEvent<HTMLButtonElement>,
+		) => {
 			if (currentPunches >= totalPunches || isAnimating || completed) return;
 
 			// Calculate position for the punch animation
-			const rect = e.currentTarget.getBoundingClientRect();
-			const x = e.clientX - rect.left;
-			const y = e.clientY - rect.top;
-			setPunchPosition({ x, y });
+			let x = 0;
+			let y = 0;
+
+			if (buttonRef.current) {
+				const rect = buttonRef.current.getBoundingClientRect();
+
+				// Handle both mouse and touch events
+				if ("clientX" in e) {
+					// Mouse event
+					x = e.clientX - rect.left;
+					y = e.clientY - rect.top;
+				} else {
+					// Touch event
+					const touch = e.touches[0];
+					x = touch.clientX - rect.left;
+					y = touch.clientY - rect.top;
+				}
+
+				// If no valid coordinates, default to center
+				if (!x && !y) {
+					x = rect.width / 2;
+					y = rect.height / 2;
+				}
+
+				setPunchPosition({ x, y });
+			}
 
 			setIsAnimating(true);
 			setTimeout(() => {
 				setIsAnimating(false);
 				onAddPunch?.();
 			}, 800);
+		};
+
+		// Format the lastUpdated date in a readable format
+		const formatDate = (dateString: string | Date) => {
+			const date = new Date(dateString);
+			return new Intl.DateTimeFormat("en-US", {
+				month: "short",
+				day: "numeric",
+				hour: "2-digit",
+				minute: "2-digit",
+			}).format(date);
 		};
 
 		return (
@@ -67,42 +105,42 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
 				whileHover={{ y: -5 }}
 				className={cn(
 					"relative overflow-hidden rounded-xl bg-card shadow-lg",
-					"w-full h-full touch-none flex flex-col",
+					"w-full h-full flex flex-col",
 					className,
 				)}
 				style={{ perspective: 1000 }}
 				{...props}
 			>
 				{/* Restaurant Image */}
-				<div className="relative h-36 w-full">
+				<div className="relative h-36 sm:h-48 w-full">
 					<Image
 						src={restaurantImage || "RWP.jpg"}
 						alt={`${restaurantName}`}
 						fill
 						className="object-cover"
-						sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+						sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+						priority
 					/>
 
 					<div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
 
 					{/* Restaurant Info Overlay */}
 					<div className="absolute bottom-0 w-full p-4">
-						<h3 className="text-lg font-bold text-white">{restaurantName}</h3>
+						<h3 className="text-lg sm:text-xl font-bold text-white">
+							{restaurantName}
+						</h3>
 						{lastUpdated && (
 							<p className="text-xs text-white/70">
-								Last updated:{" "}
-								{typeof lastUpdated === "string"
-									? new Date(lastUpdated).toLocaleDateString()
-									: lastUpdated.toLocaleDateString()}
+								Last updated: {formatDate(lastUpdated)}
 							</p>
 						)}
 					</div>
 				</div>
 
 				{/* Punch Card Content */}
-				<div className="flex flex-col flex-grow p-4">
+				<div className="flex flex-col flex-grow p-4 sm:p-6">
 					<div className="flex justify-between items-center mb-3">
-						<span className="text-sm font-medium text-foreground">
+						<span className="text-sm sm:text-base font-medium text-foreground">
 							{currentPunches} of {totalPunches} punches
 						</span>
 						{completed && (
@@ -115,8 +153,17 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
 						)}
 					</div>
 
-					{/* Punch Grid */}
-					<div className="grid grid-cols-5 gap-2 mb-5">
+					{/* Punch Grid - Adaptive grid layout based on screen size */}
+					<div
+						className={cn(
+							"grid gap-2 mb-5",
+							totalPunches <= 5
+								? "grid-cols-5"
+								: totalPunches <= 8
+									? "grid-cols-4"
+									: "grid-cols-5",
+						)}
+					>
 						{Array.from({ length: totalPunches }).map((_, index) => (
 							<motion.div
 								key={`punch-${index}-${currentPunches > index ? "filled" : "empty"}`}
@@ -153,13 +200,15 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
 					</div>
 
 					{/* Action Buttons */}
-					<div className="mt-auto flex gap-2">
+					<div className="mt-auto flex flex-col sm:flex-row gap-3">
 						{!completed ? (
 							<motion.button
-								className="py-2 px-4 rounded-lg bg-secondary text-secondary-foreground font-medium relative overflow-hidden w-full flex-1"
+								ref={buttonRef}
+								className="py-3 px-4 rounded-lg bg-secondary text-secondary-foreground font-medium relative overflow-hidden w-full flex-1 touch-manipulation text-base"
 								whileHover={{ scale: 1.02 }}
 								whileTap={{ scale: 0.98 }}
 								onClick={handleAddPunch}
+								onTouchStart={handleAddPunch}
 								disabled={isAnimating || completed}
 							>
 								Add Punch
@@ -186,7 +235,7 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
 							</motion.button>
 						) : (
 							<motion.button
-								className="py-2 px-4 rounded-lg bg-green-600 text-white font-medium flex items-center justify-center gap-2 flex-1"
+								className="py-3 px-4 rounded-lg bg-green-600 text-white font-medium flex items-center justify-center gap-2 flex-1 text-base touch-manipulation"
 								whileHover={{ scale: 1.02 }}
 								whileTap={{ scale: 0.98 }}
 							>
@@ -197,7 +246,7 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
 
 						<Link
 							href={`/restaurants/${restaurantId}`}
-							className="py-2 px-4 rounded-lg border border-border bg-background hover:bg-muted transition-colors flex items-center justify-center text-sm"
+							className="py-3 px-4 rounded-lg border border-border bg-background hover:bg-muted transition-colors flex items-center justify-center text-base touch-manipulation min-h-[44px]"
 						>
 							View Restaurant
 						</Link>

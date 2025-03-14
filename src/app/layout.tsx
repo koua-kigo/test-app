@@ -18,6 +18,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: "Experience Maple Grove Restaurant Passport",
 	description: "Track your restaurant visits and experiences",
+	viewport:
+		"width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover",
 };
 
 export default function RootLayout({
@@ -30,7 +32,7 @@ export default function RootLayout({
 			<LocationProvider>
 				<html lang="en">
 					<body
-						className={`${geistSans.variable} ${geistMono.variable} antialiased relative min-h-screen bg-[#faf9f6]`}
+						className={`${geistSans.variable} ${geistMono.variable} antialiased relative min-h-screen bg-[#faf9f6] overflow-x-hidden`}
 					>
 						<div
 							className="absolute inset-0 z-[-1]"
@@ -41,7 +43,7 @@ export default function RootLayout({
 							}}
 						/>
 						<div className="grid-bg" />
-						<div className="app relative z-10 h-screen w-screen">
+						<div className="app relative z-10 h-screen w-screen overflow-x-hidden px-safe py-safe">
 							{children}
 						</div>
 						<Nav />
