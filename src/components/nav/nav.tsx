@@ -28,6 +28,8 @@ import {
 	CheckCircle,
 	Search,
 	Settings2,
+	WalletCards,
+	Wallet,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useCallback, useState, useEffect } from "react";
@@ -354,21 +356,20 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 				)}
 			</AnimatePresence>
 
-			<nav className="fixed bottom-0 left-0 right-0 z-40 pb-safe">
-				<div className="flex justify-evenly items-center p-3 mx-auto max-w-lg border-t bg-[#e0d9d1] backdrop-blur-md shadow-lg">
+			<nav className="fixed bottom-[10px] left-0 right-0 z-40 pb-safe">
+				<div className="flex justify-evenly items-center p-3 gap-4 mx-auto w-min border-t bg-[#e0d9d1] backdrop-blur-md shadow-lg rounded-full">
 					<Link href="/restaurants" className="flex-1">
 						<Button
 							variant="ghost"
 							size="icon"
 							className={cn(
-								"flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation",
+								"flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation bg-none",
 								activeTab === "home"
 									? "bg-white/80 text-primary shadow-sm"
-									: "text-gray-600",
+									: "text-white",
 							)}
 						>
 							<Utensils className="h-6 w-6" />
-							<span className="text-xs mt-1">Restaurants</span>
 						</Button>
 					</Link>
 
@@ -378,14 +379,13 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 								variant="ghost"
 								size="icon"
 								className={cn(
-									"flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation",
+									"flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation bg-none",
 									activeTab === "admin"
 										? "bg-white/80 text-primary shadow-sm"
-										: "text-gray-600",
+										: "text-white",
 								)}
 							>
 								<Settings2 className="h-6 w-6" />
-								<span className="text-xs mt-1">Admin</span>
 							</Button>
 						</Link>
 					)}
@@ -393,9 +393,9 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 					{isSignedIn && (
 						<div className="flex-1 flex items-center justify-center">
 							<Button
-								variant="default"
+								variant="outline"
 								size="icon"
-								className="rounded-full h-16 w-16 shadow-md flex items-center justify-center"
+								className="rounded-full h-16 w-16 flex items-center justify-center"
 								onClick={handleScannerToggle}
 								aria-label="Scan QR code"
 							>
@@ -407,17 +407,16 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 					{isSignedIn && !userIsAdmin && (
 						<Link href={`/users/${user?.id}/profile`} className="flex-1">
 							<Button
-								variant="ghost"
+								variant="outline"
 								size="icon"
 								className={cn(
-									"flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation",
+									"flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation bg-none",
 									activeTab === "profile"
 										? "bg-white/80 text-primary shadow-sm"
-										: "text-gray-600",
+										: "",
 								)}
 							>
-								<User className="h-6 w-6" />
-								<span className="text-xs mt-1">Profile</span>
+								<Wallet className="h-6 w-6" />
 							</Button>
 						</Link>
 					)}
@@ -428,7 +427,7 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 								<Button
 									variant="ghost"
 									size="icon"
-									className="flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation"
+									className="flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation bg-none"
 								>
 									<UserPlus className="h-6 w-6" />
 									<span className="text-xs mt-1">Sign In</span>

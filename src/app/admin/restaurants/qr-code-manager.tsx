@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import QRCode from "react-qr-code";
 import Image from "next/image";
 import { useHandleQRCode } from "@/hooks/use-handle-qrCode";
@@ -12,9 +12,20 @@ import {
 	DialogTrigger,
 	DialogTitle,
 	DialogHeader,
+	DialogDescription,
+	DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { QrCode, Download, Plus, X, Check } from "lucide-react";
+import {
+	QrCode,
+	Download,
+	Plus,
+	X,
+	Check,
+	AlertTriangle,
+	HelpCircle,
+} from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 type QRCodeVariant = "default" | "compact" | "table";
 
@@ -40,6 +51,21 @@ export function QRCodeManager({
 		handleDownload,
 	} = useHandleQRCode({ restaurant });
 
+	const [downloadSupported, setDownloadSupported] = useState(true);
+
+	// Check browser support for download functionality
+	useEffect(() => {
+		// Safari before 14 and some mobile browsers might have issues with download API
+		const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+		const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+		// iOS Safari before 14 had issues with download
+		const isUnsupportedSafari =
+			isSafari && isIOS && /OS 11|OS 12|OS 13/.test(navigator.userAgent);
+
+		setDownloadSupported(!isUnsupportedSafari);
+	}, []);
+
 	// Table cell variant
 	if (variant === "table") {
 		return (
@@ -48,7 +74,7 @@ export function QRCodeManager({
 					<Button
 						variant="ghost"
 						size="sm"
-						className="flex items-center gap-1 px-2 h-8"
+						className="flex items-center gap-1 px-2 h-8 touch-manipulation"
 					>
 						{restaurant.qrCodeUrl ? (
 							<>
@@ -58,6 +84,7 @@ export function QRCodeManager({
 										alt="QR"
 										fill
 										className="object-contain"
+										sizes="32px"
 									/>
 								</div>
 								<span className="text-xs truncate">View QR</span>
@@ -87,6 +114,7 @@ export function QRCodeManager({
 							handleCancel={handleCancel}
 							handleSave={handleSave}
 							handleDownload={handleDownload}
+							downloadSupported={downloadSupported}
 						/>
 					</div>
 				</DialogContent>
@@ -106,30 +134,37 @@ export function QRCodeManager({
 								alt="QR Code"
 								fill
 								className="object-contain"
+								sizes="64px"
 							/>
 						</div>
 						<div className="flex flex-col gap-2">
 							<Button
 								size="sm"
 								variant="outline"
-								className="text-xs h-8"
+								className="text-xs h-8 min-h-[32px] touch-manipulation"
 								onClick={handleGenerate}
 							>
 								New QR
 							</Button>
-							<Button
-								size="sm"
-								variant="outline"
-								className="text-xs h-8"
-								onClick={handleDownload}
-							>
-								<Download className="h-3 w-3 mr-1" />
-								Download
-							</Button>
+							{downloadSupported && (
+								<Button
+									size="sm"
+									variant="outline"
+									className="text-xs h-8 min-h-[32px] touch-manipulation"
+									onClick={handleDownload}
+								>
+									<Download className="h-3 w-3 mr-1" />
+									Download
+								</Button>
+							)}
 						</div>
 					</div>
 				) : (
-					<Button size="sm" onClick={handleGenerate} className="text-xs">
+					<Button
+						size="sm"
+						onClick={handleGenerate}
+						className="text-xs min-h-[32px] touch-manipulation"
+					>
 						<QrCode className="h-3 w-3 mr-1" />
 						Generate QR
 					</Button>
@@ -137,7 +172,10 @@ export function QRCodeManager({
 
 				{generating && (
 					<div className="mt-2 flex flex-col gap-2">
-						<div className="relative w-24 h-24 mx-auto" ref={qrRef}>
+						<div
+							className="relative w-24 h-24 mx-auto bg-white p-2 rounded-md shadow-sm"
+							ref={qrRef}
+						>
 							<QRCode
 								size={96}
 								value={qrCodeValue}
@@ -150,7 +188,7 @@ export function QRCodeManager({
 								size="sm"
 								onClick={handleSave}
 								disabled={saving}
-								className="text-xs h-8"
+								className="text-xs h-8 min-h-[32px] touch-manipulation"
 							>
 								<Check className="h-3 w-3 mr-1" />
 								{saving ? "Saving..." : "Save"}
@@ -160,7 +198,7 @@ export function QRCodeManager({
 								variant="outline"
 								onClick={handleCancel}
 								disabled={saving}
-								className="text-xs h-8"
+								className="text-xs h-8 min-h-[32px] touch-manipulation"
 							>
 								<X className="h-3 w-3 mr-1" />
 								Cancel
@@ -193,6 +231,7 @@ export function QRCodeManager({
 				handleCancel={handleCancel}
 				handleSave={handleSave}
 				handleDownload={handleDownload}
+				downloadSupported={downloadSupported}
 			/>
 		</div>
 	);
@@ -211,6 +250,7 @@ interface FullQRManagerProps {
 	handleCancel: () => void;
 	handleSave: () => void;
 	handleDownload: () => void;
+	downloadSupported: boolean;
 }
 
 const FullQRManager = ({
@@ -225,7 +265,44 @@ const FullQRManager = ({
 	handleCancel,
 	handleSave,
 	handleDownload,
+	downloadSupported,
 }: FullQRManagerProps) => {
+	// Alternative download for iOS Safari
+	const handleCopyQrValue = () => {
+		try {
+			navigator.clipboard.writeText(qrCodeValue);
+			// Could add a toast notification here
+			alert("QR code value copied to clipboard!");
+		} catch (err) {
+			console.error("Failed to copy text: ", err);
+		}
+	};
+
+	// Handle long-press on QR code for Safari/iOS
+	const handleLongPress = () => {
+		// This is a fallback for iOS Safari
+		try {
+			const range = document.createRange();
+			const textNode = document.createTextNode(qrCodeValue);
+			const tempElement = document.createElement("div");
+			tempElement.appendChild(textNode);
+			document.body.appendChild(tempElement);
+
+			range.selectNodeContents(tempElement);
+			const selection = window.getSelection();
+			if (selection) {
+				selection.removeAllRanges();
+				selection.addRange(range);
+				document.execCommand("copy");
+			}
+
+			document.body.removeChild(tempElement);
+			alert("QR code URL copied. You can paste it where needed.");
+		} catch (err) {
+			console.error("Failed to copy with fallback method:", err);
+		}
+	};
+
 	return (
 		<div className="space-y-4">
 			{restaurant.qrCodeUrl ? (
@@ -238,6 +315,8 @@ const FullQRManager = ({
 								alt="Restaurant QR Code"
 								fill
 								className="object-contain"
+								sizes="(max-width: 640px) 144px, 192px"
+								priority
 							/>
 						</div>
 					</div>
@@ -249,7 +328,10 @@ const FullQRManager = ({
 			)}
 
 			{!generating ? (
-				<Button onClick={handleGenerate} className="flex items-center gap-1">
+				<Button
+					onClick={handleGenerate}
+					className="flex items-center gap-1 touch-manipulation"
+				>
 					<QrCode className="h-4 w-4" />
 					{restaurant.qrCodeUrl ? "Generate New QR Code" : "Generate QR Code"}
 				</Button>
@@ -276,7 +358,7 @@ const FullQRManager = ({
 						<Button
 							onClick={handleSave}
 							disabled={saving}
-							className="flex items-center gap-1"
+							className="flex items-center gap-1 touch-manipulation"
 						>
 							<Check className="h-4 w-4" />
 							{saving ? "Saving..." : "Save QR Code"}
@@ -286,7 +368,7 @@ const FullQRManager = ({
 							onClick={handleCancel}
 							disabled={saving}
 							variant="outline"
-							className="flex items-center gap-1"
+							className="flex items-center gap-1 touch-manipulation"
 						>
 							<X className="h-4 w-4" />
 							Cancel
@@ -296,24 +378,58 @@ const FullQRManager = ({
 			)}
 
 			{error && (
-				<div className="mt-4 p-3 bg-red-100 border border-red-200 text-red-700 rounded-md text-sm">
-					{error}
-				</div>
+				<Alert variant="destructive" className="mt-4">
+					<AlertTriangle className="h-4 w-4" />
+					<AlertTitle>Error</AlertTitle>
+					<AlertDescription>{error}</AlertDescription>
+				</Alert>
 			)}
 
 			{success && (
 				<div className="mt-4 space-y-3">
-					<div className="p-3 bg-green-100 border border-green-200 text-green-700 rounded-md text-sm">
-						QR code saved successfully!
-					</div>
-					<Button
-						onClick={handleDownload}
-						variant="secondary"
-						className="flex items-center gap-1"
+					<Alert
+						variant="success"
+						className="bg-green-50 border-green-200 text-green-700"
 					>
-						<Download className="h-4 w-4" />
-						Download QR Code
-					</Button>
+						<Check className="h-4 w-4" />
+						<AlertTitle>Success</AlertTitle>
+						<AlertDescription>QR code saved successfully!</AlertDescription>
+					</Alert>
+
+					<div className="flex flex-wrap gap-2">
+						{downloadSupported ? (
+							<Button
+								onClick={handleDownload}
+								variant="secondary"
+								className="flex items-center gap-1 touch-manipulation"
+							>
+								<Download className="h-4 w-4" />
+								Download QR Code
+							</Button>
+						) : (
+							<>
+								<Alert
+									variant="warning"
+									className="bg-amber-50 border-amber-200"
+								>
+									<HelpCircle className="h-4 w-4" />
+									<AlertTitle>Download Not Supported</AlertTitle>
+									<AlertDescription>
+										Your browser may not support direct downloads. You can copy
+										the URL instead.
+									</AlertDescription>
+								</Alert>
+
+								<Button
+									onClick={handleCopyQrValue}
+									variant="secondary"
+									className="flex items-center gap-1 touch-manipulation"
+								>
+									Copy QR Code URL
+								</Button>
+							</>
+						)}
+					</div>
 				</div>
 			)}
 		</div>

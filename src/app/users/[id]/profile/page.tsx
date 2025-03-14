@@ -31,9 +31,11 @@ export default async function ProfilePage() {
 			{/* <BentoGrid items={user.punchCards.map((punchCard) => ({ */}
 
 			{/* Display user's punch cards */}
-			{/* {user?.punchCards && <UserPunchCards punchCards={user?.punchCards} />} */}
+			{user?.punchCards?.length ? (
+				<UserPunchCards punchCards={user?.punchCards} />
+			) : null}
 
-			{user?.id && <UserScanQrCode user={user} />}
+			{/* {user?.id && <UserScanQrCode user={user} />} */}
 
 			{/* TODO: Add Bento Grid UI header */}
 		</div>

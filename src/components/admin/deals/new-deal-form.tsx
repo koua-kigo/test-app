@@ -2,10 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { useFormState, useFormStatus } from "react-dom";
 import type { Restaurant } from "@/types/db";
-import { createRestaurantDeal } from "@/db/models/restaurants/restaurants";
-import { getRestaurants } from "@/db/models/restaurants/restaurants";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
+
+// Server actions (placed outside the component)
+import {
+	createRestaurantDeal,
+	getRestaurants,
+} from "@/db/models/restaurants/restaurants";
 
 // Define a simplified restaurant type for the select dropdown
 type SimpleRestaurant = {
@@ -13,119 +19,133 @@ type SimpleRestaurant = {
 	name: string;
 };
 
+// This action gets all restaurants (automatically called in the component)
+async function fetchRestaurants() {
+	try {
+		const restaurantsList = await getRestaurants();
+		// Simplify the restaurant data to only what we need for the dropdown
+		return restaurantsList.map((restaurant) => ({
+			id: restaurant.id,
+			name: restaurant.name,
+		}));
+	} catch (error) {
+		console.error("Error fetching restaurants:", error);
+		throw new Error("Failed to load restaurants");
+	}
+}
+
+// Define the form action type
+type FormState = {
+	error: string | null;
+	success: boolean;
+};
+
+// Server action to handle form submission
+async function createDeal(
+	prevState: FormState,
+	formData: FormData,
+): Promise<FormState> {
+	try {
+		// Extract values from formData
+		const title = formData.get("title") as string;
+		const content = formData.get("content") as string;
+		const restaurantId = formData.get("restaurantId") as string;
+		const active = formData.get("active") === "on";
+
+		// Validate form data
+		if (!title?.trim()) {
+			return { error: "Title is required", success: false };
+		}
+
+		if (!content?.trim()) {
+			return { error: "Content is required", success: false };
+		}
+
+		if (!restaurantId) {
+			return { error: "Restaurant selection is required", success: false };
+		}
+
+		// Create the deal
+		await createRestaurantDeal({
+			title,
+			content,
+			active,
+			restaurantId: BigInt(restaurantId),
+		});
+
+		// Revalidate the deals page to show the new deal
+		revalidatePath("/admin/deals");
+
+		return { error: null, success: true };
+	} catch (error) {
+		console.error("Error creating deal:", error);
+		return {
+			error: error instanceof Error ? error.message : "Failed to create deal",
+			success: false,
+		};
+	}
+}
+
+// Button component with loading state
+function SubmitButton() {
+	const { pending } = useFormStatus();
+
+	return (
+		<button
+			type="submit"
+			disabled={pending}
+			className="inline-flex justify-center rounded-md border border-transparent bg-[#818cf8] px-4 py-2 text-sm font-medium text-white hover:bg-[#6366f1] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+		>
+			{pending ? "Creating..." : "Create Deal"}
+		</button>
+	);
+}
+
 export function NewDealForm() {
 	const router = useRouter();
-	const { toast } = useToast();
 	const [restaurants, setRestaurants] = useState<SimpleRestaurant[]>([]);
 	const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(true);
 
-	const [formData, setFormData] = useState({
-		title: "",
-		content: "",
-		active: true,
-		restaurantId: "",
+	// Initialize form state using useFormState hook
+	const [formState, formAction] = useFormState(createDeal, {
+		error: null,
+		success: false,
 	});
 
-	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-
-	// Fetch restaurants
+	// Fetch restaurants on component mount
 	useEffect(() => {
-		const fetchRestaurants = async () => {
-			try {
-				setIsLoadingRestaurants(true);
-				const restaurantsList = await getRestaurants();
-				// Simplify the restaurant data to only what we need for the dropdown
-				const simpleRestaurants = restaurantsList.map((restaurant) => ({
-					id: restaurant.id,
-					name: restaurant.name,
-				}));
-				setRestaurants(simpleRestaurants);
-			} catch (err) {
-				console.error("Error fetching restaurants:", err);
-				setError("Failed to load restaurants");
-			} finally {
+		fetchRestaurants()
+			.then((data) => {
+				setRestaurants(data);
 				setIsLoadingRestaurants(false);
-			}
-		};
-
-		fetchRestaurants();
+			})
+			.catch(() => {
+				setIsLoadingRestaurants(false);
+			});
 	}, []);
 
-	const handleChange = (
-		e: React.ChangeEvent<
-			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-		>,
-	) => {
-		const { name, value, type } = e.target;
-
-		if (type === "checkbox") {
-			const checkbox = e.target as HTMLInputElement;
-			setFormData({
-				...formData,
-				[name]: checkbox.checked,
-			});
-		} else {
-			setFormData({
-				...formData,
-				[name]: value,
-			});
-		}
-	};
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setIsSubmitting(true);
-		setError(null);
-
-		try {
-			// Validate form
-			if (!formData.title.trim()) {
-				throw new Error("Title is required");
-			}
-
-			if (!formData.content.trim()) {
-				throw new Error("Content is required");
-			}
-
-			if (!formData.restaurantId) {
-				throw new Error("Restaurant selection is required");
-			}
-
-			// Create the deal in the database
-			await createRestaurantDeal({
-				title: formData.title,
-				content: formData.content,
-				active: formData.active,
-				restaurantId: BigInt(formData.restaurantId),
-			});
-
-			toast({
-				title: "Deal created",
+	// Redirect on successful submission
+	useEffect(() => {
+		if (formState.success) {
+			toast("Deal created", {
 				description: "The deal has been successfully created.",
 			});
-
-			// Redirect to deals listing page on success
 			router.push("/admin/deals");
-			router.refresh();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to create deal");
-			toast({
-				title: "Error",
-				description: "Failed to create the deal. Please try again.",
-				variant: "destructive",
+		} else if (formState.error) {
+			toast.error("Error", {
+				description:
+					formState.error || "Failed to create the deal. Please try again.",
 			});
-			setIsSubmitting(false);
 		}
-	};
+	}, [formState, router]);
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-6">
-			{error && (
+		<form action={formAction} className="space-y-6">
+			{formState.error && (
 				<div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
 					<div className="flex">
 						<div>
-							<p className="text-sm text-red-700">{error}</p>
+							<p className="text-sm text-red-700">{formState.error}</p>
 						</div>
 					</div>
 				</div>
@@ -144,8 +164,6 @@ export function NewDealForm() {
 						type="text"
 						id="title"
 						name="title"
-						value={formData.title}
-						onChange={handleChange}
 						className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-[#818cf8] focus:outline-none focus:ring-1 focus:ring-[#818cf8] sm:text-sm"
 						placeholder="e.g., 'Happy Hour Special' or 'Weekend Brunch Offer'"
 						required
@@ -163,8 +181,6 @@ export function NewDealForm() {
 					<textarea
 						id="content"
 						name="content"
-						value={formData.content}
-						onChange={handleChange}
 						rows={4}
 						className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-[#818cf8] focus:outline-none focus:ring-1 focus:ring-[#818cf8] sm:text-sm"
 						placeholder="Describe the deal in detail, including terms and conditions"
@@ -183,8 +199,6 @@ export function NewDealForm() {
 					<select
 						id="restaurantId"
 						name="restaurantId"
-						value={formData.restaurantId}
-						onChange={handleChange}
 						className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-[#818cf8] focus:outline-none focus:ring-1 focus:ring-[#818cf8] sm:text-sm"
 						required
 						disabled={isLoadingRestaurants}
@@ -208,8 +222,7 @@ export function NewDealForm() {
 							type="checkbox"
 							id="active"
 							name="active"
-							checked={formData.active}
-							onChange={handleChange}
+							defaultChecked={true}
 							className="h-4 w-4 rounded border-gray-300 text-[#818cf8] focus:ring-[#818cf8]"
 						/>
 						<label
@@ -234,13 +247,7 @@ export function NewDealForm() {
 				>
 					Cancel
 				</button>
-				<button
-					type="submit"
-					disabled={isSubmitting}
-					className="inline-flex justify-center rounded-md border border-transparent bg-[#818cf8] px-4 py-2 text-sm font-medium text-white hover:bg-[#6366f1] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					{isSubmitting ? "Creating..." : "Create Deal"}
-				</button>
+				<SubmitButton />
 			</div>
 		</form>
 	);

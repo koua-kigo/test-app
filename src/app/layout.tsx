@@ -5,6 +5,8 @@ import "./globals.css";
 import { LocationProvider } from "@/context/location-context";
 import { Analytics } from "@vercel/analytics/react";
 import { Nav } from "@/components/nav/nav";
+import { Toaster } from "@/components/ui/sonner";
+
 const geistSans = Geist({
 	variable: "--font-geist-sans",
 	subsets: ["latin"],
@@ -47,6 +49,7 @@ export default function RootLayout({
 							{children}
 						</div>
 						<Nav />
+						<Toaster />
 						<Analytics />
 					</body>
 				</html>

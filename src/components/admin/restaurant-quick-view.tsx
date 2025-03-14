@@ -8,7 +8,7 @@ import {
 	getRestaurantByIdWithAll,
 } from "@/db/models/restaurants/restaurants";
 import type { Restaurant, Prize, PunchCard } from "@/types/db";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { BentoGrid } from "@/components/kokonutui/bento-grid";
 import {
 	Utensils,
@@ -75,7 +75,6 @@ export function RestaurantQuickView({
 	const [isLoading, setIsLoading] = useState(false);
 	const [restaurantData, setRestaurantData] =
 		useState<DetailedRestaurant | null>(null);
-	const { toast } = useToast();
 	const [isDealDialogOpen, setIsDealDialogOpen] = useState(false);
 	const [newDeal, setNewDeal] = useState({
 		title: "",
@@ -134,18 +133,14 @@ export function RestaurantQuickView({
 					setRestaurantData(transformedData as unknown as DetailedRestaurant);
 					setIsOpen(true);
 				} else {
-					toast({
-						title: "Error",
+					toast.error("Error", {
 						description: "Restaurant not found",
-						variant: "destructive",
 					});
 				}
 			} catch (error) {
 				console.error("Error fetching restaurant data:", error);
-				toast({
-					title: "Error",
+				toast.error("Error", {
 					description: "Failed to load restaurant details",
-					variant: "destructive",
 				});
 			} finally {
 				setIsLoading(false);
@@ -201,10 +196,8 @@ export function RestaurantQuickView({
 		setIsDealDialogOpen(false);
 
 		// Show a success toast
-		toast({
-			title: "Success",
+		toast("Success", {
 			description: "New deal created successfully",
-			variant: "default",
 		});
 	};
 

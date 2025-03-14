@@ -5,7 +5,11 @@ export const metadata = {
 	description: "View and manage deal details",
 };
 
-export default function DealDetailPage({ params }: { params: { id: string } }) {
+export default async function DealDetailPage({
+	params,
+}: { params: Promise<{ id: string }> }) {
+	const resolvedParams = await params;
+
 	return (
 		<div className="space-y-6">
 			<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -17,7 +21,7 @@ export default function DealDetailPage({ params }: { params: { id: string } }) {
 				</div>
 				<div className="flex items-center gap-2">
 					<a
-						href={`/admin/deals/${params.id}/edit`}
+						href={`/admin/deals/${resolvedParams.id}/edit`}
 						className="inline-flex h-10 items-center justify-center rounded-md bg-[#818cf8] px-4 py-2 text-sm font-medium text-white hover:bg-[#6366f1] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 					>
 						Edit Deal
@@ -25,7 +29,7 @@ export default function DealDetailPage({ params }: { params: { id: string } }) {
 				</div>
 			</div>
 
-			<DealDetail id={params.id} />
+			<DealDetail id={resolvedParams.id} />
 		</div>
 	);
 }
