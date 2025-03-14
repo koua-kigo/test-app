@@ -90,7 +90,10 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
 						<h3 className="text-lg font-bold text-white">{restaurantName}</h3>
 						{lastUpdated && (
 							<p className="text-xs text-white/70">
-								Last updated: {new Date(lastUpdated).toLocaleDateString()}
+								Last updated:{" "}
+								{typeof lastUpdated === "string"
+									? new Date(lastUpdated).toLocaleDateString()
+									: lastUpdated.toLocaleDateString()}
 							</p>
 						)}
 					</div>

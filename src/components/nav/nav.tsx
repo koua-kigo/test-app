@@ -26,6 +26,8 @@ import {
 	Loader2,
 	QrCode,
 	CheckCircle,
+	Search,
+	Settings2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useCallback, useState, useEffect } from "react";
@@ -352,22 +354,51 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 				)}
 			</AnimatePresence>
 
-			<nav className="fixed bottom-0 left-1/2 -translate-x-1/2 py-4 z-20 ">
+			<nav className="fixed bottom-0 left-1/2 -translate-x-1/2 py-4 z-40 ">
 				<div className="flex justify-evenly px-4w py-1 w-content border rounded-full bg-[#e0d9d1] backdrop-blur-sm ">
-					{navItems.map((item) => (
+					<Button
+						variant="ghost"
+						size="sm"
+						className={cn(
+							"flex flex-col p-2 gap-1 mx-2 h-auto !w-auto rounded-full items-center justify-center",
+							activeTab === "home" && "text-primary",
+						)}
+					>
+						<Link href="/restaurants">
+							<Utensils className="h-5 w-5" />
+						</Link>
+					</Button>
+
+					{userIsAdmin && (
 						<Button
-							key={item.id}
 							variant="ghost"
 							size="sm"
 							className={cn(
-								"flex flex-col p-1 gap-1 mx-2 h-auto !w-auto rounded-full items-center justify-center",
-								activeTab === item.id && "text-primary",
+								"flex flex-col p-2 gap-1 mx-2 h-auto !w-auto rounded-full items-center justify-center",
+								activeTab === "search" && "text-primary",
 							)}
-							onClick={() => navigateToPage(item.href)}
 						>
-							{item.icon && <item.icon className="h-5 w-5" />}
+							<Link href="/admin">
+								<Settings2 className="h-5 w-5" />
+							</Link>
 						</Button>
-					))}
+					)}
+
+					{isSignedIn && !userIsAdmin && (
+						<Button
+							variant="ghost"
+							size="sm"
+							className={cn(
+								"flex flex-col p-2 gap-1 mx-2 h-auto !w-auto rounded-full items-center justify-center",
+								activeTab === "profile" && "text-primary",
+							)}
+						>
+							<Link href={`/users/${user?.id}/profile`}>
+								<User className="h-5 w-5" />
+							</Link>
+						</Button>
+					)}
+
 					{isSignedIn ? (
 						<NavScanner onScanClick={handleScannerToggle} />
 					) : (
@@ -379,7 +410,7 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 									className="flex flex-col p-4 gap-1 mx-2 h-auto w-auto rounded-full"
 								>
 									<UserPlus className="h-5 w-5" />
-									<span className="text-xs">Sign In</span>
+									{/* <span className="text-xs">Sign In</span> */}
 								</Button>
 							</SignInButton>
 						</>

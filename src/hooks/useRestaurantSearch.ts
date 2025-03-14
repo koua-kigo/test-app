@@ -9,6 +9,7 @@ export type SortOption = "name-asc" | "name-desc";
 interface UseRestaurantSearchProps {
 	restaurants: Restaurant[];
 	initialSortOption?: SortOption;
+	hasDeals?: boolean;
 }
 
 interface UseRestaurantSearchResult {
@@ -18,14 +19,18 @@ interface UseRestaurantSearchResult {
 	sortOption: SortOption;
 	setSortOption: (option: SortOption) => void;
 	isSearching: boolean;
+	hasDeals: boolean;
+	setHasDeals: (hasDeals: boolean) => void;
 }
 
 export const useRestaurantSearch = ({
 	restaurants,
 	initialSortOption = "name-asc",
+	hasDeals: initialHasDeals = false,
 }: UseRestaurantSearchProps): UseRestaurantSearchResult => {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [sortOption, setSortOption] = useState<SortOption>(initialSortOption);
+	const [hasDeals, setHasDeals] = useState<boolean>(initialHasDeals);
 
 	// Initialize Fuse.js for fuzzy search
 	const fuse = useMemo(() => {
@@ -39,6 +44,13 @@ export const useRestaurantSearch = ({
 	// Apply search and sorting
 	const filteredRestaurants = useMemo(() => {
 		let results = [...restaurants];
+
+		// Apply deals filter if enabled
+		if (hasDeals) {
+			results = results.filter(
+				(restaurant) => restaurant.deals && restaurant.deals.length > 0,
+			);
+		}
 
 		// Apply fuzzy search if search term exists
 		if (searchTerm.trim()) {
@@ -55,7 +67,7 @@ export const useRestaurantSearch = ({
 			}
 			return b.name.localeCompare(a.name); // name-desc
 		});
-	}, [restaurants, searchTerm, sortOption, fuse]);
+	}, [restaurants, searchTerm, sortOption, fuse, hasDeals]);
 
 	// Determine if search is active
 	const isSearching = searchTerm.trim().length > 0;
@@ -67,5 +79,7 @@ export const useRestaurantSearch = ({
 		sortOption,
 		setSortOption,
 		isSearching,
+		hasDeals,
+		setHasDeals,
 	};
 };

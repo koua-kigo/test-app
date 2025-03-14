@@ -48,14 +48,19 @@ const menuItems = [
 		],
 	},
 	{
-		title: "Prizes",
-		href: "/admin/prizes",
+		title: "Deals",
+		href: "/admin/deals",
 		icon: <Gift size={20} />,
-	},
-	{
-		title: "Achievements",
-		href: "/admin/achievements",
-		icon: <Trophy size={20} />,
+		submenu: [
+			{
+				title: "All Deals",
+				href: "/admin/deals",
+			},
+			{
+				title: "Add Deal",
+				href: "/admin/deals/new",
+			},
+		],
 	},
 	{
 		title: "Settings",

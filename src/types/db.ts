@@ -28,6 +28,7 @@ export type Restaurant = {
 	description: string;
 	imageUrl: string;
 	address: string;
+	deals?: Deal[];
 	qrCodeUrl: string | null;
 	punchCardCount?: number;
 	punchCards?: PunchCard[];
@@ -168,9 +169,10 @@ export type Achievement = {
  */
 export type Deal = {
 	id: bigint;
-	name: string;
-	description: string;
+	title: string;
+	content: string;
 	imageUrl: string;
+	active: boolean;
 	restaurantId: bigint;
 	createdAt: Date;
 	updatedAt: Date;

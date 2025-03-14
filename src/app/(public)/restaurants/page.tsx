@@ -5,8 +5,17 @@ import { getRestaurants } from "@/db/models/restaurants/restaurants";
 import type { Restaurant } from "@/types/db";
 import { RestaurantsList } from "@/features/restaurants/RestaurantList";
 
-export default async function RestaurantsPage() {
+export interface RestaurantsPageProps {
+	searchParams: {
+		deals?: string;
+	};
+}
+
+export default async function RestaurantsPage({
+	searchParams,
+}: RestaurantsPageProps) {
 	const restaurants = await getRestaurants();
+	const hasDeals = searchParams.deals === "true";
 
 	// Apply default sorting (A-Z by name)
 	const sortedRestaurants = [...restaurants].sort((a, b) =>
@@ -32,7 +41,10 @@ export default async function RestaurantsPage() {
 				</p>
 			</div>
 
-			<RestaurantsList restaurants={sortedRestaurants} />
+			<RestaurantsList
+				restaurants={sortedRestaurants}
+				initialHasDeals={hasDeals}
+			/>
 		</div>
 	);
 }

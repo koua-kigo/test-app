@@ -43,10 +43,10 @@ export default async function Home() {
 							Get Started
 						</Link>
 						<Link
-							href="/restaurants"
-							className="rounded-full bg-[#e0d9d1]  border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+							href="/deals"
+							className="rounded-full bg-[#e0d9d1] relative z-40  border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
 						>
-							Browse Restaurants
+							Browse Deals
 						</Link>
 					</div>
 				</div>

@@ -6,7 +6,7 @@ import { InView } from "@/components/ui/in-view";
 import { RestaurantCard } from "./RestaurantCard";
 import { RestaurantSearchBar } from "./RestaurantSearchBar";
 import { useRestaurantSearch } from "@/hooks/useRestaurantSearch";
-import type { Restaurant } from "@/types/db";
+import type { Restaurant, RestaurantDetailPayload } from "@/types/db";
 
 // Loading component
 export function RestaurantsLoading() {
@@ -36,7 +36,11 @@ export function RestaurantsLoading() {
 // Restaurants list component
 export function RestaurantsList({
 	restaurants,
-}: { restaurants: Restaurant[] }) {
+	initialHasDeals = false,
+}: {
+	restaurants: RestaurantDetailPayload[];
+	initialHasDeals?: boolean;
+}) {
 	const {
 		filteredRestaurants,
 		searchTerm,
@@ -44,7 +48,12 @@ export function RestaurantsList({
 		sortOption,
 		setSortOption,
 		isSearching,
-	} = useRestaurantSearch({ restaurants });
+		hasDeals,
+		setHasDeals,
+	} = useRestaurantSearch({
+		restaurants,
+		hasDeals: initialHasDeals,
+	});
 
 	return (
 		<>
@@ -53,6 +62,8 @@ export function RestaurantsList({
 				onSearchChange={setSearchTerm}
 				sortOption={sortOption}
 				onSortChange={setSortOption}
+				hasDeals={hasDeals}
+				onDealsChange={setHasDeals}
 			/>
 
 			{filteredRestaurants.length === 0 ? (
@@ -79,7 +90,7 @@ export function RestaurantsList({
 					}}
 				>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-7xl px-4 auto-rows-fr">
-						{filteredRestaurants.map((restaurant: Restaurant) => (
+						{filteredRestaurants.map((restaurant) => (
 							<motion.div
 								variants={{
 									hidden: { opacity: 0, scale: 0.8, filter: "blur(10px)" },

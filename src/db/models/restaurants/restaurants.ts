@@ -24,6 +24,14 @@ export const getRestaurants = async () => {
 	}));
 };
 
+export const getDeals = async () => {
+	return await db.query.restaurantDeals.findMany({
+		with: {
+			restaurant: true,
+		},
+	});
+};
+
 export const getRestaurantById = async (id: bigint) => {
 	return await db
 		.select()
@@ -33,22 +41,22 @@ export const getRestaurantById = async (id: bigint) => {
 		.then((res) => res[0]);
 };
 
-export const getRestaurantByIdWithPrizes = async (id: bigint) => {
-	const restaurant = await db
-		.select()
-		.from(restaurants)
-		.where(eq(restaurants.id, id))
-		.limit(1)
-		.then((res) => res[0]);
+export const getRestaurantByIdWithPrizesAndDeals = async (id: bigint) => {
+	const restaurant = await db.query.restaurants.findFirst({
+		where: eq(restaurants.id, id),
+		with: {
+			prizes: true,
+			deals: true,
+		},
+	});
+
+	console.log("🚀 ~ getRestaurantByIdWithPrizes ~ restaurant:", restaurant);
+
 	if (!restaurant) {
 		return null;
 	}
-	const restaurantPrizes: unknown = await getPrizesByRestaurantId(id);
 
-	return {
-		...restaurant,
-		prizes: restaurantPrizes,
-	};
+	return restaurant;
 };
 
 export const getRestaurantByIdWithAll = async (id: bigint) => {

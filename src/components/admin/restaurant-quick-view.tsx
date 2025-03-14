@@ -19,6 +19,7 @@ import {
 	BadgeCheck,
 	Tag,
 	PlusCircle,
+	QrCode,
 } from "lucide-react";
 import {
 	Dialog,
@@ -32,6 +33,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DealsList, EmptyDeals } from "./restaurant-deals-display";
+import { QRCodeManager } from "@/app/admin/restaurants/qr-code-manager";
+import { cn } from "@/lib/utils";
 
 // Define the BentoItem interface to match the BentoGrid component's expected types
 interface BentoItem {
@@ -66,6 +69,19 @@ interface RestaurantQuickViewProps {
 	restaurantId: bigint;
 }
 
+// Helper function to format dates safely
+const formatDate = (dateString: string | Date | undefined): string => {
+	if (!dateString) return "";
+
+	try {
+		const date =
+			typeof dateString === "string" ? new Date(dateString) : dateString;
+		return date.toLocaleDateString();
+	} catch (error) {
+		return "Invalid date";
+	}
+};
+
 export function RestaurantQuickView({
 	restaurantId,
 }: RestaurantQuickViewProps) {
@@ -93,19 +109,19 @@ export function RestaurantQuickView({
 						...data,
 						prizes: data.prizes.map((prize) => ({
 							...prize,
-							// Convert createdAt string to Date safely
+							// Store the date string instead of Date object for consistent rendering
 							createdAt:
 								typeof prize.createdAt === "string"
-									? new Date(prize.createdAt)
-									: new Date(),
+									? prize.createdAt
+									: new Date().toISOString(),
 						})),
 						punchCards: data.punchCards.map((card) => ({
 							...card,
-							// Convert updatedAt string to Date safely
+							// Store the date string instead of Date object for consistent rendering
 							updatedAt:
 								typeof card.updatedAt === "string"
-									? new Date(card.updatedAt)
-									: new Date(),
+									? card.updatedAt
+									: new Date().toISOString(),
 						})),
 						// Initialize deals with mock data if it doesn't exist
 						deals: data.deals || [
@@ -114,16 +130,20 @@ export function RestaurantQuickView({
 								title: "Happy Hour",
 								description: "50% off on all drinks from 5PM to 7PM",
 								isActive: true,
-								createdAt: new Date(),
-								expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+								createdAt: new Date().toISOString(),
+								expiresAt: new Date(
+									Date.now() + 30 * 24 * 60 * 60 * 1000,
+								).toISOString(),
 							},
 							{
 								id: "deal-2",
 								title: "Weekend Special",
 								description: "Buy one get one free on desserts on weekends",
 								isActive: true,
-								createdAt: new Date(),
-								expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+								createdAt: new Date().toISOString(),
+								expiresAt: new Date(
+									Date.now() + 60 * 24 * 60 * 60 * 1000,
+								).toISOString(),
 							},
 						],
 					};
@@ -224,6 +244,41 @@ export function RestaurantQuickView({
 			},
 		];
 
+		// Add QR code section
+		items.push({
+			id: `qrcode-${restaurantData.id.toString()}`,
+			title: "Restaurant QR Code",
+			description: (
+				<div className="flex flex-col items-center space-y-2">
+					{restaurantData.qrCodeUrl ? (
+						<div className="flex flex-col items-center">
+							<div className="relative w-24 h-24 mb-2">
+								<img
+									src={restaurantData.qrCodeUrl}
+									alt="QR Code"
+									className="w-24 h-24 object-contain"
+								/>
+							</div>
+							<span className="text-xs text-gray-500">Scan to add punch</span>
+						</div>
+					) : (
+						<div className="flex flex-col items-center p-2">
+							<div className="text-xs text-gray-500 mb-2">
+								No QR code generated yet
+							</div>
+						</div>
+					)}
+					<div className="mt-2">
+						<QRCodeManager restaurant={restaurantData} variant="compact" />
+					</div>
+				</div>
+			),
+			icon: <QrCode className="w-4 h-4 text-purple-500" />,
+			status: restaurantData.qrCodeUrl ? "Active" : "Not Generated",
+			tags: ["QR Code", "Punch Cards"],
+			hasPersistentHover: false,
+		});
+
 		// Add prizes summary item
 		if (restaurantData.prizes.length > 0) {
 			items.push({
@@ -307,10 +362,24 @@ export function RestaurantQuickView({
 
 		// Add recent activity item
 		const recentCards = restaurantData.punchCards.filter((card) => {
-			const updatedDate = new Date(card.updatedAt);
-			const thirtyDaysAgo = new Date();
-			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-			return updatedDate > thirtyDaysAgo;
+			const updatedDateString =
+				typeof card.updatedAt === "string"
+					? card.updatedAt
+					: new Date().toISOString();
+
+			// Only create the Date objects on the client side when rendering
+			const isRecent = () => {
+				try {
+					const updatedDate = new Date(updatedDateString);
+					const thirtyDaysAgo = new Date();
+					thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+					return updatedDate > thirtyDaysAgo;
+				} catch (error) {
+					return false;
+				}
+			};
+
+			return isRecent();
 		}).length;
 
 		items.push({

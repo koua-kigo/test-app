@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { ArrowUpRight } from "lucide-react";
-import type { Restaurant } from "@/types/db";
+import { ArrowUpRight, Tag } from "lucide-react";
+import type { Restaurant, RestaurantDetailPayload } from "@/types/db";
 // export function RestaurantCard({ restaurant }: { restaurant: any }) {
 // 	console.log("🚀 ~ RestaurantCard ~ restaurant:", restaurant);
 
@@ -36,7 +36,12 @@ import type { Restaurant } from "@/types/db";
 // 	);
 // }
 
-export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
+export function RestaurantCard({
+	restaurant,
+}: { restaurant: RestaurantDetailPayload }) {
+	// Safely check if there are deals
+	const hasDeals = restaurant.deals && restaurant.deals.length > 0;
+
 	return (
 		<div className="block w-full group h-full">
 			<div
@@ -67,6 +72,23 @@ export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
 					)}
 				/>
 
+				{hasDeals && (
+					<div className="absolute top-3 left-3 z-10">
+						<div
+							className={cn(
+								"px-2.5 py-1 rounded-full text-xs font-medium flex items-center",
+								"bg-blue-500/90 text-white",
+								"backdrop-blur-md",
+								"shadow-xs",
+								"border border-blue-400/50",
+							)}
+						>
+							<Tag className="w-3 h-3 mr-1" />
+							<span>Deals</span>
+						</div>
+					</div>
+				)}
+
 				<div className="absolute top-3 right-3 z-10">
 					<Link
 						href={`/restaurants/${restaurant.id}`}
@@ -79,7 +101,7 @@ export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
 							"border border-white/20 dark:border-zinc-800/50",
 						)}
 					>
-						New
+						View
 					</Link>
 				</div>
 
@@ -88,13 +110,23 @@ export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
 						<div className="space-y-1.5">
 							<h3 className="text-lg font-semibold text-white dark:text-zinc-100 leading-snug">
 								{restaurant.name}
+								{hasDeals && (
+									<span className="ml-2 text-xs text-zinc-300 dark:text-zinc-400">
+										{restaurant.deals?.length} deals
+									</span>
+								)}
 							</h3>
-							<p className="text-sm text-zinc-200 dark:text-zinc-300 line-clamp-2">
-								{restaurant.description}
-							</p>
-							<p className="text-xs text-zinc-300 dark:text-zinc-400">
+
+							{hasDeals && restaurant.deals && restaurant.deals[0] && (
+								<div>
+									<p className="text-xs text-zinc-300 dark:text-zinc-400">
+										<b>{restaurant.deals[0].content}</b>
+									</p>
+								</div>
+							)}
+							{/* <p className="text-xs text-zinc-300 dark:text-zinc-400">
 								{restaurant.address}
-							</p>
+							</p> */}
 						</div>
 						<Link
 							href={`${restaurant.address}`}

@@ -53,7 +53,7 @@ export function PrizeCard({ prize }: PrizeCardProps) {
 				</div>
 			</CardContent>
 			<CardFooter className="pt-2 text-xs text-gray-500">
-				Created: {new Date(prize.createdAt).toLocaleDateString()}
+				Created: {new Date(prize.createdAt)}
 			</CardFooter>
 		</Card>
 	);
