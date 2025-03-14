@@ -14,8 +14,13 @@ const nextConfig: NextConfig = {
 				hostname: "via.placeholder.com",
 			},
 		],
-		// Allow unoptimized images in production if needed
-		unoptimized: process.env.NEXT_PUBLIC_SKIP_IMAGE_OPTIMIZATION === "true",
+		// Always optimize images for better performance
+		unoptimized: false,
+		// Add image quality optimization
+		quality: 80,
+		// Set default image sizes to reduce CLS
+		deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+		formats: ['image/webp', 'image/avif'],
 	},
 	// Less strict type checking in production builds
 	typescript: {
@@ -27,13 +32,23 @@ const nextConfig: NextConfig = {
 		// In production, don't fail the build if there are ESLint errors
 		ignoreDuringBuilds: isProduction,
 	},
-	// Skip checking for duplicate packages in production builds
+	// Performance optimizations
 	experimental: {
 		// Reduces build time and potential failures from dependency conflicts
 		skipTrailingSlashRedirect: true,
+		// Enable optimizations
+		optimizePackageImports: ['framer-motion', 'lucide-react', '@radix-ui/react-dialog'],
+		// Improve page loading with prefetching
+		ppr: true,
 	},
 	// In development, enable React strict mode
-	reactStrictMode: !isProduction,
+	reactStrictMode: true,
+	// Improve load times with compression
+	compress: true,
+	// Improve performance with statically exported pages where possible
+	output: 'export',
+	// Improved bundling
+	swcMinify: true,
 };
 
 export default nextConfig;
