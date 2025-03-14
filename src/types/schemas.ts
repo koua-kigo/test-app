@@ -9,6 +9,18 @@ import type {
 	Achievement,
 } from "./db";
 
+export const dealSchema = z.object({
+	id: z.bigint(),
+	name: z.string(),
+	description: z.string(),
+	imageUrl: z.string().url(),
+	restaurantId: z.bigint(),
+});
+
+export const createDealSchema = dealSchema.omit({
+	id: true,
+});
+
 /**
  * User schemas
  */
@@ -34,23 +46,6 @@ export const createUserSchema = userSchema
 	});
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
-
-/**
- * Restaurant schemas
- */
-export const restaurantSchema = z.object({
-	id: z.bigint(),
-	name: z.string(),
-	description: z.string(),
-	imageUrl: z.string().url(),
-	address: z.string(),
-	qrCodeUrl: z.string().url().nullable(),
-});
-
-export const createRestaurantSchema = restaurantSchema.omit({
-	id: true,
-	qrCodeUrl: true,
-});
 
 export type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>;
 
@@ -209,3 +204,26 @@ export const createAchievementSchema = achievementSchema.omit({
 });
 
 export type CreateAchievementInput = z.infer<typeof createAchievementSchema>;
+
+/**
+ * Restaurant schemas
+ */
+export const restaurantSchema = z.object({
+	id: z.bigint(),
+	name: z.string(),
+	description: z.string(),
+	imageUrl: z.string().url(),
+	address: z.string(),
+	qrCodeUrl: z.string().url().nullable(),
+	punchCardCount: z.number().int().min(0).optional(),
+	dealCount: z.number().int().min(0).optional(),
+	prizeCount: z.number().int().min(0).optional(),
+	prizes: z.array(prizeSchema).optional(),
+	punchCards: z.array(punchCardSchema).optional(),
+	deals: z.array(dealSchema).optional(),
+});
+
+export const createRestaurantSchema = restaurantSchema.omit({
+	id: true,
+	qrCodeUrl: true,
+});

@@ -2,30 +2,26 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "../../db";
-import { restaurants, prizes, punchCards } from "../../schema";
+import { restaurants, prizes, punchCards, restaurantDeals } from "../../schema";
 import { getPrizesByRestaurantId } from "@/db/models/prizes";
 
 export const getRestaurants = async () => {
 	// Get all restaurants with their punchCards relation loaded
-	const restaurantsList = await db.select().from(restaurants);
+	const restaurantsList = await db.query.restaurants.findMany({
+		with: {
+			punchCards: true,
+			deals: true,
+			prizes: true,
+		},
+	});
 
-	// For each restaurant, fetch all its punch cards
-	const restaurantsWithPunchCards = await Promise.all(
-		restaurantsList.map(async (restaurant) => {
-			const restaurantPunchCards = await db
-				.select()
-				.from(punchCards)
-				.where(eq(punchCards.restaurantId, restaurant.id));
-
-			return {
-				...restaurant,
-				punchCards: restaurantPunchCards,
-				punchCardCount: restaurantPunchCards.length,
-			};
-		}),
-	);
-
-	return restaurantsWithPunchCards;
+	// Add punchCardCount to each restaurant
+	return restaurantsList.map((restaurant) => ({
+		...restaurant,
+		punchCardCount: restaurant?.punchCards?.length,
+		dealCount: restaurant?.deals?.length,
+		prizeCount: restaurant?.prizes?.length,
+	}));
 };
 
 export const getRestaurantById = async (id: bigint) => {
@@ -95,4 +91,36 @@ export const updateRestaurant = async (
 
 export const deleteRestaurant = async (id: bigint) => {
 	return await db.delete(restaurants).where(eq(restaurants.id, id)).returning();
+};
+
+export const createRestaurantDeal = async (data: {
+	restaurantId: bigint;
+	title: string;
+	content: string;
+	active: boolean;
+}) => {
+	return await db.insert(restaurantDeals).values(data).returning();
+};
+
+export const updateRestaurantDeal = async (
+	id: bigint,
+	data: Partial<{
+		restaurantId: bigint;
+		title: string;
+		content: string;
+		active: boolean;
+	}>,
+) => {
+	return await db
+		.update(restaurantDeals)
+		.set(data)
+		.where(eq(restaurantDeals.id, id))
+		.returning();
+};
+
+export const deleteRestaurantDeal = async (id: bigint) => {
+	return await db
+		.delete(restaurantDeals)
+		.where(eq(restaurantDeals.id, id))
+		.returning();
 };

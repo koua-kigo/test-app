@@ -82,6 +82,12 @@ interface TableMeta {
 // Type for restaurant from schema
 type RestaurantData = z.infer<typeof restaurantSchema>;
 
+// Add the extended Restaurant type to include deals
+type ExtendedRestaurant = Restaurant & {
+	punchCardCount?: number;
+	deals?: { id: string; title: string; isActive: boolean }[];
+};
+
 // Props for editable cells
 type EditableCellProps = {
 	getValue: () => unknown;
@@ -148,13 +154,15 @@ const EditableCell = ({ getValue, row, column, table }: EditableCellProps) => {
 	const getColumnIcon = () => {
 		switch (columnId) {
 			case "name":
-				return <Building className="h-4 w-4 text-gray-500 mr-2" />;
+				return <Building className="h-4 w-4 text-sidebar-foreground/50 mr-2" />;
 			case "description":
-				return <Building className="h-4 w-4 text-gray-500 mr-2" />;
+				return <Building className="h-4 w-4 text-sidebar-foreground/50 mr-2" />;
 			case "address":
-				return <MapPin className="h-4 w-4 text-gray-500 mr-2" />;
+				return <MapPin className="h-4 w-4 text-sidebar-foreground/50 mr-2" />;
 			case "imageUrl":
-				return <ImageIcon className="h-4 w-4 text-gray-500 mr-2" />;
+				return (
+					<ImageIcon className="h-4 w-4 text-sidebar-foreground/50 mr-2" />
+				);
 			default:
 				return null;
 		}
@@ -167,14 +175,14 @@ const EditableCell = ({ getValue, row, column, table }: EditableCellProps) => {
 				onChange={(e) => setValue(e.target.value)}
 				onBlur={onBlur}
 				autoFocus
-				className="h-8 w-full text-sm"
+				className="h-8 w-full text-sm bg-background border-sidebar-border focus-visible:ring-sidebar-ring"
 			/>
 			<div className="flex space-x-1">
 				<Button
 					onClick={onSaveClick}
 					size="sm"
 					variant="ghost"
-					className="h-8 w-8 p-0"
+					className="h-8 w-8 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 				>
 					<Check className="h-4 w-4" />
 				</Button>
@@ -182,7 +190,7 @@ const EditableCell = ({ getValue, row, column, table }: EditableCellProps) => {
 					onClick={onCancelClick}
 					size="sm"
 					variant="ghost"
-					className="h-8 w-8 p-0"
+					className="h-8 w-8 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 				>
 					<X className="h-4 w-4" />
 				</Button>
@@ -198,7 +206,7 @@ const EditableCell = ({ getValue, row, column, table }: EditableCellProps) => {
 				onClick={onEditClick}
 				size="sm"
 				variant="ghost"
-				className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+				className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 			>
 				<Edit className="h-4 w-4" />
 			</Button>
@@ -311,7 +319,7 @@ export function RestaurantsTable({
 				const restaurant = row.original as Restaurant;
 				return (
 					<div className="flex items-center">
-						<QrCode className="h-4 w-4 text-gray-500 mr-2" />
+						<QrCode className="h-4 w-4 text-sidebar-foreground/50 mr-2" />
 						<QRCodeManager restaurant={restaurant} variant="table" />
 					</div>
 				);
@@ -325,7 +333,7 @@ export function RestaurantsTable({
 					<Button
 						size="sm"
 						variant="ghost"
-						className="h-8 w-8 ml-1 p-0"
+						className="h-8 w-8 ml-1 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 					>
 						{getSortingIcon(column.getIsSorted())}
@@ -344,6 +352,34 @@ export function RestaurantsTable({
 			},
 		},
 		{
+			accessorKey: "dealCount",
+			header: ({ column }) => (
+				<div className="flex items-center gap-0.5">
+					Deals
+					<Button
+						size="sm"
+						variant="ghost"
+						className="h-8 w-8 ml-1 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					>
+						{getSortingIcon(column.getIsSorted())}
+					</Button>
+				</div>
+			),
+			accessorFn: (row) => {
+				const restaurant = row as ExtendedRestaurant;
+				return restaurant.deals?.length || 0;
+			},
+			cell: ({ row }) => {
+				const restaurant = row.original as ExtendedRestaurant;
+				return (
+					<div className="font-medium text-sm">
+						{restaurant.deals?.length || 0}
+					</div>
+				);
+			},
+		},
+		{
 			id: "quickView",
 			header: "Quick View",
 			cell: ({ row }) => {
@@ -351,6 +387,26 @@ export function RestaurantsTable({
 				return (
 					<div className="flex justify-center">
 						<RestaurantQuickView restaurantId={restaurant.id} />
+					</div>
+				);
+			},
+			meta: { editable: false } as ColumnMeta,
+		},
+		{
+			id: "navigate",
+			header: "Details",
+			cell: ({ row }) => {
+				const restaurant = row.original;
+				return (
+					<div className="flex justify-center">
+						<Button
+							onClick={() => handleView(restaurant.id.toString())}
+							size="sm"
+							variant="outline"
+							className="h-8 rounded-lg bg-background border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+						>
+							View Restaurant
+						</Button>
 					</div>
 				);
 			},
@@ -365,19 +421,26 @@ export function RestaurantsTable({
 					<div className="flex justify-end">
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" className="h-8 w-8 p-0">
+								<Button
+									variant="ghost"
+									className="h-8 w-8 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+								>
 									<MoreHorizontal className="h-4 w-4" />
 								</Button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
+							<DropdownMenuContent
+								align="end"
+								className="bg-background border-sidebar-border"
+							>
 								<DropdownMenuItem
 									onClick={() => handleView(restaurant.id.toString())}
+									className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 								>
 									View Details
 								</DropdownMenuItem>
 								<DropdownMenuItem
 									onClick={() => setRestaurantToDelete(restaurant)}
-									className="text-red-600"
+									className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
 								>
 									Delete
 								</DropdownMenuItem>
@@ -473,7 +536,7 @@ export function RestaurantsTable({
 	});
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-4 p-4 bg-sidebar rounded-xl shadow-sm">
 			<AdminRestaurantSearchBar
 				searchTerm={searchTerm}
 				onSearchChange={setSearchTerm}
@@ -481,13 +544,19 @@ export function RestaurantsTable({
 				onSortChange={setSortOption}
 			/>
 
-			<div className="rounded-md border">
-				<Table className="bg-white w-full">
-					<TableHeader style={{ borderBottom: "1px solid #e0e0e0" }}>
+			<div className="rounded-xl border border-sidebar-border shadow-sm overflow-hidden">
+				<Table className="bg-background w-full">
+					<TableHeader
+						className="bg-sidebar/50"
+						style={{ borderBottom: "1px solid var(--sidebar-border)" }}
+					>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
-									<TableHead key={header.id}>
+									<TableHead
+										key={header.id}
+										className="text-sidebar-foreground px-4 py-3"
+									>
 										{header.isPlaceholder
 											? null
 											: flexRender(
@@ -505,11 +574,11 @@ export function RestaurantsTable({
 								<TableRow
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}
-									className="group border-b-1 border-b-gray-200"
-									style={{ borderBottom: "1px solid #e0e0e0" }}
+									className="group border-b-1 border-sidebar-border hover:bg-sidebar/10"
+									style={{ borderBottom: "1px solid var(--sidebar-border)" }}
 								>
 									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
+										<TableCell key={cell.id} className="px-4 py-3">
 											{flexRender(
 												cell.column.columnDef.cell,
 												cell.getContext(),
@@ -522,11 +591,16 @@ export function RestaurantsTable({
 							<TableRow>
 								<TableCell
 									colSpan={columns.length}
-									className="h-24 text-center"
+									className="h-24 text-center py-8"
 								>
-									{isSearching
-										? "No restaurants found matching your search"
-										: "No restaurants."}
+									<div className="flex flex-col items-center justify-center text-sidebar-foreground/70">
+										<Building className="h-10 w-10 text-sidebar-foreground/30 mb-2" />
+										{isSearching ? (
+											<p>No restaurants found matching your search</p>
+										) : (
+											<p>No restaurants available</p>
+										)}
+									</div>
 								</TableCell>
 							</TableRow>
 						)}
@@ -539,6 +613,7 @@ export function RestaurantsTable({
 					size="sm"
 					onClick={() => table.previousPage()}
 					disabled={!table.getCanPreviousPage()}
+					className="rounded-lg px-4 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 				>
 					Previous
 				</Button>
@@ -547,6 +622,7 @@ export function RestaurantsTable({
 					size="sm"
 					onClick={() => table.nextPage()}
 					disabled={!table.getCanNextPage()}
+					className="rounded-lg px-4 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 				>
 					Next
 				</Button>
@@ -557,19 +633,23 @@ export function RestaurantsTable({
 				open={!!restaurantToDelete}
 				onOpenChange={(open) => !open && setRestaurantToDelete(null)}
 			>
-				<AlertDialogContent>
+				<AlertDialogContent className="bg-background border-sidebar-border">
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Restaurant</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogTitle className="text-foreground">
+							Delete Restaurant
+						</AlertDialogTitle>
+						<AlertDialogDescription className="text-foreground/70">
 							Are you sure you want to delete the restaurant &quot;
 							{restaurantToDelete?.name}&quot;? This action cannot be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogCancel className="bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground border-sidebar-border">
+							Cancel
+						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
-							className="bg-red-600 hover:bg-red-700"
+							className="bg-red-600 hover:bg-red-700 text-white"
 						>
 							Delete
 						</AlertDialogAction>

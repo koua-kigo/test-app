@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useSidebar } from "./SidebarContext";
+import Image from "next/image";
 import {
 	LayoutDashboard,
 	Users,
@@ -123,16 +124,19 @@ export function AdminSidebar() {
         `}
 			>
 				{/* Logo and collapse button */}
-				<div className="flex items-center justify-between p-4 border-b border-gray-700">
-					<Link href="/admin" className="flex items-center space-x-3">
-						<Globe size={24} className="text-blue-400" />
-						{!collapsed && (
-							<span className="font-semibold text-lg">Restaurant Admin</span>
-						)}
-					</Link>
-
+				<div className="bg-white text-gray-600 flex w-full justify-start items-center p-4">
+					{/* <Link href="/admin" className="flex items-center space-x-3">
+			
+					</Link> */}
+					<Image
+						src="/logo.png"
+						alt="Restaurant Passport Logo"
+						width={50}
+						height={50}
+						className="mr-auto bg-[#ebe6e7] rounded-full"
+					/>
 					<button
-						className="hidden md:block text-gray-600 hover:text-white"
+						className="hidden md:block text-gray-600 hover:text-white flex"
 						onClick={toggleCollapse}
 					>
 						{collapsed ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
@@ -141,7 +145,7 @@ export function AdminSidebar() {
 
 				{/* User info */}
 				{!collapsed && (
-					<div className="p-4 border-b border-gray-700">
+					<div className="p-4 border-b border-gray-700 bg-white">
 						<div className="flex items-center space-x-3">
 							{user?.imageUrl && (
 								<img
@@ -150,7 +154,7 @@ export function AdminSidebar() {
 									className="w-10 h-10 rounded-full"
 								/>
 							)}
-							<div className="flex-1 min-w-0">
+							<div className="flex-1 min-w-0 bg-white">
 								<p className="text-sm font-medium truncate">
 									{user?.firstName} {user?.lastName}
 								</p>
@@ -172,7 +176,7 @@ export function AdminSidebar() {
 										<button
 											className={`
                         w-full flex items-center justify-between p-3 rounded-md
-                        ${isActive(item.href) ? "bg-[#818cf8]" : "hover:bg-gray-800"}
+                        ${isActive(item.href) ? "bg-[#ebe6e7]" : "hover:bg-[#ebe6e7]"}
                         transition-colors duration-200
                       `}
 											onClick={() => toggleSubmenu(item.title)}
@@ -201,7 +205,7 @@ export function AdminSidebar() {
 															href={subitem.href}
 															className={`
                                 block p-2 rounded-md text-sm
-                                ${isSubmenuActive(subitem.href) ? "bg-[#818cf8]" : "hover:bg-gray-800"}
+                                ${isSubmenuActive(subitem.href) ? "bg-[#818cf8]" : "hover:bg-[#ebe6e7]"}
                                 transition-colors duration-200
                               `}
 														>
@@ -217,7 +221,7 @@ export function AdminSidebar() {
 										href={item.href}
 										className={`
                       flex items-center p-3 rounded-md
-                      ${isActive(item.href) ? "bg-[#818cf8]" : "hover:bg-gray-800"}
+                      ${isActive(item.href) ? "bg-[#818cf8]" : "hover:bg-[#ebe6e7]"}
                       transition-colors duration-200
                     `}
 									>
@@ -231,10 +235,16 @@ export function AdminSidebar() {
 				</nav>
 
 				{/* Sign out button */}
-				<div className="p-4 border-t border-gray-700">
+				<div
+					className={`
+                       bg-white w-full flex items-center justify-between
+                         ? "bg-[#ebe6e7]" : "hover:bg-[#ebe6e7]"}
+                        transition-colors duration-200
+                      `}
+				>
 					<Link
 						href="/sign-out"
-						className="flex items-center p-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition-colors duration-200"
+						className="flex items-center p-3 text-gray-400 hover:text-white hover:bg-[#ebe6e7] rounded-md transition-colors duration-200"
 					>
 						<LogOut size={20} className="mr-3" />
 						{!collapsed && <span>Sign Out</span>}

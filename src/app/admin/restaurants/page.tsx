@@ -76,30 +76,32 @@ export default async function RestaurantsPage() {
 	console.log("🚀 ~ RestaurantsPage ~ restaurants:", restaurants);
 
 	return (
-		<div className="container mx-auto px-4 py-8">
-			<div className="flex justify-between items-center mb-8">
-				<h1 className="text-3xl font-bold">Restaurants</h1>
-				<div className="flex space-x-4">
-					<Link
-						href="/admin/restaurants/new"
-						className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition-colors"
-					>
-						Add Restaurant
-					</Link>
-					<Link
-						href="/admin"
-						className="text-blue-600 hover:text-blue-800 transition-colors"
-					>
-						Back to Dashboard
-					</Link>
+		<>
+			<div className="w-full mx-auto px-4 py-8 bg-sidebar rounded-xl shadow-sm mb-4">
+				<div className="flex justify-between items-center mb-8 ">
+					<h1 className="text-3xl font-bold">Restaurants</h1>
+					<div className="flex space-x-4 align-middle items-center justify-center">
+						<Link
+							href="/admin/restaurants/new"
+							className="bg-[#ebe6e7] px-4 py-2 rounded-md text-sm hover:bg-green-700 transition-colors"
+						>
+							Add Restaurant
+						</Link>
+						<Link
+							href="/admin"
+							className="text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors"
+						>
+							Back to Dashboard
+						</Link>
+					</div>
 				</div>
-			</div>
 
-			<div className="mb-8">
-				<p className="text-gray-600">
-					Manage your partner restaurants. Edit details directly in the table
-					below or click on View Details for more options.
-				</p>
+				<div className="mb-8">
+					<p className="text-gray-600">
+						Manage your partner restaurants. Edit details directly in the table
+						below or click on View Details for more options.
+					</p>
+				</div>
 			</div>
 			{restaurants.length === 0 ? (
 				<div className="text-center py-12">
@@ -113,6 +115,6 @@ export default async function RestaurantsPage() {
 					<RestaurantsTable restaurants={restaurants} />
 				</Suspense>
 			)}
-		</div>
+		</>
 	);
 }

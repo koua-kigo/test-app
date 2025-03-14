@@ -9,17 +9,20 @@ import {
 	Video,
 	Globe,
 } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface BentoItem {
 	title: string;
-	description: string;
-	icon: React.ReactNode;
+	description: string | ReactNode;
+	icon: ReactNode;
 	status?: string;
 	tags?: string[];
 	meta?: string;
 	cta?: string;
 	colSpan?: number;
 	hasPersistentHover?: boolean;
+	id?: string;
+	renderCustomContent?: boolean;
 }
 
 interface BentoGridProps {
@@ -68,7 +71,7 @@ export function BentoGrid({ items }: BentoGridProps) {
 		<div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 max-w-7xl mx-auto">
 			{items.map((item, index) => (
 				<div
-					key={index}
+					key={item.id || `${item.title}-${index}`}
 					className={cn(
 						"group relative p-4 rounded-xl overflow-hidden transition-all duration-300",
 						"border border-gray-100/80 dark:border-white/10 bg-white dark:bg-black",
@@ -116,16 +119,22 @@ export function BentoGrid({ items }: BentoGridProps) {
 									{item.meta}
 								</span>
 							</h3>
-							<p className="text-sm text-gray-600 dark:text-gray-300 leading-snug font-[425]">
-								{item.description}
-							</p>
+							{typeof item.description === "string" ? (
+								<p className="text-sm text-gray-600 dark:text-gray-300 leading-snug font-[425]">
+									{item.description}
+								</p>
+							) : (
+								<div className="text-sm text-gray-600 dark:text-gray-300">
+									{item.description}
+								</div>
+							)}
 						</div>
 
 						<div className="flex items-center justify-between mt-2">
 							<div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-								{item.tags?.map((tag, i) => (
+								{item.tags?.map((tag) => (
 									<span
-										key={i}
+										key={tag}
 										className="px-2 py-1 rounded-md bg-black/5 dark:bg-white/10 backdrop-blur-xs transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/20"
 									>
 										#{tag}

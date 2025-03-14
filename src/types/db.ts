@@ -162,3 +162,34 @@ export type Achievement = {
 	data: AchievementData;
 	unlockedAt: Date;
 };
+
+/**
+ * Deal model
+ */
+export type Deal = {
+	id: bigint;
+	name: string;
+	description: string;
+	imageUrl: string;
+	restaurantId: bigint;
+	createdAt: Date;
+	updatedAt: Date;
+};
+
+export interface RestaurantDetailPayload extends Restaurant {
+	deals?: Deal[];
+	prizes?: Prize[];
+	punchCards?: PunchCard[];
+	dealCount?: number;
+	prizeCount?: number;
+	punchCardCount?: number;
+}
+
+export interface RestaurantDetailPayload extends Restaurant {
+	deals?: Deal[];
+	prizes?: Prize[];
+	punchCards?: PunchCard[];
+	dealCount?: number;
+	prizeCount?: number;
+	punchCardCount?: number;
+}
