@@ -59,6 +59,14 @@ export function useScanQrCode({
 		setIsScanning((prev) => !prev);
 	}, []);
 
+	// Handle scanning errors
+	const handleError = useCallback((err: Error) => {
+		toast({
+			title: "Scanner Error",
+			description: err.message,
+			variant: "destructive",
+		});
+	}, []);
 	// Handle successful scan
 	const handleScan: OnResultFunction = useCallback(
 		(result, error) => {
@@ -124,17 +132,8 @@ export function useScanQrCode({
 				);
 			}
 		},
-		[qrCodeData],
+		[qrCodeData, handleError],
 	);
-
-	// Handle scanning errors
-	const handleError = useCallback((err: Error) => {
-		toast({
-			title: "Scanner Error",
-			description: err.message,
-			variant: "destructive",
-		});
-	}, []);
 
 	// Process scan result using Server Action
 	const checkScanResult = useCallback(async () => {
