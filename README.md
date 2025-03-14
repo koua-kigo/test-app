@@ -78,3 +78,56 @@ You can modify the selectors in the `scrapeRestaurantInfo` function to better ta
 ## License
 
 MIT
+
+## Project Directory Structure
+
+```
+.
+├── src/
+│   ├── app/
+│   │   ├── (public)/
+│   │   │   ├── restaurants/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   ├── admin/
+│   │   │   └── deals/
+│   │   │       └── [id]/
+│   │   │           └── edit/
+│   │   │               └── page.tsx
+│   │   └── layout.tsx
+│   ├── components/
+│   │   ├── admin/
+│   │   │   ├── deals/
+│   │   │   │   └── edit-deal-form.tsx
+│   │   │   └── restaurants-table.tsx
+│   │   └── auth/
+│   ├── db/
+│   │   ├── models/
+│   │   │   └── restaurants/
+│   │   │       ├── restaurants.ts
+│   │   │       ├── schema.ts
+│   │   │       └── types.ts
+│   │   ├── migrations/
+│   │   └── drizzle.ts
+│   ├── features/
+│   │   └── restaurants/
+│   │       ├── Restaurant.tsx
+│   │       └── UserFacingRestaurantDetail.tsx
+│   └── public/
+│       ├── images/
+│       └── svg/
+├── .env
+├── tailwind.config.js
+├── drizzle.config.ts
+├── next.config.js
+└── package.json
+```
+
+Key Notes:
+
+- Next.js app router structure with route groups `(public)`
+- Drizzle ORM configuration for database models
+- Feature-based organization with colocated components
+- Admin/public separation with layout preservation
+- TypeScript-first approach with strict type definitions

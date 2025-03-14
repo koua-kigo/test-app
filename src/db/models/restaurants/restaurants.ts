@@ -5,22 +5,37 @@ import { db } from "../../db";
 import { restaurants, prizes, punchCards, restaurantDeals } from "../../schema";
 import { getPrizesByRestaurantId } from "@/db/models/prizes";
 
-export const getRestaurants = async () => {
-	// Get all restaurants with their punchCards relation loaded
+export const getRestaurants = async (page = 1, limit = 12) => {
+	// Get restaurants with pagination and only load essential relations
+	const offset = (page - 1) * limit;
 	const restaurantsList = await db.query.restaurants.findMany({
+		limit,
+		offset,
 		with: {
-			punchCards: true,
-			deals: true,
-			prizes: true,
+			deals: {
+				columns: {
+					id: true,
+				},
+			},
+			prizes: {
+				columns: {
+					id: true,
+				},
+			},
+			punchCards: {
+				columns: {
+					id: true,
+				},
+			},
 		},
 	});
 
-	// Add punchCardCount to each restaurant
+	// Add count metadata to each restaurant
 	return restaurantsList.map((restaurant) => ({
 		...restaurant,
-		punchCardCount: restaurant?.punchCards?.length,
-		dealCount: restaurant?.deals?.length,
-		prizeCount: restaurant?.prizes?.length,
+		punchCardCount: restaurant?.punchCards?.length || 0,
+		dealCount: restaurant?.deals?.length || 0,
+		prizeCount: restaurant?.prizes?.length || 0,
 	}));
 };
 
@@ -50,7 +65,7 @@ export const getRestaurantByIdWithPrizesAndDeals = async (id: bigint) => {
 		},
 	});
 
-	console.log("🚀 ~ getRestaurantByIdWithPrizes ~ restaurant:", restaurant);
+	// Removed console.log for production performance
 
 	if (!restaurant) {
 		return null;

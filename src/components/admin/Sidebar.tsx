@@ -131,7 +131,7 @@ export function AdminSidebar() {
 			{/* Overlay for mobile */}
 			{mobileOpen && (
 				<div
-					className="md:hidden fixed inset-0 bg-black/80  z-30"
+					className="md:hidden fixed inset-0 bg-black/80  z-50"
 					onClick={() => setMobileOpen(false)}
 				/>
 			)}
@@ -142,7 +142,7 @@ export function AdminSidebar() {
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"} 
           md:translate-x-0
           ${collapsed ? "md:w-20" : "md:w-64"} 
-          fixed top-0 left-0 h-full text-white transition-all duration-300 ease-in-out z-40
+          fixed top-0 left-0 h-full text-white transition-all duration-300 ease-in-out z-50
           flex flex-col border-r border-[#e5e5e5b3]
         `}
 			>

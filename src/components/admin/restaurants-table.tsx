@@ -562,12 +562,7 @@ export function RestaurantsTable({
 				className="bg-background rounded-lg border border-sidebar-border p-4 mb-4 shadow-sm"
 			>
 				<div className="flex justify-between items-start mb-3">
-					<div>
-						<h3 className="font-medium text-base">{restaurant.name}</h3>
-						<p className="text-xs text-sidebar-foreground/70">
-							ID: {restaurant.id.toString()}
-						</p>
-					</div>
+					<h3 className="font-medium text-base">{restaurant.name}</h3>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="h-8 w-8 p-0">
@@ -596,21 +591,19 @@ export function RestaurantsTable({
 					</DropdownMenu>
 				</div>
 
-				<div className="space-y-2 text-sm">
-					<div className="flex items-start">
-						<MapPin className="h-4 w-4 text-sidebar-foreground/50 mr-2 mt-0.5 flex-shrink-0" />
-						<p className="text-sidebar-foreground/80">{restaurant.address}</p>
+				{/* Restaurant Image */}
+				{restaurant.imageUrl && (
+					<div className="mb-3 w-full h-32 rounded-lg overflow-hidden">
+						<img
+							src={restaurant.imageUrl}
+							alt={restaurant.name}
+							className="w-full h-full object-cover"
+						/>
 					</div>
-
-					<div className="flex items-start">
-						<Building className="h-4 w-4 text-sidebar-foreground/50 mr-2 mt-0.5 flex-shrink-0" />
-						<p className="text-sidebar-foreground/80 line-clamp-2">
-							{restaurant.description}
-						</p>
-					</div>
-				</div>
+				)}
 
 				<div className="flex flex-wrap gap-2 mt-3">
+					{/* QR Code */}
 					<div className="text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md flex items-center">
 						<QrCode className="h-3 w-3 mr-1" />
 						<QRCodeManager
@@ -619,28 +612,22 @@ export function RestaurantsTable({
 						/>
 					</div>
 
+					{/* Punch Cards Count */}
 					<div className="text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md">
 						Punch Cards:{" "}
 						{(restaurant as unknown as ExtendedRestaurant).punchCardCount || 0}
 					</div>
 
+					{/* Deals Count */}
 					<div className="text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md">
 						Deals:{" "}
 						{(restaurant as unknown as ExtendedRestaurant).deals?.length || 0}
 					</div>
 				</div>
 
-				<div className="flex justify-between mt-4 pt-3 border-t border-sidebar-border">
+				{/* Quick View Button */}
+				<div className="flex justify-end mt-4 pt-3 border-t border-sidebar-border">
 					<RestaurantQuickView restaurantId={restaurant.id} />
-					<Button
-						onClick={() => handleView(restaurant.id.toString())}
-						size="sm"
-						variant="outline"
-						className="rounded-lg text-xs h-8 px-3 flex items-center gap-1 bg-background hover:bg-sidebar-accent"
-					>
-						<ExternalLink className="h-3 w-3" />
-						View
-					</Button>
 				</div>
 			</div>
 		));
