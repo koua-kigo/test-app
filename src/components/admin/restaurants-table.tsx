@@ -482,8 +482,8 @@ export function RestaurantsTable({
 			/>
 
 			<div className="rounded-md border">
-				<Table>
-					<TableHeader>
+				<Table className="bg-white w-full">
+					<TableHeader style={{ borderBottom: "1px solid #e0e0e0" }}>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
@@ -505,7 +505,8 @@ export function RestaurantsTable({
 								<TableRow
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}
-									className="group"
+									className="group border-b-1 border-b-gray-200"
+									style={{ borderBottom: "1px solid #e0e0e0" }}
 								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell key={cell.id}>

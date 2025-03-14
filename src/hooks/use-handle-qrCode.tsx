@@ -14,12 +14,10 @@ export const useHandleQRCode = ({ restaurant }: { restaurant: Restaurant }) => {
 
 	// Get the base URL from environment or window location
 	const getBaseUrl = () => {
-		// if (typeof window !== "undefined") {
-		// 	return window.location.origin;
-		// }
-		// return process.env.NEXT_PUBLIC_BASE_URL || "";
-
-		return "https://746f-68-168-164-204.ngrok-free.app";
+		if (typeof window !== "undefined") {
+			return window.location.origin;
+		}
+		return process.env.NEXT_PUBLIC_BASE_URL || "";
 	};
 
 	// Construct the QR code value with the appropriate base URL

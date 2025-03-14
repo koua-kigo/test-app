@@ -9,7 +9,9 @@ import {
 	timestamp,
 	integer,
 	uniqueIndex,
+	bigint,
 } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 export const restaurants = pgTable("restaurants", {
 	id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
@@ -19,6 +21,32 @@ export const restaurants = pgTable("restaurants", {
 	address: text().notNull(),
 	qrCodeUrl: text("qr_code_url"),
 });
+
+export const restaurantDeals = pgTable(
+	"restaurant_deals",
+	{
+		id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
+		restaurantId: bigint("restaurant_id", { mode: "bigint" }).notNull(),
+		title: text().notNull(),
+		content: text().notNull(),
+		active: boolean().default(true),
+		createdAt: timestamp("created_at", {
+			withTimezone: true,
+			mode: "string",
+		}).defaultNow(),
+		updatedAt: timestamp("updated_at", {
+			withTimezone: true,
+			mode: "string",
+		}).defaultNow(),
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.restaurantId],
+			foreignColumns: [restaurants.id],
+			name: "restaurant_deals_restaurant_id_restaurants_id_fk",
+		}),
+	],
+);
 
 export const users = pgTable(
 	"users",
@@ -42,7 +70,7 @@ export const achievements = pgTable(
 	"achievements",
 	{
 		id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-		userId: bigserial("user_id", { mode: "bigint" }).notNull(),
+		userId: bigint("user_id", { mode: "bigint" }).notNull(),
 		type: text().notNull(),
 		data: jsonb().default({}).notNull(),
 		unlockedAt: timestamp("unlocked_at", {
@@ -63,7 +91,7 @@ export const pointBalances = pgTable(
 	"point_balances",
 	{
 		id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-		userId: bigserial("user_id", { mode: "bigint" }).notNull(),
+		userId: bigint("user_id", { mode: "bigint" }).notNull(),
 		points: integer().default(0).notNull(),
 		updatedAt: timestamp("updated_at", {
 			withTimezone: true,
@@ -83,8 +111,8 @@ export const pointTransfers = pgTable(
 	"point_transfers",
 	{
 		id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-		fromUserId: bigserial("from_user_id", { mode: "bigint" }).notNull(),
-		toUserId: bigserial("to_user_id", { mode: "bigint" }).notNull(),
+		fromUserId: bigint("from_user_id", { mode: "bigint" }).notNull(),
+		toUserId: bigint("to_user_id", { mode: "bigint" }).notNull(),
 		points: integer().notNull(),
 		message: text(),
 		status: text().notNull(),
@@ -107,13 +135,71 @@ export const pointTransfers = pgTable(
 	],
 );
 
+export const punchCards = pgTable(
+	"punch_cards",
+	{
+		id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
+		userId: bigint("user_id", { mode: "bigint" }).notNull(),
+		restaurantId: bigint("restaurant_id", { mode: "bigint" }).notNull(),
+		punches: integer().default(0),
+		completed: boolean().default(false),
+		updatedAt: timestamp("updated_at", {
+			withTimezone: true,
+			mode: "string",
+		}).defaultNow(),
+	},
+	(table) => [
+		uniqueIndex("unique_restaurant_user_idx").on(
+			table.userId,
+			table.restaurantId,
+		),
+		foreignKey({
+			columns: [table.restaurantId],
+			foreignColumns: [restaurants.id],
+			name: "punch_cards_restaurant_id_restaurants_id_fk",
+		}),
+		foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "punch_cards_user_id_users_id_fk",
+		}),
+	],
+);
+
+export const prizes = pgTable(
+	"prizes",
+	{
+		id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
+		name: text().notNull(),
+		description: text().notNull(),
+		imageUrl: text("image_url").notNull(),
+		type: text().notNull(),
+		restaurantId: bigint("restaurant_id", { mode: "bigint" }).notNull(),
+		requiredPunches: integer("required_punches").notNull(),
+		available: boolean().default(true),
+		quantity: integer().default(0),
+		rules: jsonb().default({}).notNull(),
+		createdAt: timestamp("created_at", {
+			withTimezone: true,
+			mode: "string",
+		}).defaultNow(),
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.restaurantId],
+			foreignColumns: [restaurants.id],
+			name: "prizes_restaurant_id_restaurants_id_fk",
+		}),
+	],
+);
+
 export const prizeRedemptions = pgTable(
 	"prize_redemptions",
 	{
 		id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-		userId: bigserial("user_id", { mode: "bigint" }).notNull(),
-		prizeId: bigserial("prize_id", { mode: "bigint" }).notNull(),
-		punchCardId: bigserial("punch_card_id", { mode: "bigint" }).notNull(),
+		userId: bigint("user_id", { mode: "bigint" }).notNull(),
+		prizeId: bigint("prize_id", { mode: "bigint" }).notNull(),
+		punchCardId: bigint("punch_card_id", { mode: "bigint" }).notNull(),
 		status: text().notNull(),
 		redeemedAt: timestamp("redeemed_at", {
 			withTimezone: true,
@@ -144,39 +230,12 @@ export const prizeRedemptions = pgTable(
 	],
 );
 
-export const prizes = pgTable(
-	"prizes",
-	{
-		id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-		name: text().notNull(),
-		description: text().notNull(),
-		imageUrl: text("image_url").notNull(),
-		type: text().notNull(),
-		restaurantId: bigserial("restaurant_id", { mode: "bigint" }).notNull(),
-		requiredPunches: integer("required_punches").notNull(),
-		available: boolean().default(true),
-		quantity: integer().default(0),
-		rules: jsonb().default({}).notNull(),
-		createdAt: timestamp("created_at", {
-			withTimezone: true,
-			mode: "string",
-		}).defaultNow(),
-	},
-	(table) => [
-		foreignKey({
-			columns: [table.restaurantId],
-			foreignColumns: [restaurants.id],
-			name: "prizes_restaurant_id_restaurants_id_fk",
-		}),
-	],
-);
-
 export const raffleEntries = pgTable(
 	"raffle_entries",
 	{
 		id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-		userId: bigserial("user_id", { mode: "bigint" }).notNull(),
-		punchCardId: bigserial("punch_card_id", { mode: "bigint" }).notNull(),
+		userId: bigint("user_id", { mode: "bigint" }).notNull(),
+		punchCardId: bigint("punch_card_id", { mode: "bigint" }).notNull(),
 		createdAt: timestamp("created_at", {
 			withTimezone: true,
 			mode: "string",
@@ -192,37 +251,6 @@ export const raffleEntries = pgTable(
 			columns: [table.userId],
 			foreignColumns: [users.id],
 			name: "raffle_entries_user_id_users_id_fk",
-		}),
-	],
-);
-
-export const punchCards = pgTable(
-	"punch_cards",
-	{
-		id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-		userId: bigserial("user_id", { mode: "bigint" }).notNull(),
-		restaurantId: bigserial("restaurant_id", { mode: "bigint" }).notNull(),
-		punches: integer().default(0),
-		completed: boolean().default(false),
-		updatedAt: timestamp("updated_at", {
-			withTimezone: true,
-			mode: "string",
-		}).defaultNow(),
-	},
-	(table) => [
-		uniqueIndex("unique_restaurant_user_idx").on(
-			table.userId,
-			table.restaurantId,
-		),
-		foreignKey({
-			columns: [table.restaurantId],
-			foreignColumns: [restaurants.id],
-			name: "punch_cards_restaurant_id_restaurants_id_fk",
-		}),
-		foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "punch_cards_user_id_users_id_fk",
 		}),
 	],
 );

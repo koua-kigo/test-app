@@ -9,6 +9,7 @@ import {
 	punchCards,
 	restaurants,
 	raffleEntries,
+	restaurantDeals,
 } from "./schema";
 
 export const achievementsRelations = relations(achievements, ({ one }) => ({
@@ -91,9 +92,20 @@ export const punchCardsRelations = relations(punchCards, ({ one, many }) => ({
 	}),
 }));
 
+export const restaurantDealsRelations = relations(
+	restaurantDeals,
+	({ one }) => ({
+		restaurant: one(restaurants, {
+			fields: [restaurantDeals.restaurantId],
+			references: [restaurants.id],
+		}),
+	}),
+);
+
 export const restaurantsRelations = relations(restaurants, ({ many }) => ({
-	prizes: many(prizes),
+	deals: many(restaurantDeals),
 	punchCards: many(punchCards),
+	prizes: many(prizes),
 }));
 
 export const raffleEntriesRelations = relations(raffleEntries, ({ one }) => ({

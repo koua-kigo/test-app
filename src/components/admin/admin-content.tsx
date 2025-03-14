@@ -27,7 +27,8 @@ export function AdminContent({ children }: { children: React.ReactNode }) {
 				</header>
 
 				{/* Main content */}
-				<main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+				{/* max-w-7xl */}
+				<main className="w-full mx-auto py-6 px-4 sm:px-6 lg:px-8">
 					{children}
 				</main>
 			</div>

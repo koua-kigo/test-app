@@ -56,34 +56,14 @@ export const getRestaurantByIdWithPrizes = async (id: bigint) => {
 };
 
 export const getRestaurantByIdWithAll = async (id: bigint) => {
-	// Get the restaurant
-	const restaurant = await db
-		.select()
-		.from(restaurants)
-		.where(eq(restaurants.id, id))
-		.limit(1)
-		.then((res) => res[0]);
-
-	if (!restaurant) {
-		return null;
-	}
-
-	// Get the restaurant's prizes
-	const restaurantPrizes = await getPrizesByRestaurantId(id);
-
-	// Get the restaurant's punch cards
-	const restaurantPunchCards = await db
-		.select()
-		.from(punchCards)
-		.where(eq(punchCards.restaurantId, id));
-
-	// Return the restaurant with associated data
-	return {
-		...restaurant,
-		prizes: restaurantPrizes,
-		punchCards: restaurantPunchCards,
-		punchCardCount: restaurantPunchCards.length,
-	};
+	return await db.query.restaurants.findFirst({
+		where: eq(restaurants.id, id),
+		with: {
+			prizes: true,
+			deals: true,
+			punchCards: true,
+		},
+	});
 };
 
 export const createRestaurant = async (data: {
