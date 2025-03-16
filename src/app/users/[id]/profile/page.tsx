@@ -4,6 +4,14 @@ import { auth } from "@clerk/nextjs/server";
 import { UserScanQrCode } from "@/features/users/UserScanQrCode";
 import { UserPunchCards } from "@/features/users/UserPunchCards";
 import { BentoGrid } from "@/components/kokonutui/bento-grid";
+import { usePunchCardSubscription } from "@/hooks/use-punch-card-subscription";
+
+// Define viewport metadata as per Next.js recommendations
+export const viewport = {
+	width: "device-width",
+	initialScale: 1,
+	maximumScale: 1,
+};
 
 export default async function ProfilePage() {
 	const { userId } = await auth();
@@ -28,12 +36,8 @@ export default async function ProfilePage() {
 				</div>
 			</div>
 
-			{/* <BentoGrid items={user.punchCards.map((punchCard) => ({ */}
-
-			{/* Display user's punch cards */}
-			{user?.punchCards?.length ? (
-				<UserPunchCards punchCards={user?.punchCards} />
-			) : null}
+			{/* Display user's punch cards with real-time updates */}
+			<UserPunchCards user={user} initialPunchCards={user?.punchCards || []} />
 
 			{/* {user?.id && <UserScanQrCode user={user} />} */}
 

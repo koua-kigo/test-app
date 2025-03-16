@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { useFormState, useFormStatus } from "react-dom";
 import type { Restaurant } from "@/types/db";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 // Server actions (placed outside the component)
 import {
@@ -127,7 +127,7 @@ export function NewDealForm() {
 	// Redirect on successful submission
 	useEffect(() => {
 		if (formState.success) {
-			toast("Deal created", {
+			toast.success("Deal created", {
 				description: "The deal has been successfully created.",
 			});
 			router.push("/admin/deals");

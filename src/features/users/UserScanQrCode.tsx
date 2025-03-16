@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QrReader } from "react-qr-reader";
@@ -71,13 +71,14 @@ export function UserScanQrCode({ user }: { user: User }) {
 		onScanSuccess: (result) => {
 			console.log("Scan successful:", result);
 			// Show appropriate toast based on result
-			toast({
-				title: result.isExisting ? "Punch Card Found!" : "Punch Card Created!",
-				description: result.isExisting
-					? "You already have a punch card for this restaurant."
-					: "Your punch card has been created successfully.",
-				variant: "default",
-			});
+			toast.success(
+				result.isExisting ? "Punch Card Found!" : "Punch Card Created!",
+				{
+					description: result.isExisting
+						? "You already have a punch card for this restaurant."
+						: "Your punch card has been created successfully.",
+				},
+			);
 
 			// Redirect to user profile after a short delay
 			setTimeout(() => {

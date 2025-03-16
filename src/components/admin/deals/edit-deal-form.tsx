@@ -7,7 +7,7 @@ import {
 	getRestaurants,
 	updateRestaurantDeal,
 } from "@/db/models/restaurants/restaurants";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 // Define a simplified restaurant type for the select dropdown
 type SimpleRestaurant = {
@@ -108,7 +108,7 @@ export function EditDealForm({ id, deal }: EditDealFormProps) {
 				restaurantId: BigInt(formData.restaurantId),
 			});
 
-			toast("Deal updated", {
+			toast.success("Deal updated", {
 				description: "The deal has been successfully updated.",
 			});
 

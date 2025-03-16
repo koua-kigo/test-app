@@ -8,7 +8,7 @@ import {
 	getRestaurantByIdWithAll,
 } from "@/db/models/restaurants/restaurants";
 import type { Restaurant, Prize, PunchCard } from "@/types/db";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { BentoGrid } from "@/components/kokonutui/bento-grid";
 import {
 	Utensils,
@@ -196,9 +196,7 @@ export function RestaurantQuickView({
 		setIsDealDialogOpen(false);
 
 		// Show a success toast
-		toast("Success", {
-			description: "New deal created successfully",
-		});
+		toast.success("New deal created successfully");
 	};
 
 	// Convert restaurant data to bento grid items

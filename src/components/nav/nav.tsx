@@ -127,6 +127,7 @@ export const NavScanner = ({ onScanClick }: NavScannerProps) => {
 export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 	const [activeTab, setActiveTab] = useState(initialActiveTab);
 	const { isSignedIn, user } = useUser();
+
 	const { session } = useSession();
 
 	console.log("🚀 ~ Nav ~ session:", session);
@@ -356,7 +357,7 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 				)}
 			</AnimatePresence>
 
-			<nav className="fixed bottom-[10px] left-0 right-0 z-40 pb-safe">
+			<nav className="fixed bottom-[10px] left-1/2 transform -translate-x-1/2 z-40 pb-safe w-max">
 				<div className="flex justify-evenly items-center p-3 gap-4 mx-auto w-min border-t bg-[#e0d9d1] backdrop-blur-md shadow-lg rounded-full">
 					<Link href="/restaurants" className="flex-1">
 						<Button

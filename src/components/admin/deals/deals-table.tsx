@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 // Define the type for the deals with restaurant name
 type DealWithRestaurant = Deal & {
@@ -70,7 +70,7 @@ export function DealsTable({ deals }: { deals: DealWithRestaurant[] }) {
 		try {
 			setIsDeleting(dealToDelete);
 			await deleteRestaurantDeal(dealToDelete);
-			toast("Deal deleted", {
+			toast.success("Deal deleted", {
 				description: "The deal has been successfully deleted.",
 			});
 			router.refresh(); // Refresh the page to update the deals list

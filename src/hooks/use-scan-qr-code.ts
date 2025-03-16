@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import type { OnResultFunction } from "react-qr-reader";
 import { processQrScan } from "@/actions/scan-actions";
 
@@ -107,7 +107,9 @@ export function useScanQrCode({
 	useEffect(() => {
 		return () => {
 			if (mediaStream) {
-				mediaStream.getTracks().forEach((track) => track.stop());
+				for (const track of mediaStream.getTracks()) {
+					track.stop();
+				}
 			}
 		};
 	}, [mediaStream]);
@@ -136,7 +138,9 @@ export function useScanQrCode({
 
 		// If turning off the scanner, clean up media stream
 		if (isScanning && mediaStream) {
-			mediaStream.getTracks().forEach((track) => track.stop());
+			for (const track of mediaStream.getTracks()) {
+				track.stop();
+			}
 			setMediaStream(null);
 		}
 
@@ -191,9 +195,14 @@ export function useScanQrCode({
 			if (onScanError) {
 				onScanError(scanError);
 			} else {
-				toast.error("Scanner Error", {
-					description: getErrorUserMessage(scanError),
-				});
+				try {
+					toast.error("Scanner Error", {
+						description: getErrorUserMessage(scanError),
+					});
+				} catch (toastError) {
+					// Fallback to console error if toast fails
+					console.error("Scanner Error:", getErrorUserMessage(scanError));
+				}
 			}
 		},
 		[onScanError],
@@ -226,7 +235,9 @@ export function useScanQrCode({
 		try {
 			// Release any existing stream first
 			if (mediaStream) {
-				mediaStream.getTracks().forEach((track) => track.stop());
+				for (const track of mediaStream.getTracks()) {
+					track.stop();
+				}
 			}
 
 			// Safari has issues with exact constraints, so use simpler ones
@@ -321,7 +332,9 @@ export function useScanQrCode({
 
 					// Stop all video tracks
 					if (mediaStream) {
-						mediaStream.getTracks().forEach((track) => track.stop());
+						for (const track of mediaStream.getTracks()) {
+							track.stop();
+						}
 						setMediaStream(null);
 					}
 				}
@@ -337,27 +350,52 @@ export function useScanQrCode({
 
 	// Process scan result using Server Action
 	const checkScanResult = useCallback(async () => {
-		if (!qrCodeData || !userId) return;
+		if (!qrCodeData || !userId || checkingPunchCardStatus) return;
 
 		try {
 			setCheckingPunchCardStatus(true);
 
+			// Handle qrCodeData that might be an object with a text property or a string
+			const qrDataValue =
+				typeof qrCodeData === "object" &&
+				qrCodeData !== null &&
+				"text" in qrCodeData
+					? (qrCodeData as { text: string }).text
+					: qrCodeData;
+
+			console.log("QR data being sent:", qrDataValue);
+
 			// Use the server action directly instead of fetch
 			const data = await processQrScan({
-				qrData: qrCodeData,
+				qrData: qrDataValue,
 				userId,
 			});
+
+			console.log("🚀 ~ checkScanResult ~ data:", data);
 
 			if (data) {
 				setScanResult(data as ScanResult);
 				setCheckingPunchCardStatus(false);
 				setError(null);
 
-				toast.success("Success", {
-					description: "Scan successful",
-				});
+				try {
+					toast.success("Success", {
+						description: "Scan successful",
+					});
+				} catch (toastError) {
+					console.log("Scan successful, but toast failed to display");
+				}
 
 				onScanSuccess?.(data as ScanResult);
+
+				// Reset QR code data to prevent re-scanning
+				setQrCodeData("");
+			} else {
+				setCheckingPunchCardStatus(false);
+				setError({
+					type: "UNKNOWN_ERROR",
+					message: "Failed to process scan: No data returned",
+				});
 			}
 		} catch (error) {
 			handleError(
@@ -365,8 +403,10 @@ export function useScanQrCode({
 				"NETWORK_ERROR",
 			);
 			setCheckingPunchCardStatus(false);
+			// Reset QR code data on error to prevent loops
+			setQrCodeData("");
 		}
-	}, [qrCodeData, userId, handleError, onScanSuccess]);
+	}, [qrCodeData, userId, handleError, onScanSuccess, checkingPunchCardStatus]);
 
 	// Reset the scanner state
 	const reset = useCallback(() => {
@@ -378,17 +418,19 @@ export function useScanQrCode({
 
 		// Clean up media stream
 		if (mediaStream) {
-			mediaStream.getTracks().forEach((track) => track.stop());
+			for (const track of mediaStream.getTracks()) {
+				track.stop();
+			}
 			setMediaStream(null);
 		}
 	}, [mediaStream]);
 
 	// Check scan result when QR code data is available
 	useEffect(() => {
-		if (qrCodeData && !scanResult) {
+		if (qrCodeData && !scanResult && !checkingPunchCardStatus) {
 			checkScanResult();
 		}
-	}, [checkScanResult, qrCodeData, scanResult]);
+	}, [checkScanResult, qrCodeData, scanResult, checkingPunchCardStatus]);
 
 	return {
 		qrCodeData,
