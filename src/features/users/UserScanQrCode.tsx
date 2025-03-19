@@ -18,6 +18,121 @@ import {
 	RefreshCw,
 } from "lucide-react";
 
+// Simple confetti animation component using Framer Motion
+const Confetti = () => {
+	// Create 20 confetti particles
+	const particles = Array.from({ length: 20 }).map((_, index) => {
+		// Random colors
+		const colors = [
+			"#ff0000",
+			"#00ff00",
+			"#0000ff",
+			"#ffff00",
+			"#ff00ff",
+			"#00ffff",
+		];
+		const color = colors[Math.floor(Math.random() * colors.length)];
+
+		// Random initial positions
+		const x = Math.random() * 100 - 50; // -50 to 50
+		const y = -20; // Start above the container
+
+		// Random sizes
+		const size = Math.random() * 8 + 5; // 5 to 13px
+
+		// Create a more unique key combining multiple random values
+		const uniqueKey = `confetti-${index}-${Math.random().toString(36).substring(2, 9)}`;
+
+		return (
+			<motion.div
+				key={uniqueKey}
+				style={{
+					position: "absolute",
+					width: size,
+					height: size,
+					borderRadius: Math.random() > 0.5 ? "50%" : "0%",
+					backgroundColor: color,
+				}}
+				initial={{ x, y, opacity: 1 }}
+				animate={{
+					x: x + (Math.random() * 200 - 100), // Random horizontal movement
+					y: 300 + Math.random() * 100, // Move down
+					opacity: 0,
+					rotate: Math.random() * 360 * (Math.random() > 0.5 ? 1 : -1), // Random rotation
+				}}
+				transition={{
+					duration: 1.5 + Math.random() * 1, // 1.5 to 2.5 seconds
+					ease: "easeOut",
+				}}
+			/>
+		);
+	});
+
+	return (
+		<div className="absolute inset-0 overflow-hidden pointer-events-none">
+			{particles}
+		</div>
+	);
+};
+
+// Component for displaying a punch circle
+const PunchCircle = ({
+	number,
+	isActive,
+	isLastActive = false,
+	color = "blue",
+}: {
+	number: number;
+	isActive: boolean;
+	isLastActive?: boolean;
+	color?: "blue" | "green";
+}) => {
+	const activeColor = color === "blue" ? "bg-blue-500" : "bg-green-500";
+
+	return (
+		<div
+			className={`aspect-square rounded-full flex items-center justify-center ${
+				isActive ? `${activeColor} text-white` : "bg-gray-100 text-gray-400"
+			} ${isLastActive ? "animate-pulse" : ""}`}
+		>
+			{number}
+		</div>
+	);
+};
+
+// Component for grid of punch circles
+const PunchCardGrid = ({
+	activePunches,
+	totalPunches = 10,
+	color = "blue",
+}: {
+	activePunches: number;
+	totalPunches?: number;
+	color?: "blue" | "green";
+}) => {
+	return (
+		<div className="grid grid-cols-5 gap-2 mb-4">
+			{[...Array(totalPunches)].map((_, index) => {
+				const punchNumber = index + 1;
+				// Use a deterministic ID that doesn't rely on array index
+				const uniqueId = `punch-${color}-${punchNumber}`;
+				// Determine if this is the last active punch (most recently added)
+				const isLastActive = punchNumber === activePunches;
+
+				return (
+					<PunchCircle
+						key={uniqueId}
+						number={punchNumber}
+						isActive={activePunches >= punchNumber}
+						isLastActive={isLastActive}
+						color={color}
+					/>
+				);
+			})}
+		</div>
+	);
+};
+
 // Dynamically import QR scanner to avoid SSR issues
 
 export function UserScanQrCode({ user }: { user: User }) {
@@ -312,37 +427,100 @@ export function UserScanQrCode({ user }: { user: User }) {
 								initial={{ opacity: 0, y: 10 }}
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0 }}
-								className="mb-4"
+								className="mb-4 relative"
 							>
-								<Alert variant={scanResult.isExisting ? "info" : "success"}>
-									<div className="flex items-start">
-										{scanResult.isExisting ? (
-											<Info className="h-5 w-5 text-blue-600 mr-2" />
-										) : (
-											<CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-										)}
-										<div>
-											<AlertTitle>
-												{scanResult.isExisting
-													? "Punch Card Found"
-													: "Punch Card Created"}
-											</AlertTitle>
-											<AlertDescription>
-												{scanResult.isExisting ? (
-													<>
-														You already have a punch card for this restaurant.
-														Redirecting to your profile...
-													</>
-												) : (
-													<>
-														Your punch card has been created successfully.
-														Redirecting to your profile...
-													</>
-												)}
-											</AlertDescription>
+								{scanResult.isExisting ? (
+									<div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+										<div className="bg-blue-50 p-4 border-b relative">
+											{/* Show confetti for existing cards too, since it's a successful punch */}
+											<Confetti />
+											<div className="flex items-center space-x-2">
+												<div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+													<Info className="h-5 w-5 text-blue-600" />
+												</div>
+												<div>
+													<h3 className="font-semibold text-lg">
+														Punch Added!
+													</h3>
+													<p className="text-sm text-muted-foreground">
+														{scanResult.restaurantName || "Restaurant"}
+													</p>
+												</div>
+											</div>
+										</div>
+										<div className="p-4">
+											<div className="flex justify-between items-center mb-4">
+												<div className="text-sm font-medium">
+													Current punches
+												</div>
+												<div className="flex items-center space-x-1">
+													<span className="font-bold text-xl">
+														{typeof scanResult.data?.punches === "number"
+															? scanResult.data.punches
+															: 0}
+													</span>
+													<span className="text-sm text-muted-foreground">
+														{typeof scanResult.data?.punches === "number" &&
+														scanResult.data.punches === 1
+															? "punch"
+															: "punches"}
+													</span>
+												</div>
+											</div>
+
+											<PunchCardGrid
+												activePunches={
+													typeof scanResult.data?.punches === "number"
+														? scanResult.data.punches
+														: 0
+												}
+											/>
+
+											<div className="text-sm text-center text-muted-foreground">
+												Redirecting to your profile in a moment...
+											</div>
 										</div>
 									</div>
-								</Alert>
+								) : (
+									<div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
+										<div className="bg-green-50 p-4 border-b relative">
+											{/* Show confetti for new cards */}
+											<Confetti />
+											<div className="flex items-center space-x-2">
+												<div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+													<CheckCircle className="h-5 w-5 text-green-600" />
+												</div>
+												<div>
+													<h3 className="font-semibold text-lg">
+														Punch Card Created!
+													</h3>
+													<p className="text-sm text-muted-foreground">
+														{scanResult.restaurantName || "Restaurant"}
+													</p>
+												</div>
+											</div>
+										</div>
+										<div className="p-4">
+											<div className="flex justify-between items-center mb-4">
+												<div className="text-sm font-medium">
+													First punch added
+												</div>
+												<div className="flex items-center space-x-1">
+													<span className="font-bold text-xl">1</span>
+													<span className="text-sm text-muted-foreground">
+														punch
+													</span>
+												</div>
+											</div>
+
+											<PunchCardGrid activePunches={1} color="green" />
+
+											<div className="text-sm text-center text-muted-foreground">
+												Redirecting to your profile in a moment...
+											</div>
+										</div>
+									</div>
+								)}
 							</motion.div>
 						)}
 					</div>
