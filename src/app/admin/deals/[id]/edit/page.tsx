@@ -9,10 +9,12 @@ export const metadata = {
 
 export default async function EditDealPage({
 	params,
-}: { params: { id: string } }) {
+}: { params: Promise<{ id: string }> }) {
+	const resolvedParams = await params;
+
 	// Fetch the deal data
 	const deals = await getDeals();
-	const deal = deals.find((deal) => deal.id === BigInt(params.id));
+	const deal = deals.find((deal) => deal.id === BigInt(resolvedParams.id));
 
 	// If the deal doesn't exist, show 404
 	if (!deal) {
@@ -29,7 +31,7 @@ export default async function EditDealPage({
 			</div>
 
 			<div className="bg-white rounded-lg shadow-sm p-6">
-				<EditDealForm id={params.id} deal={deal} />
+				<EditDealForm id={resolvedParams.id} deal={deal} />
 			</div>
 		</div>
 	);

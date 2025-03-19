@@ -8,7 +8,7 @@ import {
 	getRestaurantByIdWithAll,
 } from "@/db/models/restaurants/restaurants";
 import type { Restaurant, Prize, PunchCard } from "@/types/db";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { BentoGrid } from "@/components/kokonutui/bento-grid";
 import {
 	Utensils,
@@ -34,7 +34,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DealsList, EmptyDeals } from "./restaurant-deals-display";
 import { QRCodeManager } from "@/app/admin/restaurants/qr-code-manager";
-import { cn } from "@/lib/utils";
 
 // Define the BentoItem interface to match the BentoGrid component's expected types
 interface BentoItem {
@@ -69,19 +68,6 @@ interface RestaurantQuickViewProps {
 	restaurantId: bigint;
 }
 
-// Helper function to format dates safely
-const formatDate = (dateString: string | Date | undefined): string => {
-	if (!dateString) return "";
-
-	try {
-		const date =
-			typeof dateString === "string" ? new Date(dateString) : dateString;
-		return date.toLocaleDateString();
-	} catch (error) {
-		return "Invalid date";
-	}
-};
-
 export function RestaurantQuickView({
 	restaurantId,
 }: RestaurantQuickViewProps) {
@@ -89,7 +75,6 @@ export function RestaurantQuickView({
 	const [isLoading, setIsLoading] = useState(false);
 	const [restaurantData, setRestaurantData] =
 		useState<DetailedRestaurant | null>(null);
-	const { toast } = useToast();
 	const [isDealDialogOpen, setIsDealDialogOpen] = useState(false);
 	const [newDeal, setNewDeal] = useState({
 		title: "",
@@ -109,19 +94,19 @@ export function RestaurantQuickView({
 						...data,
 						prizes: data.prizes.map((prize) => ({
 							...prize,
-							// Store the date string instead of Date object for consistent rendering
+							// Convert createdAt string to Date safely
 							createdAt:
 								typeof prize.createdAt === "string"
-									? prize.createdAt
-									: new Date().toISOString(),
+									? new Date(prize.createdAt)
+									: new Date(),
 						})),
 						punchCards: data.punchCards.map((card) => ({
 							...card,
-							// Store the date string instead of Date object for consistent rendering
+							// Convert updatedAt string to Date safely
 							updatedAt:
 								typeof card.updatedAt === "string"
-									? card.updatedAt
-									: new Date().toISOString(),
+									? new Date(card.updatedAt)
+									: new Date(),
 						})),
 						// Initialize deals with mock data if it doesn't exist
 						deals: data.deals || [
@@ -130,20 +115,16 @@ export function RestaurantQuickView({
 								title: "Happy Hour",
 								description: "50% off on all drinks from 5PM to 7PM",
 								isActive: true,
-								createdAt: new Date().toISOString(),
-								expiresAt: new Date(
-									Date.now() + 30 * 24 * 60 * 60 * 1000,
-								).toISOString(),
+								createdAt: new Date(),
+								expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
 							},
 							{
 								id: "deal-2",
 								title: "Weekend Special",
 								description: "Buy one get one free on desserts on weekends",
 								isActive: true,
-								createdAt: new Date().toISOString(),
-								expiresAt: new Date(
-									Date.now() + 60 * 24 * 60 * 60 * 1000,
-								).toISOString(),
+								createdAt: new Date(),
+								expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
 							},
 						],
 					};
@@ -152,18 +133,14 @@ export function RestaurantQuickView({
 					setRestaurantData(transformedData as unknown as DetailedRestaurant);
 					setIsOpen(true);
 				} else {
-					toast({
-						title: "Error",
+					toast.error("Error", {
 						description: "Restaurant not found",
-						variant: "destructive",
 					});
 				}
 			} catch (error) {
 				console.error("Error fetching restaurant data:", error);
-				toast({
-					title: "Error",
+				toast.error("Error", {
 					description: "Failed to load restaurant details",
-					variant: "destructive",
 				});
 			} finally {
 				setIsLoading(false);
@@ -219,11 +196,7 @@ export function RestaurantQuickView({
 		setIsDealDialogOpen(false);
 
 		// Show a success toast
-		toast({
-			title: "Success",
-			description: "New deal created successfully",
-			variant: "default",
-		});
+		toast.success("New deal created successfully");
 	};
 
 	// Convert restaurant data to bento grid items
@@ -362,24 +335,10 @@ export function RestaurantQuickView({
 
 		// Add recent activity item
 		const recentCards = restaurantData.punchCards.filter((card) => {
-			const updatedDateString =
-				typeof card.updatedAt === "string"
-					? card.updatedAt
-					: new Date().toISOString();
-
-			// Only create the Date objects on the client side when rendering
-			const isRecent = () => {
-				try {
-					const updatedDate = new Date(updatedDateString);
-					const thirtyDaysAgo = new Date();
-					thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-					return updatedDate > thirtyDaysAgo;
-				} catch (error) {
-					return false;
-				}
-			};
-
-			return isRecent();
+			const updatedDate = new Date(card.updatedAt);
+			const thirtyDaysAgo = new Date();
+			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+			return updatedDate > thirtyDaysAgo;
 		}).length;
 
 		items.push({

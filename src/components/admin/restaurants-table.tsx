@@ -25,6 +25,7 @@ import {
 	QrCode,
 	MoreHorizontal,
 	Trash2,
+	ExternalLink,
 } from "lucide-react";
 import type { z } from "zod";
 import type { restaurantSchema } from "@/types/schemas";
@@ -69,6 +70,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 // Define interfaces for TanStack Table metadata
 interface ColumnMeta {
@@ -225,6 +227,23 @@ export function RestaurantsTable({
 	const [restaurantToDelete, setRestaurantToDelete] =
 		React.useState<RestaurantData | null>(null);
 	const router = useRouter();
+	const [isMobileView, setIsMobileView] = React.useState(false);
+
+	// Check viewport size on mount and window resize
+	React.useEffect(() => {
+		const checkViewport = () => {
+			setIsMobileView(window.innerWidth < 768);
+		};
+
+		// Initial check
+		checkViewport();
+
+		// Set up event listener for resize
+		window.addEventListener("resize", checkViewport);
+
+		// Clean up
+		return () => window.removeEventListener("resize", checkViewport);
+	}, []);
 
 	// Add restaurant search hook
 	const {
@@ -235,7 +254,7 @@ export function RestaurantsTable({
 		setSortOption,
 		isSearching,
 	} = useRestaurantSearch({
-		restaurants: data,
+		restaurants: data as unknown as Restaurant[],
 		initialSortOption: "name-asc",
 	});
 
@@ -505,7 +524,7 @@ export function RestaurantsTable({
 
 	// Define data table using TanStack
 	const table = useReactTable({
-		data: filteredRestaurants, // Use filtered restaurants instead of all data
+		data: filteredRestaurants as unknown as RestaurantData[], // Use filtered restaurants instead of all data
 		columns,
 		state: {
 			sorting,
@@ -535,6 +554,85 @@ export function RestaurantsTable({
 		} as TableMeta,
 	});
 
+	// Render mobile card view for each restaurant
+	const renderMobileCards = () => {
+		return filteredRestaurants.map((restaurant) => (
+			<div
+				key={restaurant.id.toString()}
+				className="bg-background rounded-lg border border-sidebar-border p-4 mb-4 shadow-sm"
+			>
+				<div className="flex justify-between items-start mb-3">
+					<h3 className="font-medium text-base">{restaurant.name}</h3>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" className="h-8 w-8 p-0">
+								<MoreHorizontal className="h-4 w-4" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align="end"
+							className="bg-background border-sidebar-border"
+						>
+							<DropdownMenuItem
+								onClick={() => handleView(restaurant.id.toString())}
+								className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+							>
+								View Details
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() =>
+									setRestaurantToDelete(restaurant as RestaurantData)
+								}
+								className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+							>
+								Delete
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+
+				{/* Restaurant Image */}
+				{restaurant.imageUrl && (
+					<div className="mb-3 w-full h-32 rounded-lg overflow-hidden">
+						<img
+							src={restaurant.imageUrl}
+							alt={restaurant.name}
+							className="w-full h-full object-cover"
+						/>
+					</div>
+				)}
+
+				<div className="flex flex-wrap gap-2 mt-3">
+					{/* QR Code */}
+					<div className="text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md flex items-center">
+						<QrCode className="h-3 w-3 mr-1" />
+						<QRCodeManager
+							restaurant={restaurant as Restaurant}
+							variant="table"
+						/>
+					</div>
+
+					{/* Punch Cards Count */}
+					<div className="text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md">
+						Punch Cards:{" "}
+						{(restaurant as unknown as ExtendedRestaurant).punchCardCount || 0}
+					</div>
+
+					{/* Deals Count */}
+					<div className="text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md">
+						Deals:{" "}
+						{(restaurant as unknown as ExtendedRestaurant).deals?.length || 0}
+					</div>
+				</div>
+
+				{/* Quick View Button */}
+				<div className="flex justify-end mt-4 pt-3 border-t border-sidebar-border">
+					<RestaurantQuickView restaurantId={restaurant.id} />
+				</div>
+			</div>
+		));
+	};
+
 	return (
 		<div className="space-y-4 p-4 bg-sidebar rounded-xl shadow-sm">
 			<AdminRestaurantSearchBar
@@ -544,88 +642,120 @@ export function RestaurantsTable({
 				onSortChange={setSortOption}
 			/>
 
-			<div className="rounded-xl border border-sidebar-border shadow-sm overflow-hidden">
-				<Table className="bg-background w-full">
-					<TableHeader
-						className="bg-sidebar/50"
-						style={{ borderBottom: "1px solid var(--sidebar-border)" }}
-					>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<TableHead
-										key={header.id}
-										className="text-sidebar-foreground px-4 py-3"
-									>
-										{header.isPlaceholder
-											? null
-											: flexRender(
-													header.column.columnDef.header,
-													header.getContext(),
-												)}
-									</TableHead>
-								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow
-									key={row.id}
-									data-state={row.getIsSelected() && "selected"}
-									className="group border-b-1 border-sidebar-border hover:bg-sidebar/10"
-									style={{ borderBottom: "1px solid var(--sidebar-border)" }}
-								>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id} className="px-4 py-3">
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</TableCell>
+			{/* Mobile card view */}
+			<div className={cn(isMobileView ? "block" : "hidden")}>
+				{filteredRestaurants.length > 0 ? (
+					renderMobileCards()
+				) : (
+					<div className="bg-background rounded-lg border border-sidebar-border p-8 text-center">
+						<Building className="h-10 w-10 text-sidebar-foreground/30 mx-auto mb-2" />
+						{isSearching ? (
+							<p>No restaurants found matching your search</p>
+						) : (
+							<p>No restaurants available</p>
+						)}
+					</div>
+				)}
+			</div>
+
+			{/* Desktop table view */}
+			<div
+				className={cn(
+					"rounded-xl border border-sidebar-border shadow-sm overflow-hidden",
+					isMobileView ? "hidden" : "block",
+				)}
+			>
+				<div className="w-full overflow-x-auto">
+					<Table className="bg-background w-full">
+						<TableHeader
+							className="bg-sidebar/50"
+							style={{ borderBottom: "1px solid var(--sidebar-border)" }}
+						>
+							{table.getHeaderGroups().map((headerGroup) => (
+								<TableRow key={headerGroup.id}>
+									{headerGroup.headers.map((header) => (
+										<TableHead
+											key={header.id}
+											className="text-sidebar-foreground px-4 py-3"
+										>
+											{header.isPlaceholder
+												? null
+												: flexRender(
+														header.column.columnDef.header,
+														header.getContext(),
+													)}
+										</TableHead>
 									))}
 								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									className="h-24 text-center py-8"
-								>
-									<div className="flex flex-col items-center justify-center text-sidebar-foreground/70">
-										<Building className="h-10 w-10 text-sidebar-foreground/30 mb-2" />
-										{isSearching ? (
-											<p>No restaurants found matching your search</p>
-										) : (
-											<p>No restaurants available</p>
-										)}
-									</div>
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
+							))}
+						</TableHeader>
+						<TableBody>
+							{table.getRowModel().rows?.length ? (
+								table.getRowModel().rows.map((row) => (
+									<TableRow
+										key={row.id}
+										data-state={row.getIsSelected() && "selected"}
+										className="group border-b-1 border-sidebar-border hover:bg-sidebar/10"
+										style={{ borderBottom: "1px solid var(--sidebar-border)" }}
+									>
+										{row.getVisibleCells().map((cell) => (
+											<TableCell key={cell.id} className="px-4 py-3">
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext(),
+												)}
+											</TableCell>
+										))}
+									</TableRow>
+								))
+							) : (
+								<TableRow>
+									<TableCell
+										colSpan={columns.length}
+										className="h-24 text-center py-8"
+									>
+										<div className="flex flex-col items-center justify-center text-sidebar-foreground/70">
+											<Building className="h-10 w-10 text-sidebar-foreground/30 mb-2" />
+											{isSearching ? (
+												<p>No restaurants found matching your search</p>
+											) : (
+												<p>No restaurants available</p>
+											)}
+										</div>
+									</TableCell>
+								</TableRow>
+							)}
+						</TableBody>
+					</Table>
+				</div>
 			</div>
-			<div className="flex items-center justify-end space-x-2 py-4">
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => table.previousPage()}
-					disabled={!table.getCanPreviousPage()}
-					className="rounded-lg px-4 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-				>
-					Previous
-				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => table.nextPage()}
-					disabled={!table.getCanNextPage()}
-					className="rounded-lg px-4 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-				>
-					Next
-				</Button>
+
+			{/* Pagination controls - work for both mobile and desktop */}
+			<div className="flex items-center justify-between py-4">
+				<div className="text-xs text-sidebar-foreground/70">
+					Page {table.getState().pagination.pageIndex + 1} of{" "}
+					{table.getPageCount()}
+				</div>
+				<div className="flex items-center space-x-2">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => table.previousPage()}
+						disabled={!table.getCanPreviousPage()}
+						className="rounded-lg px-3 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+					>
+						Previous
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => table.nextPage()}
+						disabled={!table.getCanNextPage()}
+						className="rounded-lg px-3 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+					>
+						Next
+					</Button>
+				</div>
 			</div>
 
 			{/* Confirmation dialog for restaurant deletion */}

@@ -2,17 +2,8 @@ import { Clock, X, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
-import { useEffect, useState } from "react";
 
 export default function Card_10() {
-	// Client-side date formatting with useEffect to prevent hydration mismatch
-	const [formattedDate, setFormattedDate] = useState<string>("");
-
-	useEffect(() => {
-		// Only set the date on the client side after hydration
-		setFormattedDate(new Date().toLocaleDateString());
-	}, []);
-
 	return (
 		<div className="w-full max-w-sm mx-auto">
 			<div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-2xl shadow-2xs border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
@@ -94,9 +85,7 @@ export default function Card_10() {
 								<span className="text-zinc-500 font-medium">09:30</span>
 							</div>
 							<div className="flex items-center gap-1.5">
-								<span className="text-zinc-500 font-medium">
-									{formattedDate}
-								</span>
+								<span className="text-zinc-500 font-medium">{new Date()}</span>
 								<Calendar className="w-3.5 h-3.5 text-zinc-400" />
 							</div>
 						</div>

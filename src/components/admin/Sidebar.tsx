@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -68,6 +68,15 @@ const menuItems = [
 		icon: <Settings size={20} />,
 	},
 ];
+const usePrevious = <T,>(value: T): T | undefined => {
+	const ref = useRef<T | undefined>(undefined);
+
+	useEffect(() => {
+		ref.current = value;
+	}, [value]);
+
+	return ref.current;
+};
 
 export function AdminSidebar() {
 	const { user } = useUser();
@@ -98,6 +107,15 @@ export function AdminSidebar() {
 	const toggleMobileMenu = () => {
 		setMobileOpen(!mobileOpen);
 	};
+	// Custom hook to get previous value
+
+	// Example usage: track previous pathname
+	const prevPathname = usePrevious(pathname);
+	useEffect(() => {
+		if (mobileOpen && prevPathname !== pathname) {
+			setMobileOpen(false);
+		}
+	}, [pathname, prevPathname, mobileOpen]);
 
 	return (
 		<>

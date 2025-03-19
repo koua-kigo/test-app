@@ -78,3 +78,145 @@ You can modify the selectors in the `scrapeRestaurantInfo` function to better ta
 ## License
 
 MIT
+
+## Project Directory Structure
+
+```
+.
+├── src/
+│   ├── app/
+│   │   ├── (public)/
+│   │   │   ├── restaurants/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   ├── admin/
+│   │   │   └── deals/
+│   │   │       └── [id]/
+│   │   │           └── edit/
+│   │   │               └── page.tsx
+│   │   └── layout.tsx
+│   ├── components/
+│   │   ├── admin/
+│   │   │   ├── deals/
+│   │   │   │   └── edit-deal-form.tsx
+│   │   │   └── restaurants-table.tsx
+│   │   └── auth/
+│   ├── db/
+│   │   ├── models/
+│   │   │   └── restaurants/
+│   │   │       ├── restaurants.ts
+│   │   │       ├── schema.ts
+│   │   │       └── types.ts
+│   │   ├── migrations/
+│   │   └── drizzle.ts
+│   ├── features/
+│   │   └── restaurants/
+│   │       ├── Restaurant.tsx
+│   │       └── UserFacingRestaurantDetail.tsx
+│   └── public/
+│       ├── images/
+│       └── svg/
+├── .env
+├── tailwind.config.js
+├── drizzle.config.ts
+├── next.config.js
+└── package.json
+```
+
+Key Notes:
+
+- Next.js app router structure with route groups `(public)`
+- Drizzle ORM configuration for database models
+- Feature-based organization with colocated components
+- Admin/public separation with layout preservation
+- TypeScript-first approach with strict type definitions
+
+# Restaurant Passport App
+
+A digital punch card and loyalty system built with Next.js, TypeScript, Tailwind CSS, ShadCN UI, and Supabase.
+
+## Features
+
+- Digital Punch Cards: Users earn punches at participating restaurants
+- Real-time updates: Instantly see punch card updates via Supabase real-time subscriptions
+- Role-Based Authorization: User, Restaurant Admin, System Admin roles
+- QR Code Validation: Staff can scan a user's QR code to add a punch instantly
+- Prizes & Raffles: Prize management, redemption tracking, and raffle entries
+- Points & Achievements: Gamified point transfer system with achievements
+- Analytics Dashboard: Restaurant-level analytics for punch cards, user activity, and prize redemptions
+
+## Getting Started
+
+### Prerequisites
+
+- Bun (1.2.4 or higher)
+- Node.js (v18 or higher)
+- Supabase account (for real-time subscriptions)
+
+### Setup
+
+1. Clone the repository
+2. Install dependencies:
+
+   ```
+   bun install
+   ```
+
+3. Set up environment variables:
+   - Copy `.env.example` to `.env.local`
+   - Update the required environment variables:
+
+     ```
+     # Supabase for real-time subscriptions
+     NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+     NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+     
+     # Database
+     DATABASE_URL=your-database-url
+     
+     # Clerk Authentication
+     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your-clerk-publishable-key
+     CLERK_SECRET_KEY=your-clerk-secret-key
+     ```
+
+4. Run the development server:
+
+   ```
+   bun dev
+   ```
+
+## Real-time Punch Card Subscriptions
+
+The app uses Supabase real-time features to provide instant updates to users when their punch cards change:
+
+1. When a user's punch card is updated (e.g., a new punch is added), Supabase sends a real-time notification
+2. The client automatically refreshes the punch card data without requiring a page reload
+3. Users see their updated punch cards in real-time
+
+### Implementation
+
+The real-time subscription is implemented using:
+
+- `usePunchCardSubscription` hook: Manages the subscription to punch card changes
+- Supabase client: Connects to Supabase real-time API
+- API routes: Fetch the latest punch card data when changes occur
+
+## Development
+
+### Using Bun
+
+This project uses Bun as the package manager and runtime. Common commands:
+
+- `bun install`: Install dependencies
+- `bun dev`: Start development server
+- `bun build`: Build for production
+- `bun start`: Start production server
+- `bun lint`: Run linting
+
+### Database
+
+Database migrations are managed with Drizzle:
+
+- `bun drizzle:generate`: Generate migrations
+- `bun drizzle:migrate`: Apply migrations

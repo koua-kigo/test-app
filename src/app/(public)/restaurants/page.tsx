@@ -6,16 +6,17 @@ import type { Restaurant } from "@/types/db";
 import { RestaurantsList } from "@/features/restaurants/RestaurantList";
 
 export interface RestaurantsPageProps {
-	searchParams: {
+	searchParams: Promise<{
 		deals?: string;
-	};
+	}>;
 }
 
 export default async function RestaurantsPage({
 	searchParams,
 }: RestaurantsPageProps) {
 	const restaurants = await getRestaurants();
-	const hasDeals = searchParams.deals === "true";
+	const params = await searchParams;
+	const hasDeals = params.deals === "true";
 
 	// Apply default sorting (A-Z by name)
 	const sortedRestaurants = [...restaurants].sort((a, b) =>

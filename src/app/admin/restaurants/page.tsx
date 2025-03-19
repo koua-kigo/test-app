@@ -78,9 +78,11 @@ export default async function RestaurantsPage() {
 	return (
 		<>
 			<div className="w-full mx-auto px-4 py-8 bg-sidebar rounded-xl shadow-sm mb-4">
-				<div className="flex justify-between items-center mb-8 ">
-					<h1 className="text-3xl font-bold">Restaurants</h1>
-					<div className="flex space-x-4 align-middle items-center justify-center">
+				<div className="flex justify-start items-center mb-8 flex-col md:flex-row flex-wrap">
+					<h1 className="text-3xl font-bold text-left md:text-center mb-4 md:mb-0">
+						Restaurants
+					</h1>
+					<div className="flex space-x-4 align-middle items-center justify-start">
 						<Link
 							href="/admin/restaurants/new"
 							className="bg-[#ebe6e7] px-4 py-2 rounded-md text-sm hover:bg-green-700 transition-colors"

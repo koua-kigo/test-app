@@ -28,6 +28,8 @@ import {
 	CheckCircle,
 	Search,
 	Settings2,
+	WalletCards,
+	Wallet,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useCallback, useState, useEffect } from "react";
@@ -125,6 +127,7 @@ export const NavScanner = ({ onScanClick }: NavScannerProps) => {
 export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 	const [activeTab, setActiveTab] = useState(initialActiveTab);
 	const { isSignedIn, user } = useUser();
+
 	const { session } = useSession();
 
 	console.log("🚀 ~ Nav ~ session:", session);
@@ -354,66 +357,84 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 				)}
 			</AnimatePresence>
 
-			<nav className="fixed bottom-0 left-1/2 -translate-x-1/2 py-4 z-40 ">
-				<div className="flex justify-evenly px-4w py-1 w-content border rounded-full bg-[#e0d9d1] backdrop-blur-sm ">
-					<Button
-						variant="ghost"
-						size="sm"
-						className={cn(
-							"flex flex-col p-2 gap-1 mx-2 h-auto !w-auto rounded-full items-center justify-center",
-							activeTab === "home" && "text-primary",
-						)}
-					>
-						<Link href="/restaurants">
-							<Utensils className="h-5 w-5" />
-						</Link>
-					</Button>
-
-					{userIsAdmin && (
+			<nav className="fixed bottom-[10px] left-1/2 transform -translate-x-1/2 z-40 pb-safe w-max">
+				<div className="flex justify-evenly items-center p-3 gap-4 mx-auto w-min border-t bg-[#e0d9d1] backdrop-blur-md shadow-lg rounded-full">
+					<Link href="/restaurants" className="flex-1">
 						<Button
 							variant="ghost"
-							size="sm"
+							size="icon"
 							className={cn(
-								"flex flex-col p-2 gap-1 mx-2 h-auto !w-auto rounded-full items-center justify-center",
-								activeTab === "search" && "text-primary",
+								"flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation bg-none",
+								activeTab === "home"
+									? "bg-white/80 text-primary shadow-sm"
+									: "text-white",
 							)}
 						>
-							<Link href="/admin">
-								<Settings2 className="h-5 w-5" />
-							</Link>
+							<Utensils className="h-6 w-6" />
 						</Button>
+					</Link>
+
+					{userIsAdmin && (
+						<Link href="/admin" className="flex-1">
+							<Button
+								variant="ghost"
+								size="icon"
+								className={cn(
+									"flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation bg-none",
+									activeTab === "admin"
+										? "bg-white/80 text-primary shadow-sm"
+										: "text-white",
+								)}
+							>
+								<Settings2 className="h-6 w-6" />
+							</Button>
+						</Link>
+					)}
+
+					{isSignedIn && (
+						<div className="flex-1 flex items-center justify-center">
+							<Button
+								variant="outline"
+								size="icon"
+								className="rounded-full h-16 w-16 flex items-center justify-center"
+								onClick={handleScannerToggle}
+								aria-label="Scan QR code"
+							>
+								<QrCode className="h-7 w-7" />
+							</Button>
+						</div>
 					)}
 
 					{isSignedIn && !userIsAdmin && (
-						<Button
-							variant="ghost"
-							size="sm"
-							className={cn(
-								"flex flex-col p-2 gap-1 mx-2 h-auto !w-auto rounded-full items-center justify-center",
-								activeTab === "profile" && "text-primary",
-							)}
-						>
-							<Link href={`/users/${user?.id}/profile`}>
-								<User className="h-5 w-5" />
-							</Link>
-						</Button>
+						<Link href={`/users/${user?.id}/profile`} className="flex-1">
+							<Button
+								variant="outline"
+								size="icon"
+								className={cn(
+									"flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation bg-none",
+									activeTab === "profile"
+										? "bg-white/80 text-primary shadow-sm"
+										: "",
+								)}
+							>
+								<Wallet className="h-6 w-6" />
+							</Button>
+						</Link>
 					)}
 
-					{isSignedIn ? (
-						<NavScanner onScanClick={handleScannerToggle} />
-					) : (
-						<>
+					{!isSignedIn && (
+						<div className="flex-1">
 							<SignInButton>
 								<Button
 									variant="ghost"
-									size="sm"
-									className="flex flex-col p-4 gap-1 mx-2 h-auto w-auto rounded-full"
+									size="icon"
+									className="flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation bg-none"
 								>
-									<UserPlus className="h-5 w-5" />
-									{/* <span className="text-xs">Sign In</span> */}
+									<UserPlus className="h-6 w-6" />
+									<span className="text-xs mt-1">Sign In</span>
 								</Button>
 							</SignInButton>
-						</>
+						</div>
 					)}
 				</div>
 			</nav>

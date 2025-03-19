@@ -7,7 +7,7 @@ import {
 	getRestaurants,
 	updateRestaurantDeal,
 } from "@/db/models/restaurants/restaurants";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 // Define a simplified restaurant type for the select dropdown
 type SimpleRestaurant = {
@@ -23,7 +23,6 @@ interface EditDealFormProps {
 
 export function EditDealForm({ id, deal }: EditDealFormProps) {
 	const router = useRouter();
-	const { toast } = useToast();
 	const [restaurants, setRestaurants] = useState<SimpleRestaurant[]>([]);
 	const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(true);
 
@@ -109,8 +108,7 @@ export function EditDealForm({ id, deal }: EditDealFormProps) {
 				restaurantId: BigInt(formData.restaurantId),
 			});
 
-			toast({
-				title: "Deal updated",
+			toast.success("Deal updated", {
 				description: "The deal has been successfully updated.",
 			});
 
@@ -119,10 +117,8 @@ export function EditDealForm({ id, deal }: EditDealFormProps) {
 			router.refresh();
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to update deal");
-			toast({
-				title: "Error",
+			toast.error("Error", {
 				description: "Failed to update the deal. Please try again.",
-				variant: "destructive",
 			});
 			setIsSubmitting(false);
 		}

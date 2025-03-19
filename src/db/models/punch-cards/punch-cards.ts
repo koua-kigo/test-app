@@ -93,10 +93,12 @@ export const updatePunchCard = async (
 };
 
 export const incrementPunchCard = async (id: bigint, increment = 1) => {
-	const [card] = await getPunchCardById(id);
+	const card = await getPunchCardById(id);
 	if (!card) return null;
 
-	const newPunches = card.punches + increment;
+	const currentPunches = card.punches ?? 0; // Default to 0 if punches is null
+	const newPunches = currentPunches + increment;
+
 	return await db
 		.update(punchCards)
 		.set({

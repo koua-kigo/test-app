@@ -106,10 +106,11 @@ async function RestaurantDetail(params: { id: string }) {
 // Main page component
 export default async function RestaurantPage({
 	params,
-}: { params: { id: string } }) {
+}: { params: Promise<{ id: string }> }) {
 	console.log("🚀 ~ params:", params);
 
-	const { id } = await params;
+	const resolvedParams = await params;
+	const { id } = resolvedParams;
 
 	console.log("🚀 ~ id:", id);
 

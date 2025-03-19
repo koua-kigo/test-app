@@ -5,18 +5,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
 	/* config options here */
-	images: {
-		remotePatterns: [
-			{
-				hostname: "experiencemaplegrove.com",
-			},
-			{
-				hostname: "via.placeholder.com",
-			},
-		],
-		// Allow unoptimized images in production if needed
-		unoptimized: process.env.NEXT_PUBLIC_SKIP_IMAGE_OPTIMIZATION === "true",
-	},
+
 	// Less strict type checking in production builds
 	typescript: {
 		// In production, don't fail the build if there are TypeScript errors
@@ -27,13 +16,25 @@ const nextConfig: NextConfig = {
 		// In production, don't fail the build if there are ESLint errors
 		ignoreDuringBuilds: isProduction,
 	},
-	// Skip checking for duplicate packages in production builds
-	experimental: {
-		// Reduces build time and potential failures from dependency conflicts
-		skipTrailingSlashRedirect: true,
-	},
+	// Performance optimizations
+	// experimental: {
+	// Reduces build time and potential failures from dependency conflicts
+	// Improve page loading with prefetching
+	// ppr: true,
+	// },
 	// In development, enable React strict mode
-	reactStrictMode: !isProduction,
+	reactStrictMode: true,
+	// Improve load times with compression
+	compress: true,
+	// Improve performance with statically exported pages where possible
+
+	// Improved bundling
+	swcMinify: true,
+
+	// Image configuration
+	images: {
+		domains: ["experiencemaplegrove.com"],
+	},
 };
 
 export default nextConfig;
