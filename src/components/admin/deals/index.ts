@@ -1,5 +1,6 @@
-export { DealsTable } from "./deals-table";
-export { DealFilters } from "./deal-filters";
-export { NewDealForm } from "./new-deal-form";
-export { DealDetail } from "./deal-detail";
-export { EditDealForm } from "./edit-deal-form";
+export * from "./deal-detail";
+export * from "./deal-filters";
+export * from "./deals-table";
+export * from "./edit-deal-form";
+export * from "./new-deal-form";
+export { createDeal } from "./actions";
