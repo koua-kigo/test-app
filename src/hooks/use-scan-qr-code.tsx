@@ -372,7 +372,7 @@ export function useScanQrCode({
 			console.log("🚀 ~ checkScanResult ~ apiUrl:", apiUrl);
 
 			if (process.env.NGROK_URL) {
-				fullUrl = `${process.env.NGROK_URL}`;
+				fullUrl = `${process.env.NGROK_URL}${apiUrl}`;
 			} else {
 				fullUrl = apiUrl;
 			}
