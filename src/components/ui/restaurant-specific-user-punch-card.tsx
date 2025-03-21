@@ -3,7 +3,7 @@
 import * as React from 'react'
 import {motion, AnimatePresence} from 'framer-motion'
 import {cn} from '@/lib/utils'
-import {Award, Coffee, Utensils} from 'lucide-react'
+import {Award, Coffee, Stamp, Utensils} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {Badge} from '@/components/ui/badge'
@@ -194,7 +194,7 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
                       delay: index === currentPunches - 1 ? 0.2 : 0,
                     }}
                   >
-                    <Coffee className='h-5 w-5 text-primary' />
+                    <Stamp className='h-5 w-5 text-primary' />
                   </motion.div>
                 )}
               </motion.div>

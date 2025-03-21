@@ -4,7 +4,7 @@ import {
 	incrementPunchCard,
 } from "@/db/models/punch-cards/punch-cards";
 import { getRestaurantById } from "@/db/models/restaurants/restaurants";
-import { PUNCH_THRESHOLD } from "@/components/ui/punch-card";
+import { PUNCH_THRESHOLD } from "@/components/ui/restaurant-specific-user-punch-card";
 import type { PunchCard } from "@/types/db";
 
 // NEW: Helper to safely serialize data with BigInt conversion

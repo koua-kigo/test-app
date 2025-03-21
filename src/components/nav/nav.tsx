@@ -20,7 +20,7 @@ import {
   Home,
   Settings,
   Trophy,
-  User,
+  type User,
   Utensils,
   UserPlus,
   Loader2,
@@ -29,11 +29,13 @@ import {
   Wallet2,
   MedalIcon,
   QrCodeIcon,
+  Tag,
+  Settings2,
+  BookUser,
 } from 'lucide-react'
 import {motion, AnimatePresence} from 'motion/react'
 import {useCallback, useState, useEffect} from 'react'
-import {QrReader} from 'react-qr-reader'
-import {useScanQrCode} from '@/hooks/use-scan-qr-code'
+
 import {
   Dialog,
   DialogContent,
@@ -44,6 +46,8 @@ import {
   DialogClose,
 } from '@/components/ui/dialog'
 import {NavScanner} from '@/components/nav/nav-scanner'
+
+import {useUserContext} from '@/context/user-context'
 
 export type NavProps = {
   initialActiveTab?: string
@@ -114,16 +118,19 @@ export const NavScannerButton = ({onScanClick}: NavScannerButtonProps) => {
       onClick={onScanClick}
       variant='ghost'
       size='sm'
-      className={cn('p-4 mx-2 h-auto !w-auto rounded-full', 'text-primary')}
+      className={cn('p-4 mx-1 h-auto !w-auto rounded-full', 'text-primary')}
     >
-      <QrCodeIcon className='h-7 w-7' />
+      <QrCodeIcon className='h-6 w-6' />
     </Button>
   )
 }
 
 export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
   const [activeTab, setActiveTab] = useState(initialActiveTab)
-  const {isSignedIn, user} = useUser()
+  const {currentUser} = useUserContext()
+
+  console.log('🚀 ~ Nav ~ currentUser:', currentUser)
+
   const {session} = useSession()
 
   console.log('🚀 ~ Nav ~ session:', session)
@@ -134,51 +141,14 @@ export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
     setShowModal(!showModal)
   }
 
-  console.log('🚀 ~ Nav ~ user:', user)
-
-  const userIsAdmin = user?.publicMetadata?.role === 'admin'
+  const userIsAdmin = currentUser?.isAdmin
 
   console.log('🚀 ~ Nav ~ userIsAdmin:', userIsAdmin)
 
-  const staticNavItems: NavItem[] = [
-    // { id: "home", icon: Home, label: "Home", href: "/" },
-    {
-      id: 'restaurants',
-      icon: Utensils,
-      label: 'Food',
-      href: '/deals',
-    },
-
-    // {
-    // 	id: "leaderBoard",
-    // 	icon: Trophy,
-    // 	label: "Leader Board",
-    // 	href: "/leaderboard",
-    // },
-  ]
-
-  const authNavItems: NavItem[] = []
-  if (isSignedIn && !userIsAdmin) {
-    authNavItems.push({
-      id: 'myProfile',
-      icon: User,
-      label: 'Profile',
-      href: `/users/${user?.id}/profile`,
-    })
-  }
-  if (isSignedIn && userIsAdmin) {
-    authNavItems.push({
-      id: 'admin',
-      icon: Settings,
-      label: 'Admin',
-      href: '/admin',
-    })
-  }
-
-  const navItems: NavItem[] = [...staticNavItems, ...authNavItems]
   const closeModal = useCallback(() => {
     setShowModal(false)
   }, [])
+
   return (
     <>
       {/* QR Scanner Modal with animations */}
@@ -204,7 +174,10 @@ export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
                 </motion.div>
 
                 <div className='flex flex-col items-center space-y-4 mt-4'>
-                  <NavScanner userId={user?.id || ''} closeModal={closeModal} />
+                  <NavScanner
+                    userId={currentUser?.id || ''}
+                    closeModal={closeModal}
+                  />
                 </div>
 
                 <motion.div variants={itemVariants} className='mt-6'>
@@ -232,16 +205,16 @@ export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
             variant='ghost'
             size='sm'
             className={cn(
-              'p-4 mx-2 h-auto !w-auto rounded-full',
+              'p-4 mx-1 h-auto !w-auto rounded-full',
               'text-primary'
             )}
           >
             <Link href='/deals' className={cn(' h-auto !w-auto rounded-full')}>
-              <MedalIcon className='h-7 w-7' />
+              <Tag className='h-6 w-6' />
             </Link>
           </Button>
 
-          {isSignedIn && !userIsAdmin && (
+          {currentUser && !userIsAdmin && (
             <NavScannerButton onScanClick={toggleModal} />
           )}
           {userIsAdmin && (
@@ -249,7 +222,7 @@ export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
               variant='ghost'
               size='sm'
               className={cn(
-                'p-4 mx-2 h-auto !w-auto rounded-full',
+                'p-4 mx-1 h-auto !w-auto rounded-full',
                 'text-primary'
               )}
             >
@@ -257,39 +230,39 @@ export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
                 href={'/admin'}
                 className={cn('  h-auto !w-auto rounded-full')}
               >
-                <Settings className='h-7 w-7' />
+                <Settings2 className='h-6 w-6' />
               </Link>
             </Button>
           )}
-          {isSignedIn && (
+          {currentUser && (
             <Button
               variant='ghost'
               size='sm'
               className={cn(
-                'p-4 mx-2 h-auto !w-auto rounded-full',
+                'p-4 mx-1 h-auto !w-auto rounded-full',
                 'text-primary'
               )}
             >
               <Link
-                href={`/users/${user?.id}/profile`}
+                href={`/users/${currentUser?.id}/profile`}
                 className={cn(' h-auto !w-auto rounded-full')}
               >
-                <Wallet2 className='h-7 w-7' />
+                <BookUser className='h-6 w-6' />
               </Link>
             </Button>
           )}
 
-          {!isSignedIn && (
+          {!currentUser && (
             <SignInButton>
               <Button
                 variant='ghost'
                 size='sm'
                 className={cn(
-                  'p-4 mx-2 h-auto !w-auto rounded-full',
+                  'p-4 mx-1 h-auto !w-auto rounded-full',
                   'text-primary'
                 )}
               >
-                <UserPlus className='h-7 w-7' />
+                <UserPlus className='h-6 w-6' />
               </Button>
             </SignInButton>
           )}

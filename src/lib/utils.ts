@@ -40,3 +40,28 @@ export function convertBigInts<T>(
 	// Return primitive values as is
 	return obj;
 }
+
+export function convertBigIntToString<T>(data: T): T {
+	if (data === null || data === undefined) {
+		return data;
+	}
+
+	if (typeof data === "bigint") {
+		return String(data) as unknown as T;
+	}
+
+	if (Array.isArray(data)) {
+		return data.map(convertBigIntToString) as unknown as T;
+	}
+
+	if (typeof data === "object") {
+		return Object.fromEntries(
+			Object.entries(data).map(([key, value]) => [
+				key,
+				convertBigIntToString(value),
+			]),
+		) as unknown as T;
+	}
+
+	return data;
+}
