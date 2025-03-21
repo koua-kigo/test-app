@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: "Experience Maple Grove Restaurant Passport",
 	description: "Track your restaurant visits and experiences",
-	viewport:
-		"width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover",
+	// viewport:
+		// "width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover",
 };
 
 export default function RootLayout({

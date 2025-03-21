@@ -44,20 +44,28 @@ export async function processQrScan(formData: {
 			}
 		}
 
+
 		console.log("🚀 ~ Processing QR data as:", qrDataString);
-
-		// Parse the QR URL to extract restaurant ID
-		const qrCodeUrl = new URL(qrDataString);
-
-		console.log("🚀 ~ qrCodeUrl:", qrCodeUrl);
-
-		const pathname = qrCodeUrl.pathname;
-		// Extract only numeric part from the path to ensure valid BigInt conversion
-		const pathParts = pathname.split("/").filter(Boolean);
-		const restaurantId = pathParts.pop();
+			const restaurantId = qrDataString.match(/restaurants\/(\d+)\/scan/)?.[1] ?? "";
+			console.log("🚀 ~ restaurantId:", restaurantId)
+		console.log("🚀 ~ POST ~ restaurantId:", restaurantId);
 		const numericRestaurantId = restaurantId?.replace(/\D/g, "");
 
-		console.log("🚀 ~ Extracted restaurant ID:", numericRestaurantId);
+		console.log("🚀 ~ numericRestaurantId:", numericRestaurantId)
+
+
+		// Parse the QR URL to extract restaurant ID
+		// const qrCodeUrl = new URL(qrDataString);
+
+		// console.log("🚀 ~ qrCodeUrl:", qrCodeUrl);
+
+		// const pathname = qrCodeUrl.pathname;
+		// // Extract only numeric part from the path to ensure valid BigInt conversion
+		// const pathParts = pathname.split("/").filter(Boolean);
+		// const restaurantId = pathParts.pop();
+		// const numericRestaurantId = restaurantId?.replace(/\D/g, "");
+
+		// console.log("🚀 ~ Extracted restaurant ID:", numericRestaurantId);
 
 		if (!numericRestaurantId || !userId) {
 			return {
@@ -128,35 +136,46 @@ export async function processQrScan(formData: {
 			restaurantIdBigInt,
 		);
 
+		console.log("🚀 ~ punchCardExists:", punchCardExists)
+
+
 		if (punchCardExists) {
+
+			console.log("🚀 ~ punchCardExists:", punchCardExists)
+
 			// If punch card exists, increment the punches
-			const updatedPunchCard = await incrementPunchCard(
-				punchCardExists.id,
-				1, // Increment by 1
-			);
+			// const updatedPunchCard = await incrementPunchCard(
+			// 	punchCardExists.id,
+			// 	1, // Increment by 1
+			// );
 
 			return {
 				message: "Punch card already exists and was updated",
-				data: convertBigInts(updatedPunchCard?.[0] || punchCardExists),
+				data: convertBigInts( punchCardExists), // updatedPunchCard?.[0] ||
 				restaurantName: restaurant?.name || "Restaurant",
 				isExisting: true,
 			};
+		} else {
+
+			// Create new punch card if it doesn't exist
+			const punchCard = await createPunchCard({
+				userId: userIdBigInt,
+				restaurantId: restaurantIdBigInt,
+				punches: 1,
+				completed: true, // Set to false initially
+			}).then((res) => res[0]);
+	
+			console.log("🚀 ~ punchCard:", punchCard)
+	
+	
+			return {
+				message: "Punch card created successfully",
+				data: convertBigInts(punchCard),
+				restaurantName: restaurant?.name || "Restaurant",
+				isExisting: false,
+			};
 		}
 
-		// Create new punch card if it doesn't exist
-		const punchCard = await createPunchCard({
-			userId: userIdBigInt,
-			restaurantId: restaurantIdBigInt,
-			punches: 1,
-			completed: false, // Set to false initially
-		}).then((res) => res[0]);
-
-		return {
-			message: "Punch card created successfully",
-			data: convertBigInts(punchCard),
-			restaurantName: restaurant?.name || "Restaurant",
-			isExisting: false,
-		};
 	} catch (error) {
 		console.error("Error processing QR scan:", error);
 
@@ -184,4 +203,6 @@ export async function processQrScan(formData: {
 			status: 500,
 		};
 	}
+
+
 }

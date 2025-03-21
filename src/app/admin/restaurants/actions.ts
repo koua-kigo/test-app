@@ -12,17 +12,31 @@ import { revalidatePath } from "next/cache";
 export async function saveQRCodeUrl(
 	restaurantId: string,
 	qrCodeUrl: string,
-): Promise<boolean> {
+) {
 	try {
-		await db
+		const updatedRestaurant = await db
 			.update(restaurants)
 			.set({ qrCodeUrl })
-			.where(eq(restaurants.id, BigInt(restaurantId)));
+			.where(eq(restaurants.id, BigInt(restaurantId)))
+			.returning();
 
-		return true;
+		if (!updatedRestaurant || updatedRestaurant.length === 0) {
+			return {
+				success: false,
+				error: "No restaurant was updated"
+			};
+		}
+
+		return {
+			success: true,
+			restaurant: updatedRestaurant[0]
+		};
 	} catch (error) {
 		console.error("Error saving QR code URL:", error);
-		return false;
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : "Failed to save QR code"
+		};
 	}
 }
 

@@ -333,7 +333,8 @@ export function RestaurantsTable({
 		{
 			id: "select",
 			header: ({ table }) => (
-				<div className="flex items-center justify-center">
+				<div className="">
+					<p>Select</p>
 					<Checkbox
 						checked={table.getIsAllPageRowsSelected()}
 						onCheckedChange={(value) => {
@@ -348,7 +349,8 @@ export function RestaurantsTable({
 				</div>
 			),
 			cell: ({ row }) => (
-				<div className="flex justify-center">
+				<div className="flex justify-center gap-0.5 h-auto w-min-[20px]">
+					<p>Select</p>
 					<Checkbox
 						checked={row.getIsSelected()}
 						onCheckedChange={(value) => {
@@ -358,12 +360,21 @@ export function RestaurantsTable({
 							row.toggleSelected(isChecked);
 						}}
 						aria-label="Select row"
-						className="translate-y-[2px] border-gray-400 dark:border-gray-600"
+						className="translate-y-[2px] border-gray-400 dark:border-gray-600 "
 					/>
 				</div>
 			),
 			enableSorting: false,
 			enableHiding: false,
+		},
+		{
+			id: "id",
+			accessorKey: "id",
+			header: "ID",
+			cell: ({ row }) => {
+				const restaurant = row.original as Restaurant;
+				return <div className="text-sm">{restaurant.id.toString()}</div>;
+			},
 		},
 		{
 			accessorKey: "name",
@@ -399,11 +410,11 @@ export function RestaurantsTable({
 			),
 			cell: EditableCell,
 		},
-		{
-			accessorKey: "imageUrl",
-			header: "Image URL",
-			cell: EditableCell,
-		},
+		// {
+		// 	accessorKey: "imageUrl",
+		// 	header: "Image URL",
+		// 	cell: EditableCell,
+		// },
 		{
 			accessorKey: "qrCodeUrl",
 			header: "QR Code",

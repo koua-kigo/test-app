@@ -1,16 +1,14 @@
-import { db } from "@/db/db";
-import { restaurants, prizes } from "@/db/schema";
-import { eq } from "drizzle-orm";
+
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+
 import { Suspense } from "react";
 import { auth } from "@clerk/nextjs/server";
 import { QRCodeManager } from "../qr-code-manager";
 import {
 	getRestaurantById,
 	getPrizesByRestaurantId,
-	getRestaurantByIdWithPrizes,
+	
 } from "@/db/models";
 import { RestaurantLoading } from "@/features/restaurants/RestaurantLoading";
 import { PrizeCard } from "@/features/prizes/prize-card/PrizeCard";
@@ -21,7 +19,7 @@ import { PrizeCard } from "@/features/prizes/prize-card/PrizeCard";
 async function RestaurantDetail(params: { id: string }) {
 	const { id }: { id: string } = await params;
 
-	const restaurant = id ? await getRestaurantByIdWithPrizes(BigInt(id)) : null;
+	const restaurant = id ? await getRestaurantById(BigInt(id)) : null;
 
 	console.log("🚀 ~ restaurant ~ restaurant:", restaurant);
 

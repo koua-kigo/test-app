@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { SignOutButton, useUser } from "@clerk/nextjs";
 import { useSidebar } from "./SidebarContext";
 import Image from "next/image";
 import {
@@ -254,25 +254,13 @@ export function AdminSidebar() {
 								)}
 							</li>
 						))}
+						<li>
+						<SignOutButton />
+						</li>
 					</ul>
 				</nav>
 
-				{/* Sign out button */}
-				<div
-					className={`
-                       bg-white w-full flex items-center justify-between
-                         ? "bg-[#ebe6e7]" : "hover:bg-[#ebe6e7]"}
-                        transition-colors duration-200
-                      `}
-				>
-					<Link
-						href="/sign-out"
-						className="flex items-center p-3 text-gray-400 hover:text-white hover:bg-[#ebe6e7] rounded-md transition-colors duration-200"
-					>
-						<LogOut size={20} className="mr-3" />
-						{!collapsed && <span>Sign Out</span>}
-					</Link>
-				</div>
+	
 			</aside>
 		</>
 	);

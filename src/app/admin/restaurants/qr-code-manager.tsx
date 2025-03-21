@@ -4,7 +4,7 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import QRCode from "react-qr-code";
 import Image from "next/image";
-import { useHandleQRCode } from "@/hooks/use-handle-qr-code";
+import { useHandleQRCode } from "@/hooks/use-handle-qrCode";
 import type { Restaurant } from "@/types/db";
 import {
 	Dialog,
@@ -34,42 +34,62 @@ interface QRCodeManagerProps {
 	variant?: QRCodeVariant;
 }
 
-// Add this new helper function before the QRCodeManager component
+// Updated download function to convert SVG to PNG with linter fixes and event listener for error
 const downloadQRCodeFromElement = (
 	element: HTMLDivElement | null,
-	restaurantName: string,
+	restaurantName: string
 ) => {
 	if (!element) return;
-
 	try {
-		// Get the SVG element directly from the container
 		const svgElement = element.querySelector("svg");
 		if (!svgElement) {
 			console.error("SVG element not found");
 			return;
 		}
-
-		// Add white background to ensure visibility
+		// Ensure white background
 		svgElement.setAttribute("style", "background-color: white");
-
-		// Serialize the SVG to a string
+		// Serialize SVG
 		const svgData = new XMLSerializer().serializeToString(svgElement);
+		// Create a blob from SVG data
+		const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+		const url = URL.createObjectURL(svgBlob);
 
-		// Create a data URL
-		const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgData)}`;
-
-		// Create a sanitized filename
-		const filename = `${restaurantName.replace(/\s+/g, "-").toLowerCase()}-qrcode.svg`;
-
-		// Create and trigger download
-		const link = document.createElement("a");
-		link.href = dataUrl;
-		link.download = filename;
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
+		const image = document.createElement("img");
+		image.crossOrigin = "anonymous";
+		image.onload = () => {
+			const canvas = document.createElement("canvas");
+			// Attempt to get width/height from SVG attributes, fallback to image dimensions
+			const widthAttr = svgElement.getAttribute("width");
+			const heightAttr = svgElement.getAttribute("height");
+			const width = widthAttr ? parseInt(widthAttr) : image.width;
+			const height = heightAttr ? parseInt(heightAttr) : image.height;
+			canvas.width = width;
+			canvas.height = height;
+			const context = canvas.getContext("2d");
+			if (!context) {
+				console.error("Unable to get canvas context");
+				return;
+			}
+			// Fill canvas with white background
+			context.fillStyle = "#ffffff";
+			context.fillRect(0, 0, width, height);
+			context.drawImage(image, 0, 0, width, height);
+			URL.revokeObjectURL(url);
+			const pngDataUrl = canvas.toDataURL("image/png");
+			const filename = `${restaurantName.replace(/\s+/g, "-").toLowerCase()}-qrcode.png`;
+			const link = document.createElement("a");
+			link.href = pngDataUrl;
+			link.download = filename;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		};
+		image.addEventListener("error", (event: Event) => {
+			console.error("Error loading SVG as image", event);
+		});
+		image.src = url;
 	} catch (err) {
-		console.error("Direct download failed:", err);
+		console.error("Direct PNG download failed:", err);
 	}
 };
 
@@ -82,13 +102,13 @@ export function QRCodeManager({
 		saving,
 		success,
 		error,
-		qrRef = useRef<HTMLDivElement>(null),
-		qrCodeValue = "",
-		handleGenerate = () => {},
-		handleCancel = () => {},
-		handleSave = async () => {},
-		handleDownload = () => {},
-	} = useHandleQRCode({ restaurant, mode: "single" });
+		qrRef,
+		qrCodeValue,
+		handleGenerate,
+		handleCancel,
+		handleSave,
+		handleDownload,
+	} = useHandleQRCode({ restaurant });
 
 	const [downloadSupported, setDownloadSupported] = useState(true);
 
