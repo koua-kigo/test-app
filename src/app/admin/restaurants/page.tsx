@@ -73,8 +73,6 @@ async function RestaurantsList({ restaurants }: { restaurants: Restaurant[] }) {
 export default async function RestaurantsPage() {
 	const restaurants = await getRestaurants();
 
-	console.log("🚀 ~ RestaurantsPage ~ restaurants:", restaurants);
-
 	return (
 		<>
 			<div className="w-full mx-auto px-4 py-8 bg-sidebar rounded-xl shadow-sm mb-4">
@@ -82,7 +80,7 @@ export default async function RestaurantsPage() {
 					<h1 className="text-3xl font-bold text-left md:text-center mb-4 md:mb-0">
 						Restaurants
 					</h1>
-					<div className="flex space-x-4 align-middle items-center justify-start">
+					<div className="w-full mt-2 flex space-x-4 align-middle items-center justify-start">
 						<Link
 							href="/admin/restaurants/new"
 							className="bg-[#ebe6e7] px-4 py-2 rounded-md text-sm hover:bg-green-700 transition-colors"
@@ -90,8 +88,40 @@ export default async function RestaurantsPage() {
 							Add Restaurant
 						</Link>
 						<Link
+							href="/admin/restaurants/bulk-qr"
+							className="bg-[#e6ebe7] px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								className="lucide lucide-qr-code"
+								aria-hidden="true"
+							>
+								<rect width="5" height="5" x="3" y="3" rx="1" />
+								<rect width="5" height="5" x="16" y="3" rx="1" />
+								<rect width="5" height="5" x="3" y="16" rx="1" />
+								<path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+								<path d="M21 21v.01" />
+								<path d="M12 7v3a2 2 0 0 1-2 2H7" />
+								<path d="M3 12h.01" />
+								<path d="M12 3h.01" />
+								<path d="M12 16v.01" />
+								<path d="M16 12h1" />
+								<path d="M21 12v.01" />
+								<path d="M12 21v-1" />
+							</svg>
+							Bulk QR Codes
+						</Link>
+						<Link
 							href="/admin"
-							className="text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors"
+							className="border border-gray-400 dark:border-gray-600 px-4 py-2 rounded-md text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
 						>
 							Back to Dashboard
 						</Link>

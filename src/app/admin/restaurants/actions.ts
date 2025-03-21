@@ -26,6 +26,48 @@ export async function saveQRCodeUrl(
 	}
 }
 
+// Function to save multiple QR codes at once for bulk generation
+export async function saveBulkQRCodeUrls(
+	restaurantQRCodes: { restaurantId: string; qrCodeUrl: string }[],
+): Promise<{
+	success: boolean;
+	results: { restaurantId: string; success: boolean }[];
+}> {
+	const results: { restaurantId: string; success: boolean }[] = [];
+
+	try {
+		// Process each QR code in sequence
+		for (const { restaurantId, qrCodeUrl } of restaurantQRCodes) {
+			try {
+				await db
+					.update(restaurants)
+					.set({ qrCodeUrl })
+					.where(eq(restaurants.id, BigInt(restaurantId)));
+
+				results.push({ restaurantId, success: true });
+			} catch (error) {
+				console.error(
+					`Error saving QR code URL for restaurant ${restaurantId}:`,
+					error,
+				);
+				results.push({ restaurantId, success: false });
+			}
+		}
+
+		// Revalidate the restaurants page to show updates
+		revalidatePath("/admin/restaurants");
+
+		// Consider the operation successful if at least one QR code was saved
+		return {
+			success: results.some((result) => result.success),
+			results,
+		};
+	} catch (error) {
+		console.error("Error in bulk QR code generation:", error);
+		return { success: false, results };
+	}
+}
+
 // Function to create a new restaurant
 export async function createRestaurantAction(
 	formData: z.infer<typeof createRestaurantSchema>,

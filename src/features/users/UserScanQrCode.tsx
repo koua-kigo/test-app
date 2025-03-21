@@ -197,7 +197,11 @@ export function UserScanQrCode({ user }: { user: User }) {
 
 			// Redirect to user profile after a short delay
 			setTimeout(() => {
-				router.push(`/users/${user.id}/profile`);
+				// Extract restaurant ID from the scan result
+				const restaurantId = result.data?.restaurantId || "";
+
+				// Redirect with highlight parameter
+				router.push(`/users/${user.id}/profile?highlight=${restaurantId}`);
 			}, 2000);
 		},
 		onScanError: (scanError) => {
@@ -205,18 +209,6 @@ export function UserScanQrCode({ user }: { user: User }) {
 			console.error("Scan error:", scanError);
 		},
 	});
-
-	// Effect to automatically redirect after successful scan
-	useEffect(() => {
-		if (scanResult) {
-			// Give user time to see the success message before redirecting
-			const redirectTimeout = setTimeout(() => {
-				router.push(`/users/${user.id}/profile`);
-			}, 2000);
-
-			return () => clearTimeout(redirectTimeout);
-		}
-	}, [scanResult, router, user.id]);
 
 	// Handle permission retry
 	const handleRetry = () => {

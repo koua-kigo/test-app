@@ -407,3 +407,25 @@ select {
 		}
 	}
 }
+
+button[role="checkbox"] {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 0.25rem;
+	border: 1px solid black !important;
+	background-color: transparent;
+	transition: background-color 0.2s, border-color 0.2s;
+}
+
+button[role="checkbox"][aria-checked="true"] {
+	background-color: hsl(var(--sidebar-primary));
+	border-color: black;
+}
+
+button[role="checkbox"]:focus-visible {
+	outline: 2px solid hsl(var(--sidebar-ring));
+	outline-offset: 2px;
+}

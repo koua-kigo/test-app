@@ -348,7 +348,7 @@ export function useScanQrCode({
 		[qrCodeData, handleError, mediaStream],
 	);
 
-	// Process scan result using Server Action
+	// Process scan result using POST request
 	const checkScanResult = useCallback(async () => {
 		if (!qrCodeData || !userId || checkingPunchCardStatus) return;
 
@@ -365,28 +365,68 @@ export function useScanQrCode({
 
 			console.log("QR data being sent:", qrDataValue);
 
-			// Use the server action directly instead of fetch
-			const data = await processQrScan({
-				qrData: qrDataValue,
-				userId,
+			// The QR code contains a URL to an API endpoint
+			// Use that URL directly for the POST request
+			const apiUrl = qrDataValue.trim();
+			let fullUrl;
+			console.log("🚀 ~ checkScanResult ~ apiUrl:", apiUrl);
+
+			if (process.env.NGROK_URL) {
+				fullUrl = `${process.env.NGROK_URL}`;
+			} else {
+				fullUrl = apiUrl;
+			}
+			// POST directly to the URL from the QR code
+			const response = await fetch(fullUrl, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					userId,
+				}),
 			});
+
+			// if (!response.ok) {
+			// 	const errorData = await response.json();
+			// 	throw new Error(errorData.error || "Failed to process scan");
+			// }
+
+			const data = await response.json();
 
 			console.log("🚀 ~ checkScanResult ~ data:", data);
 
 			if (data) {
-				setScanResult(data as ScanResult);
+				// Format the scan result data for consistent handling
+				const formattedResult: ScanResult = {
+					message: data.message || "Scan successful",
+					data: data.data || {},
+					restaurantName:
+						data.restaurantName || data.data?.restaurantName || "Restaurant",
+					isExisting: !!data.isExisting,
+					status: data.status || 200,
+				};
+
+				setScanResult(formattedResult);
 				setCheckingPunchCardStatus(false);
 				setError(null);
 
+				// Show different messages based on whether punch card is new or existing
 				try {
-					toast.success("Success", {
-						description: "Scan successful",
-					});
+					if (formattedResult.isExisting) {
+						toast.success("Punch Added!", {
+							description: `You've earned a new punch at ${formattedResult.restaurantName}!`,
+						});
+					} else {
+						toast.success("Punch Card Created!", {
+							description: `Your first punch at ${formattedResult.restaurantName} has been recorded!`,
+						});
+					}
 				} catch (toastError) {
 					console.log("Scan successful, but toast failed to display");
 				}
 
-				onScanSuccess?.(data as ScanResult);
+				onScanSuccess?.(formattedResult);
 
 				// Reset QR code data to prevent re-scanning
 				setQrCodeData("");

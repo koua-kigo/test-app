@@ -431,7 +431,6 @@ export const Nav = ({ initialActiveTab = "home", onTabChange }: NavProps) => {
 									className="flex flex-col items-center justify-center rounded-full h-14 w-14 mx-auto touch-manipulation bg-none"
 								>
 									<UserPlus className="h-6 w-6" />
-									<span className="text-xs mt-1">Sign In</span>
 								</Button>
 							</SignInButton>
 						</div>
