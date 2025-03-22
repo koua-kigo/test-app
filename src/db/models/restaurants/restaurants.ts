@@ -5,12 +5,9 @@ import { db } from "../../db";
 import { restaurants, prizes, punchCards, restaurantDeals } from "../../schema";
 import { getPrizesByRestaurantId } from "@/db/models/prizes";
 
-export const getRestaurants = async (page = 1, limit = 12) => {
-	// Get restaurants with pagination and only load essential relations
-	const offset = (page - 1) * limit;
+export const getRestaurants = async () => {
+	// Get all restaurants and only load essential relations
 	const restaurantsList = await db.query.restaurants.findMany({
-		limit,
-		offset,
 		with: {
 			deals: {
 				columns: {
