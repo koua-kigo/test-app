@@ -16,6 +16,8 @@ import {useSearchParams} from 'next/navigation'
 import {cn} from '@/lib/utils'
 import {type Badge, Award} from 'lucide-react'
 import React from 'react'
+import {LotteryStatus} from '@/features/users/lottery-status'
+import {SharePunchMenu} from '@/features/users/share-punch-menu'
 
 interface UserPunchCardsProps {
   user: User | Record<string, unknown>
@@ -59,6 +61,7 @@ export function UserPunchCards({
   const {punchCards, isLoading, error} = !userId
     ? {punchCards: [], isLoading: false, error: null}
     : usePunchCardSubscription(userId)
+  console.log('🚀 ~ punchCards:', punchCards)
 
   // Use the data from the subscription or the initial data
   const displayPunchCards =
@@ -142,43 +145,49 @@ export function UserPunchCards({
   }
 
   return (
-    <Card className='mb-6'>
-      <CardHeader>
-        <CardTitle>Your Punch Card</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <motion.div
-            initial={{opacity: 0, y: 20}}
-            animate={{opacity: 1, y: 0}}
-            transition={{duration: 0.5}}
-            className={cn(
-              'relative overflow-hidden rounded-xl bg-card shadow-lg',
-              'w-full flex flex-col'
-            )}
-            style={{perspective: 1000}}
-          >
-            <div className='rounded-lg border border-border bg-card/50 hover:bg-card/80 transition-colors p-4'>
-              <div className='flex items-center gap-3 mt-2'>
-                <div className='flex-grow space-y-1'>
-                  <div className='text-xs text-muted-foreground'>
-                    {/* {currentPunches} of {totalPunches} punches */}
-                  </div>
+    <div className=''>
+      <div className='relative w-min h-min'>
+        <SharePunchMenu />
+        <LotteryStatus punchCards={punchCards} />
+      </div>
+      <Card className='mb-6'>
+        <CardHeader>
+          <CardTitle>Your Punch Card</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <motion.div
+              initial={{opacity: 0, y: 20}}
+              animate={{opacity: 1, y: 0}}
+              transition={{duration: 0.5}}
+              className={cn(
+                'relative overflow-hidden rounded-xl bg-card shadow-lg',
+                'w-full flex flex-col'
+              )}
+              style={{perspective: 1000}}
+            >
+              <div className='rounded-lg border border-border bg-card/50 hover:bg-card/80 transition-colors p-4'>
+                <div className='flex items-center gap-3 mt-2'>
+                  <div className='flex-grow space-y-1'>
+                    <div className='text-xs text-muted-foreground'>
+                      {/* {currentPunches} of {totalPunches} punches */}
+                    </div>
 
-                  {/* Punch indicators as horizontal dots */}
-                  <div className='flex gap-1'>
-                    <UserPunchCard
-                      restaurants={punchCards.map(
-                        (punchCard) => punchCard.restaurant
-                      )}
-                    />
+                    {/* Punch indicators as horizontal dots */}
+                    <div className='flex gap-1'>
+                      <UserPunchCard
+                        restaurants={punchCards.map(
+                          (punchCard) => punchCard.restaurant
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        </div>
-      </CardContent>
-    </Card>
+            </motion.div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
