@@ -146,10 +146,6 @@ export function UserPunchCards({
 
   return (
     <div className=''>
-      <div className='relative w-min h-min'>
-        <SharePunchMenu />
-        <LotteryStatus punchCards={punchCards} />
-      </div>
       <Card className='mb-6'>
         <CardHeader>
           <CardTitle>Your Punch Card</CardTitle>

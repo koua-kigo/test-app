@@ -85,14 +85,9 @@ export const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
                 {restaurants.map((restaurant, index) => (
                   <motion.div
                     key={`punch-${restaurant.restaurantId}`}
-                    style={{
-                      backgroundImage: 'url(/RWP.jpg)',
-                      backgroundSize: 'contain',
-                      backgroundPosition: 'center',
-                      backgroundBlendMode: 'overlay',
-                    }}
+                    style={{backgroundColor: '#ddd'}}
                     className={cn(
-                      'aspect-square rounded-lg border-2 flex items-center justify-center relative after:absolute after:inset-0 after:bg-black/20 after:rounded-lg',
+                      'bg-gray aspect-square rounded-lg border-2 flex items-center justify-center relative ',
                       index < currentPunches
                         ? 'border-primary'
                         : ' border-muted'
@@ -116,7 +111,7 @@ export const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
                           delay: index === currentPunches - 1 ? 0.2 : 0,
                         }}
                       >
-                        <Stamp className='h-5 w-5 text-primary stroke-white text-white' />
+                        <Stamp className='h-5 w-5 stroke-white text-white' />
                       </motion.div>
                     )}
                   </motion.div>
