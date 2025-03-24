@@ -84,11 +84,15 @@ export function usePunchCardSubscription(userId: bigint) {
 						// Refresh the entire punch cards list to ensure we have the latest data
 						const response = await fetch(`/api/users/${userId}/punch-cards`);
 
+						console.log("🚀 ~ response:", response);
+
 						if (!response.ok) {
 							throw new Error("Failed to fetch updated punch cards");
 						}
 
 						const data = await response.json();
+
+						console.log("🚀 ~ data:", data);
 
 						if (data.success && data.data) {
 							setPunchCards(data.data);
@@ -99,7 +103,7 @@ export function usePunchCardSubscription(userId: bigint) {
 				},
 			)
 			.subscribe();
-
+		console.log("🚀 ~ useEffect ~ subscription:", subscription);
 		// Clean up subscription on unmount
 		return () => {
 			supabase.channel("punch-cards").unsubscribe();

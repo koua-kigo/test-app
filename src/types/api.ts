@@ -147,7 +147,7 @@ export type LeaderboardEntry = {
 export type AdminDashboardStats = {
 	totalUsers: number;
 	totalRestaurants: number;
-	totalPunches: number;
+	MAX_PUNCH_THRESHOLD: number;
 	totalPrizeRedemptions: number;
 	activeUsersLast30Days: number;
 };

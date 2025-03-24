@@ -10,7 +10,7 @@ import {
   LineChart,
 } from 'lucide-react'
 import React, {useEffect} from 'react'
-import {motion, AnimatePresence} from 'motion/react'
+import {motion, AnimatePresence} from 'framer-motion'
 import type {PunchCardWithRestaurant} from '@/types/api'
 import type {PunchCard} from '@/types'
 

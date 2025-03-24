@@ -7,6 +7,7 @@ import {Award, Coffee, Stamp, Utensils} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {Badge} from '@/components/ui/badge'
+import {ProgressIndicator} from '@/components/progress-indicator/progress-indicator'
 
 // Constant for punch threshold
 export const PUNCH_THRESHOLD = 10
@@ -17,7 +18,7 @@ export interface RestaurantPunch {
   restaurantName: string
   restaurantImage?: string
   currentPunches: number
-  totalPunches?: number
+  MAX_PUNCH_THRESHOLD?: number
   completed?: boolean
   lastUpdated?: Date | string
 }
@@ -31,7 +32,7 @@ export const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
   ({className, restaurants, ...props}, ref) => {
     console.log('🚀 ~ restaurants:', restaurants)
     const currentPunches = restaurants.length
-    const totalPunches = 10
+    const MAX_PUNCH_THRESHOLD = 10
 
     return (
       <motion.div
@@ -75,9 +76,9 @@ export const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
               <div
                 className={cn(
                   'grid gap-2 mb-5',
-                  totalPunches <= 5
+                  MAX_PUNCH_THRESHOLD <= 5
                     ? 'grid-cols-5'
-                    : totalPunches <= 8
+                    : MAX_PUNCH_THRESHOLD <= 8
                     ? 'grid-cols-4'
                     : 'grid-cols-5'
                 )}
@@ -119,6 +120,9 @@ export const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
               </div>
             </div>
           )}
+        </div>
+        <div className='flex items-center justify-start'>
+          <ProgressIndicator punches={restaurants} />
         </div>
       </motion.div>
     )

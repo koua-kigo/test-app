@@ -29,7 +29,6 @@ const nextConfig: NextConfig = {
 	// Improve performance with statically exported pages where possible
 
 	// Improved bundling
-	swcMinify: true,
 
 	// Image configuration
 	images: {

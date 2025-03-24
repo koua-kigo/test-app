@@ -46,7 +46,7 @@ export default function RootLayout({
                   backgroundSize: '20px 20px',
                 }}
               />
-              <div className='grid-bg' />
+              {/* <div className='grid-bg' /> */}
               <div className='app relative z-10 h-screen w-screen overflow-x-hidden px-safe py-safe'>
                 {children}
               </div>

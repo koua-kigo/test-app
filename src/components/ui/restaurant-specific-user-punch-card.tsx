@@ -17,7 +17,7 @@ interface PunchCardProps
   restaurantImage?: string
   restaurantId: string | number | bigint
   currentPunches: number
-  totalPunches?: number
+  MAX_PUNCH_THRESHOLD?: number
   completed?: boolean
   lastUpdated?: Date | string
   onAddPunch?: () => void
@@ -31,7 +31,7 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
       restaurantImage,
       restaurantId,
       currentPunches,
-      totalPunches = PUNCH_THRESHOLD,
+      MAX_PUNCH_THRESHOLD = PUNCH_THRESHOLD,
       completed = false,
       lastUpdated,
       onAddPunch,
@@ -48,7 +48,8 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
         | React.MouseEvent<HTMLButtonElement>
         | React.TouchEvent<HTMLButtonElement>
     ) => {
-      if (currentPunches >= totalPunches || isAnimating || completed) return
+      if (currentPunches >= MAX_PUNCH_THRESHOLD || isAnimating || completed)
+        return
 
       // Calculate position for the punch animation
       let x = 0
@@ -141,7 +142,7 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
         <div className='flex flex-col flex-grow p-4 sm:p-6'>
           <div className='flex justify-between items-center mb-3'>
             <span className='text-sm sm:text-base font-medium text-foreground'>
-              {currentPunches} of {totalPunches} punches
+              {currentPunches} of {MAX_PUNCH_THRESHOLD} punches
             </span>
             {completed && (
               <Badge
@@ -157,14 +158,14 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
           <div
             className={cn(
               'grid gap-2 mb-5',
-              totalPunches <= 5
+              MAX_PUNCH_THRESHOLD <= 5
                 ? 'grid-cols-5'
-                : totalPunches <= 8
+                : MAX_PUNCH_THRESHOLD <= 8
                 ? 'grid-cols-4'
                 : 'grid-cols-5'
             )}
           >
-            {Array.from({length: totalPunches}).map((_, index) => (
+            {Array.from({length: MAX_PUNCH_THRESHOLD}).map((_, index) => (
               <motion.div
                 key={`punch-${index}-${
                   currentPunches > index ? 'filled' : 'empty'

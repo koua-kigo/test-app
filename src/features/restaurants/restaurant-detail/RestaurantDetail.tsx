@@ -132,7 +132,7 @@ export function RestaurantDetail({
                 restaurantImage={restaurant.imageUrl}
                 restaurantId={restaurant.id}
                 currentPunches={userPunchCardData.punches}
-                totalPunches={PUNCH_THRESHOLD}
+                MAX_PUNCH_THRESHOLD={PUNCH_THRESHOLD}
                 completed={userPunchCardData.completed}
                 lastUpdated={userPunchCardData.updatedAt}
                 className='w-full max-w-md'

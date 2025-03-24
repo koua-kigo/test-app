@@ -33,7 +33,7 @@ import {
   Settings2,
   BookUser,
 } from 'lucide-react'
-import {motion, AnimatePresence} from 'motion/react'
+import {motion, AnimatePresence} from 'framer-motion'
 import {useCallback, useState, useEffect} from 'react'
 
 import {
@@ -128,13 +128,7 @@ export const NavScannerButton = ({onScanClick}: NavScannerButtonProps) => {
 export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
   const [activeTab, setActiveTab] = useState(initialActiveTab)
   const {currentUser} = useUserContext()
-
-  console.log('🚀 ~ Nav ~ currentUser:', currentUser)
-
   const {session} = useSession()
-
-  console.log('🚀 ~ Nav ~ session:', session)
-
   const [showModal, setShowModal] = useState(false)
 
   const toggleModal = () => {
@@ -142,9 +136,6 @@ export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
   }
 
   const userIsAdmin = currentUser?.isAdmin
-
-  console.log('🚀 ~ Nav ~ userIsAdmin:', userIsAdmin)
-
   const closeModal = useCallback(() => {
     setShowModal(false)
   }, [])

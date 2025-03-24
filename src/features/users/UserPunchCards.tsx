@@ -18,6 +18,7 @@ import {type Badge, Award} from 'lucide-react'
 import React from 'react'
 import {LotteryStatus} from '@/features/users/lottery-status'
 import {SharePunchMenu} from '@/features/users/share-punch-menu'
+import {Passport} from '@/features/users/passport'
 
 interface UserPunchCardsProps {
   user: User | Record<string, unknown>
@@ -64,8 +65,9 @@ export function UserPunchCards({
   console.log('🚀 ~ punchCards:', punchCards)
 
   // Use the data from the subscription or the initial data
-  const displayPunchCards =
+  const [displayPunchCards, setDisplayPunchCards] = useState(
     useFallbackData || punchCards.length === 0 ? initialPunchCards : punchCards
+  )
 
   // Set the highlighted card when we have punch cards and a highlight parameter
   useEffect(() => {
@@ -148,7 +150,7 @@ export function UserPunchCards({
     <div className=''>
       <Card className='mb-6'>
         <CardHeader>
-          <CardTitle>Your Punch Card</CardTitle>
+          <CardTitle>Your Passport</CardTitle>
         </CardHeader>
         <CardContent>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -166,16 +168,12 @@ export function UserPunchCards({
                 <div className='flex items-center gap-3 mt-2'>
                   <div className='flex-grow space-y-1'>
                     <div className='text-xs text-muted-foreground'>
-                      {/* {currentPunches} of {totalPunches} punches */}
+                      {/* {currentPunches} of {MAX_PUNCH_THRESHOLD} punches */}
                     </div>
 
                     {/* Punch indicators as horizontal dots */}
                     <div className='flex gap-1'>
-                      <UserPunchCard
-                        restaurants={punchCards.map(
-                          (punchCard) => punchCard.restaurant
-                        )}
-                      />
+                      <Passport punches={displayPunchCards} />
                     </div>
                   </div>
                 </div>
