@@ -164,7 +164,10 @@ body {
 	border-style: solid;
 	border-color: #e5e7eb;
 }
-
+li,
+a {
+	cursor: pointer;
+}
 .grid-bg {
 	margin-top: 0;
 	--cube-size: 20px;

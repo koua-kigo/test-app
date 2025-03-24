@@ -120,7 +120,14 @@ export function Passport({punches}: PassportProps) {
               {punches.map((punchData, index) => (
                 <motion.div
                   key={`punch-${punchData?.id}-${punchData.restaurant.id}`}
-                  style={{backgroundColor: '#ddd', background: '#ddd'}}
+                  style={{
+                    backgroundColor: '#ddd',
+                    background: '#ddd',
+                    border:
+                      activePunchCardData?.id === punchData?.id
+                        ? '2px solid #000'
+                        : 'none',
+                  }}
                   className={
                     'aspect-square rounded-lg border-2 flex items-center justify-center relative cursor-pointer'
                   }

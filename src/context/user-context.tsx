@@ -101,6 +101,15 @@ export const UserProvider: React.FC<{children: React.ReactNode}> = ({
     }
   }
 
+  useEffect(() => {
+    // If the user has logged out via the the Clerk UI, set the current user to null
+    console.log('🚀 ~ useEffect ~ clerkUser:', clerkUser)
+    if ((!clerkUser || !clerkUser.id) && currentUser) {
+      console.log('User has signed out. Resetting current user state to null.')
+      setCurrentUser(null)
+    }
+  }, [clerkUser, currentUser])
+
   return (
     <UserContext.Provider value={{currentUser, isLoading, error, reloadUser}}>
       {children}
