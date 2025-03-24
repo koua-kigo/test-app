@@ -9,21 +9,9 @@ export const getRestaurants = async () => {
 	// Get all restaurants and only load essential relations
 	const restaurantsList = await db.query.restaurants.findMany({
 		with: {
-			deals: {
-				columns: {
-					id: true,
-				},
-			},
-			prizes: {
-				columns: {
-					id: true,
-				},
-			},
-			punchCards: {
-				columns: {
-					id: true,
-				},
-			},
+			deals: true,
+			prizes: true,
+			punchCards: true,
 		},
 	});
 
