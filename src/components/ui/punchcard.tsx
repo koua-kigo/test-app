@@ -111,7 +111,7 @@ export const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
                           delay: index === currentPunches - 1 ? 0.2 : 0,
                         }}
                       >
-                        <Stamp className='h-5 w-5 stroke-white text-white' />
+                        <Stamp className='h-5 w-5 stroke-black text-black' />
                       </motion.div>
                     )}
                   </motion.div>
