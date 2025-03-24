@@ -1,1 +1,1 @@
-export * from './Passport';
+export * from './passport'
