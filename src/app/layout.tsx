@@ -52,7 +52,7 @@ export default function RootLayout({
               </div>
               <Nav />
               <Toaster />
-              <Analytics />
+              {/* <Analytics /> */}
             </body>
           </html>
         </UserProvider>
