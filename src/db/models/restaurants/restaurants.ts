@@ -31,6 +31,11 @@ export const getDeals = async () => {
 		},
 	});
 };
+export const getActiveDeals = async () => {
+	return await db.query.restaurantDeals.findMany({
+		where: eq(restaurantDeals.active, true),
+	});
+};
 
 export const getRestaurantById = async (id: bigint) => {
 	return await db

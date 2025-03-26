@@ -1,1061 +1,1209 @@
-"use client";
+'use client'
 
-import * as React from "react";
+import * as React from 'react'
 import {
-	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
-	getPaginationRowModel,
-	useReactTable,
-	type ColumnDef,
-	type Row,
-	type Column,
-	type Table as TanstackTable,
-	type SortingState,
-} from "@tanstack/react-table";
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  getPaginationRowModel,
+  useReactTable,
+  type ColumnDef,
+  type Row,
+  type Column,
+  type Table as TanstackTable,
+  type SortingState,
+} from '@tanstack/react-table'
 import {
-	Check,
-	X,
-	Edit,
-	ChevronLeft,
-	ChevronRight,
-	Image as ImageIcon,
-	Building,
-	MapPin,
-	QrCode,
-	MoreHorizontal,
-	Trash2,
-	ExternalLink,
-	Save,
-	Download,
-} from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { z } from "zod";
-import type { restaurantSchema } from "@/types/schemas";
-import type { Restaurant } from "@/types/db";
-import { QRCodeManager } from "@/app/admin/restaurants/qr-code-manager";
-import { useRouter } from "next/navigation";
+  Check,
+  X,
+  Edit,
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon,
+  Building,
+  MapPin,
+  QrCode,
+  MoreHorizontal,
+  Trash2,
+  ExternalLink,
+  Save,
+  Download,
+  FileSpreadsheet,
+  Upload,
+} from 'lucide-react'
+import {Checkbox} from '@/components/ui/checkbox'
+import type {z} from 'zod'
+import type {restaurantSchema} from '@/types/schemas'
+import type {Restaurant} from '@/types/db'
+import {QRCodeManager} from '@/app/admin/restaurants/qr-code-manager'
+import {useRouter} from 'next/navigation'
 import {
-	updateRestaurantAction,
-	deleteRestaurantAction,
-} from "@/actions/restaurants";
-import { toast } from "sonner";
-import { useRestaurantSearch } from "@/hooks/useRestaurantSearch";
-import { AdminRestaurantSearchBar } from "@/features/restaurants/AdminRestaurantSearchBar";
-import { RestaurantQuickView } from "./restaurant-quick-view";
-import { useHandleBulkQRCode } from "@/hooks/use-handle-bulk-qr-code";
-import { Progress } from "@/components/ui/progress";
+  updateRestaurantAction,
+  deleteRestaurantAction,
+  importRestaurantsFromCSV,
+} from '@/actions/restaurants'
+import {toast} from 'sonner'
+import {useRestaurantSearch} from '@/hooks/useRestaurantSearch'
+import {AdminRestaurantSearchBar} from '@/features/restaurants/AdminRestaurantSearchBar'
+import {RestaurantQuickView} from './restaurant-quick-view'
+import {useHandleBulkQRCode} from '@/hooks/use-handle-bulk-qr-code'
+import {Progress} from '@/components/ui/progress'
+import {exportToCSV} from '@/lib/csv'
+import {CSVUpload} from '@/components/admin/csv-upload'
 
 // Styled components imports
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Badge} from '@/components/ui/badge'
 import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {cn} from '@/lib/utils'
 
 // Define interfaces for TanStack Table metadata
 interface ColumnMeta {
-	editable?: boolean;
+  editable?: boolean
 }
 
 interface TableMeta {
-	updateData: (rowIndex: number, columnId: string, value: unknown) => void;
+  updateData: (rowIndex: number, columnId: string, value: unknown) => void
 }
 
 // Type for restaurant from schema
-type RestaurantData = z.infer<typeof restaurantSchema>;
+type RestaurantData = z.infer<typeof restaurantSchema>
 
 // Add the extended Restaurant type to include deals
 type ExtendedRestaurant = Restaurant & {
-	punchCardCount?: number;
-	deals?: { id: string; title: string; isActive: boolean }[];
-};
+  punchCardCount?: number
+  deals?: {id: string; title: string; isActive: boolean}[]
+}
 
 // Props for editable cells
 type EditableCellProps = {
-	getValue: () => unknown;
-	row: Row<RestaurantData>;
-	column: Column<RestaurantData, unknown>;
-	table: TanstackTable<RestaurantData>;
-};
+  getValue: () => unknown
+  row: Row<RestaurantData>
+  column: Column<RestaurantData, unknown>
+  table: TanstackTable<RestaurantData>
+}
 
 // Type for row selection state
-type RowSelectionState = Record<string, boolean>;
+type RowSelectionState = Record<string, boolean>
 
 // Helper function for sorting indicators
-const getSortingIcon = (state: "asc" | "desc" | false) => {
-	if (state === "asc")
-		return <ChevronLeft className="text-gray-500 h-4 w-4 rotate-90" />;
-	if (state === "desc")
-		return <ChevronLeft className="text-gray-500 h-4 w-4 -rotate-90" />;
-	return (
-		<div className="flex flex-col h-4">
-			<ChevronLeft className="h-2 w-2 rotate-90" />
-			<ChevronLeft className="h-2 w-2 -rotate-90" />
-		</div>
-	);
-};
+const getSortingIcon = (state: 'asc' | 'desc' | false) => {
+  if (state === 'asc')
+    return <ChevronLeft className='text-gray-500 h-4 w-4 rotate-90' />
+  if (state === 'desc')
+    return <ChevronLeft className='text-gray-500 h-4 w-4 -rotate-90' />
+  return (
+    <div className='flex flex-col h-4'>
+      <ChevronLeft className='h-2 w-2 rotate-90' />
+      <ChevronLeft className='h-2 w-2 -rotate-90' />
+    </div>
+  )
+}
 
 // Editable cell component
-const EditableCell = ({ getValue, row, column, table }: EditableCellProps) => {
-	const initialValue = getValue();
-	const columnId = column.id;
-	const [value, setValue] = React.useState(initialValue);
-	const [editing, setEditing] = React.useState(false);
+const EditableCell = ({getValue, row, column, table}: EditableCellProps) => {
+  const initialValue = getValue()
+  const columnId = column.id
+  const [value, setValue] = React.useState(initialValue)
+  const [editing, setEditing] = React.useState(false)
 
-	// Update local value when row data changes
-	React.useEffect(() => {
-		setValue(getValue());
-	}, [getValue]);
+  // Update local value when row data changes
+  React.useEffect(() => {
+    setValue(getValue())
+  }, [getValue])
 
-	const onBlur = () => {
-		(table.options.meta as TableMeta).updateData(row.index, columnId, value);
-		setEditing(false);
-	};
+  const onBlur = () => {
+    ;(table.options.meta as TableMeta).updateData(row.index, columnId, value)
+    setEditing(false)
+  }
 
-	const onEditClick = () => {
-		setEditing(true);
-	};
+  const onEditClick = () => {
+    setEditing(true)
+  }
 
-	const onCancelClick = () => {
-		setValue(initialValue);
-		setEditing(false);
-	};
+  const onCancelClick = () => {
+    setValue(initialValue)
+    setEditing(false)
+  }
 
-	const onSaveClick = () => {
-		(table.options.meta as TableMeta).updateData(row.index, columnId, value);
-		setEditing(false);
-	};
+  const onSaveClick = () => {
+    ;(table.options.meta as TableMeta).updateData(row.index, columnId, value)
+    setEditing(false)
+  }
 
-	// Non-editable columns
-	if (
-		columnId === "id" ||
-		columnId === "qrCodeUrl" ||
-		(column.columnDef.meta as ColumnMeta)?.editable === false
-	) {
-		return (
-			<div
-				className="py-2 text-sm truncate overflow-hidden"
-				title={value?.toString()}
-			>
-				{value?.toString()}
-			</div>
-		);
-	}
+  // Non-editable columns
+  if (
+    columnId === 'id' ||
+    columnId === 'qrCodeUrl' ||
+    (column.columnDef.meta as ColumnMeta)?.editable === false
+  ) {
+    return (
+      <div
+        className='py-2 text-sm truncate overflow-hidden'
+        title={value?.toString()}
+      >
+        {value?.toString()}
+      </div>
+    )
+  }
 
-	// Get appropriate icon based on column
-	const getColumnIcon = () => {
-		switch (columnId) {
-			case "name":
-				return <Building className="h-4 w-4 text-sidebar-foreground/50 mr-2" />;
-			case "description":
-				return <Building className="h-4 w-4 text-sidebar-foreground/50 mr-2" />;
-			case "address":
-				return <MapPin className="h-4 w-4 text-sidebar-foreground/50 mr-2" />;
-			case "imageUrl":
-				return (
-					<ImageIcon className="h-4 w-4 text-sidebar-foreground/50 mr-2" />
-				);
-			default:
-				return null;
-		}
-	};
+  // Get appropriate icon based on column
+  const getColumnIcon = () => {
+    switch (columnId) {
+      case 'name':
+        return <Building className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+      case 'description':
+        return <Building className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+      case 'address':
+        return <MapPin className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+      case 'imageUrl':
+        return <ImageIcon className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+      default:
+        return null
+    }
+  }
 
-	return editing ? (
-		<div className="flex items-center space-x-2">
-			<Input
-				value={value as string}
-				onChange={(e) => setValue(e.target.value)}
-				onBlur={onBlur}
-				autoFocus
-				className="h-8 w-full text-sm bg-background border-sidebar-border focus-visible:ring-sidebar-ring"
-			/>
-			<div className="flex space-x-1">
-				<Button
-					onClick={onSaveClick}
-					size="sm"
-					variant="ghost"
-					className="h-8 w-8 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-				>
-					<Check className="h-4 w-4" />
-				</Button>
-				<Button
-					onClick={onCancelClick}
-					size="sm"
-					variant="ghost"
-					className="h-8 w-8 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-				>
-					<X className="h-4 w-4" />
-				</Button>
-			</div>
-		</div>
-	) : (
-		<div className="flex items-center justify-between space-x-2 group/cell">
-			<div
-				className="flex items-center truncate py-2 text-sm w-full"
-				title={value?.toString()}
-			>
-				{getColumnIcon()}
-				<span className="truncate hover:text-clip">{value?.toString()}</span>
-			</div>
-			<Button
-				onClick={onEditClick}
-				size="sm"
-				variant="ghost"
-				className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-			>
-				<Edit className="h-4 w-4" />
-			</Button>
-		</div>
-	);
-};
+  return editing ? (
+    <div className='flex items-center space-x-2'>
+      <Input
+        value={value as string}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={onBlur}
+        autoFocus
+        className='h-8 w-full text-sm bg-background border-sidebar-border focus-visible:ring-sidebar-ring'
+      />
+      <div className='flex space-x-1'>
+        <Button
+          onClick={onSaveClick}
+          size='sm'
+          variant='ghost'
+          className='h-8 w-8 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+        >
+          <Check className='h-4 w-4' />
+        </Button>
+        <Button
+          onClick={onCancelClick}
+          size='sm'
+          variant='ghost'
+          className='h-8 w-8 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+        >
+          <X className='h-4 w-4' />
+        </Button>
+      </div>
+    </div>
+  ) : (
+    <div className='flex items-center justify-between space-x-2 group/cell'>
+      <div
+        className='flex items-center truncate py-2 text-sm w-full'
+        title={value?.toString()}
+      >
+        {getColumnIcon()}
+        <span className='truncate hover:text-clip'>{value?.toString()}</span>
+      </div>
+      <Button
+        onClick={onEditClick}
+        size='sm'
+        variant='ghost'
+        className='h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+      >
+        <Edit className='h-4 w-4' />
+      </Button>
+    </div>
+  )
+}
 
 export function RestaurantsTable({
-	restaurants: initialData,
+  restaurants: initialData,
 }: {
-	restaurants: RestaurantData[];
+  restaurants: RestaurantData[]
 }) {
-	const [data, setData] = React.useState<RestaurantData[]>(initialData);
-	const [sorting, setSorting] = React.useState<SortingState>([]);
-	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
-	const [pending, setPending] = React.useState<Record<number, boolean>>({});
-	const [restaurantToDelete, setRestaurantToDelete] =
-		React.useState<RestaurantData | null>(null);
-	const router = useRouter();
-	const [isMobileView, setIsMobileView] = React.useState(false);
+  const [data, setData] = React.useState<RestaurantData[]>(initialData)
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
+  const [pending, setPending] = React.useState<Record<number, boolean>>({})
+  const [restaurantToDelete, setRestaurantToDelete] =
+    React.useState<RestaurantData | null>(null)
+  const router = useRouter()
+  const [isMobileView, setIsMobileView] = React.useState(false)
+  const [isExporting, setIsExporting] = React.useState(false)
+  const [isImporting, setIsImporting] = React.useState(false)
 
-	// Track selection count for visibility check
-	const selectedCount = Object.keys(rowSelection).length;
+  // Track selection count for visibility check
+  const selectedCount = Object.keys(rowSelection).length
 
-	// Add bulk QR code generation hook
-	const {
-		generating: bulkGenerating,
-		saving: bulkSaving,
-		success: bulkSuccess,
-		error: bulkError,
-		progress = 0,
-		results = [],
-		handleGenerateAll = () => {},
-		handleSaveAll = () => {},
-		handleDownloadAll = () => {},
-		handleReset = () => {},
-	} = useHandleBulkQRCode();
+  // Add bulk QR code generation hook
+  const {
+    generating: bulkGenerating,
+    saving: bulkSaving,
+    success: bulkSuccess,
+    error: bulkError,
+    progress = 0,
+    results = [],
+    handleGenerateAll = () => {},
+    handleSaveAll = () => {},
+    handleDownloadAll = () => {},
+    handleReset = () => {},
+  } = useHandleBulkQRCode()
 
-	// Check viewport size on mount and window resize
-	React.useEffect(() => {
-		const checkViewport = () => {
-			setIsMobileView(window.innerWidth < 768);
-		};
+  // Check viewport size on mount and window resize
+  React.useEffect(() => {
+    const checkViewport = () => {
+      setIsMobileView(window.innerWidth < 768)
+    }
 
-		// Initial check
-		checkViewport();
+    // Initial check
+    checkViewport()
 
-		// Set up event listener for resize
-		window.addEventListener("resize", checkViewport);
+    // Set up event listener for resize
+    window.addEventListener('resize', checkViewport)
 
-		// Clean up
-		return () => window.removeEventListener("resize", checkViewport);
-	}, []);
+    // Clean up
+    return () => window.removeEventListener('resize', checkViewport)
+  }, [])
 
-	// Add restaurant search hook
-	const {
-		filteredRestaurants,
-		searchTerm,
-		setSearchTerm,
-		sortOption,
-		setSortOption,
-		isSearching,
-	} = useRestaurantSearch({
-		restaurants: data as unknown as Restaurant[],
-		initialSortOption: "name-asc",
-	});
+  // Add restaurant search hook
+  const {
+    filteredRestaurants,
+    searchTerm,
+    setSearchTerm,
+    sortOption,
+    setSortOption,
+    isSearching,
+  } = useRestaurantSearch({
+    restaurants: data as unknown as Restaurant[],
+    initialSortOption: 'name-asc',
+  })
 
-	// Update local data when initialData changes
-	React.useEffect(() => {
-		setData(initialData);
-	}, [initialData]);
+  // Update local data when initialData changes
+  React.useEffect(() => {
+    setData(initialData)
+  }, [initialData])
 
-	// Define a handler for toggling selection
-	const handleToggleRow = (rowId: string, selected: boolean) => {
-		setRowSelection((prev) => {
-			const newSelection = { ...prev };
-			if (selected) {
-				newSelection[rowId] = true;
-			} else {
-				delete newSelection[rowId];
-			}
-			return newSelection;
-		});
-	};
+  // Define a handler for toggling selection
+  const handleToggleRow = (rowId: string, selected: boolean) => {
+    setRowSelection((prev) => {
+      const newSelection = {...prev}
+      if (selected) {
+        newSelection[rowId] = true
+      } else {
+        delete newSelection[rowId]
+      }
+      return newSelection
+    })
+  }
 
-	// Define a handler for toggling all selection
-	const handleToggleAllRows = (selected: boolean) => {
-		if (selected) {
-			const allRows = filteredRestaurants.reduce<RowSelectionState>(
-				(acc, _, index) => {
-					acc[index.toString()] = true;
-					return acc;
-				},
-				{},
-			);
-			setRowSelection(allRows);
-		} else {
-			setRowSelection({});
-		}
-	};
+  // Define a handler for toggling all selection
+  const handleToggleAllRows = (selected: boolean) => {
+    if (selected) {
+      const allRows = filteredRestaurants.reduce<RowSelectionState>(
+        (acc, _, index) => {
+          acc[index.toString()] = true
+          return acc
+        },
+        {}
+      )
+      setRowSelection(allRows)
+    } else {
+      setRowSelection({})
+    }
+  }
 
-	// Define columns for the table
-	const columns: ColumnDef<RestaurantData>[] = [
-		{
-			id: "select",
-			header: ({ table }) => (
-				<div className="">
-					<p>Select</p>
-					<Checkbox
-						checked={table.getIsAllPageRowsSelected()}
-						onCheckedChange={(value) => {
-							// Make this explicit to fix deselect issues
-							const isChecked = value === true;
-							handleToggleAllRows(isChecked);
-							table.toggleAllPageRowsSelected(isChecked);
-						}}
-						aria-label="Select all rows"
-						className="translate-y-[2px] border-gray-400 dark:border-gray-600"
-					/>
-				</div>
-			),
-			cell: ({ row }) => (
-				<div className="flex justify-center gap-0.5 h-auto w-min-[20px]">
-					<p>Select</p>
-					<Checkbox
-						checked={row.getIsSelected()}
-						onCheckedChange={(value) => {
-							// Make this explicit as well
-							const isChecked = value === true;
-							handleToggleRow(row.id, isChecked);
-							row.toggleSelected(isChecked);
-						}}
-						aria-label="Select row"
-						className="translate-y-[2px] border-gray-400 dark:border-gray-600 "
-					/>
-				</div>
-			),
-			enableSorting: false,
-			enableHiding: false,
-		},
-		{
-			id: "id",
-			accessorKey: "id",
-			header: "ID",
-			cell: ({ row }) => {
-				const restaurant = row.original as Restaurant;
-				return <div className="text-sm">{restaurant.id.toString()}</div>;
-			},
-		},
-		{
-			accessorKey: "name",
-			header: ({ column }) => (
-				<div className="flex items-center gap-0.5">
-					Name
-					<Button
-						size="sm"
-						variant="ghost"
-						className="h-8 w-8 ml-1 p-0"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-					>
-						{getSortingIcon(column.getIsSorted())}
-					</Button>
-				</div>
-			),
-			cell: EditableCell,
-		},
-		{
-			accessorKey: "address",
-			header: ({ column }) => (
-				<div className="flex items-center gap-0.5">
-					Address
-					<Button
-						size="sm"
-						variant="ghost"
-						className="h-8 w-8 ml-1 p-0"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-					>
-						{getSortingIcon(column.getIsSorted())}
-					</Button>
-				</div>
-			),
-			cell: EditableCell,
-		},
-		// {
-		// 	accessorKey: "imageUrl",
-		// 	header: "Image URL",
-		// 	cell: EditableCell,
-		// },
-		{
-			accessorKey: "qrCodeUrl",
-			header: "QR Code",
-			cell: ({ row }) => {
-				const restaurant = row.original as Restaurant;
-				return (
-					<div className="flex items-center">
-						<QrCode className="h-4 w-4 text-sidebar-foreground/50 mr-2" />
-						<QRCodeManager restaurant={restaurant} variant="table" />
-					</div>
-				);
-			},
-		},
-		{
-			accessorKey: "punchCardCount",
-			header: ({ column }) => (
-				<div className="flex items-center gap-0.5">
-					Punch Cards
-					<Button
-						size="sm"
-						variant="ghost"
-						className="h-8 w-8 ml-1 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-					>
-						{getSortingIcon(column.getIsSorted())}
-					</Button>
-				</div>
-			),
-			cell: ({ row }) => {
-				const restaurant = row.original as Restaurant & {
-					punchCardCount?: number;
-				};
-				return (
-					<div className="font-medium text-sm">
-						{restaurant.punchCardCount || 0}
-					</div>
-				);
-			},
-		},
-		{
-			accessorKey: "dealCount",
-			header: ({ column }) => (
-				<div className="flex items-center gap-0.5">
-					Deals
-					<Button
-						size="sm"
-						variant="ghost"
-						className="h-8 w-8 ml-1 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-					>
-						{getSortingIcon(column.getIsSorted())}
-					</Button>
-				</div>
-			),
-			accessorFn: (row) => {
-				const restaurant = row as ExtendedRestaurant;
-				return restaurant.deals?.length || 0;
-			},
-			cell: ({ row }) => {
-				const restaurant = row.original as ExtendedRestaurant;
-				return (
-					<div className="font-medium text-sm">
-						{restaurant.deals?.length || 0}
-					</div>
-				);
-			},
-		},
-		{
-			id: "quickView",
-			header: "Quick View",
-			cell: ({ row }) => {
-				const restaurant = row.original;
-				return (
-					<div className="flex justify-center">
-						<RestaurantQuickView restaurantId={restaurant.id} />
-					</div>
-				);
-			},
-			meta: { editable: false } as ColumnMeta,
-		},
-		{
-			id: "navigate",
-			header: "Details",
-			cell: ({ row }) => {
-				const restaurant = row.original;
-				return (
-					<div className="flex justify-center">
-						<Button
-							onClick={() => handleView(restaurant.id.toString())}
-							size="sm"
-							variant="outline"
-							className="h-8 rounded-lg bg-background border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-						>
-							View Restaurant
-						</Button>
-					</div>
-				);
-			},
-			meta: { editable: false } as ColumnMeta,
-		},
-		{
-			id: "actions",
-			header: "",
-			cell: ({ row }) => {
-				const restaurant = row.original;
-				return (
-					<div className="flex justify-end">
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button
-									variant="ghost"
-									className="h-8 w-8 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-								>
-									<MoreHorizontal className="h-4 w-4" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent
-								align="end"
-								className="bg-background border-sidebar-border"
-							>
-								<DropdownMenuItem
-									onClick={() => handleView(restaurant.id.toString())}
-									className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-								>
-									View Details
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={() => setRestaurantToDelete(restaurant)}
-									className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
-								>
-									Delete
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
-				);
-			},
-		},
-	];
+  // Define columns for the table
+  const columns: ColumnDef<RestaurantData>[] = [
+    {
+      id: 'select',
+      size: 200,
+      header: ({table}) => (
+        <div className=''>
+          <p>Select</p>
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => {
+              // Make this explicit to fix deselect issues
+              const isChecked = value === true
+              handleToggleAllRows(isChecked)
+              table.toggleAllPageRowsSelected(isChecked)
+            }}
+            aria-label='Select all rows'
+            className='translate-y-[2px] border-gray-400 dark:border-gray-600'
+          />
+        </div>
+      ),
+      cell: ({row}) => (
+        <div className='flex justify-center gap-0.5 h-auto w-min-[20px]'>
+          <p>Select</p>
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => {
+              // Make this explicit as well
+              const isChecked = value === true
+              handleToggleRow(row.id, isChecked)
+              row.toggleSelected(isChecked)
+            }}
+            aria-label='Select row'
+            className='translate-y-[2px] border-gray-400 dark:border-gray-600 '
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      id: 'id',
+      accessorKey: 'id',
+      header: 'ID',
+      size: 200,
+      cell: ({row}) => {
+        const restaurant = row.original as Restaurant
+        return <div className='text-sm'>{restaurant.id.toString()}</div>
+      },
+    },
+    {
+      accessorKey: 'name',
+      size: 200,
+      header: ({column}) => (
+        <div className='flex items-center gap-0.5'>
+          Name
+          <Button
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 ml-1 p-0'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {getSortingIcon(column.getIsSorted())}
+          </Button>
+        </div>
+      ),
+      cell: EditableCell,
+    },
+    // {
+    //   accessorKey: 'address',
+    //   header: ({column}) => (
+    //     <div className='flex items-center gap-0.5'>
+    //       Address
+    //       <Button
+    //         size='sm'
+    //         variant='ghost'
+    //         className='h-8 w-8 ml-1 p-0'
+    //         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+    //       >
+    //         {getSortingIcon(column.getIsSorted())}
+    //       </Button>
+    //     </div>
+    //   ),
+    //   cell: EditableCell,
+    // },
+    // {
+    // 	accessorKey: "imageUrl",
+    // 	header: "Image URL",
+    // 	cell: EditableCell,
+    // },
+    {
+      accessorKey: 'qrCodeUrl',
+      header: 'QR Code',
+      cell: ({row}) => {
+        const restaurant = row.original as Restaurant
+        return (
+          <div className='flex items-center'>
+            <QrCode className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+            <QRCodeManager restaurant={restaurant} variant='table' />
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'punchCardCount',
+      size: 200,
+      header: ({column}) => (
+        <div className='flex items-center gap-0.5'>
+          Punch Cards
+          <Button
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 ml-1 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {getSortingIcon(column.getIsSorted())}
+          </Button>
+        </div>
+      ),
+      cell: ({row}) => {
+        const restaurant = row.original as Restaurant & {
+          punchCardCount?: number
+        }
+        return (
+          <div className='font-medium text-sm'>
+            {restaurant.punchCardCount || 0}
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'dealCount',
+      size: 200,
+      header: ({column}) => (
+        <div className='flex items-center gap-0.5'>
+          Deals
+          <Button
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 ml-1 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {getSortingIcon(column.getIsSorted())}
+          </Button>
+        </div>
+      ),
+      accessorFn: (row) => {
+        const restaurant = row as ExtendedRestaurant
+        return restaurant.deals?.length || 0
+      },
+      cell: ({row}) => {
+        const restaurant = row.original as ExtendedRestaurant
+        return (
+          <div className='font-medium text-sm'>
+            {restaurant.deals?.length || 0}
+          </div>
+        )
+      },
+    },
+    {
+      id: 'quickView',
+      header: 'Quick View',
+      cell: ({row}) => {
+        const restaurant = row.original
+        return (
+          <div className='flex justify-center'>
+            <RestaurantQuickView restaurantId={restaurant.id} />
+          </div>
+        )
+      },
+      meta: {editable: false} as ColumnMeta,
+    },
 
-	// Handle view restaurant details
-	const handleView = (id: string) => {
-		router.push(`/admin/restaurants/${id}`);
-	};
+    {
+      id: 'actions',
+      header: '',
+      cell: ({row}) => {
+        const restaurant = row.original
+        return (
+          <div className='flex justify-end'>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant='ghost'
+                  className='h-8 w-8 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                >
+                  <MoreHorizontal className='h-4 w-4' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align='end'
+                className='bg-background border-sidebar-border'
+              >
+                <DropdownMenuItem
+                  onClick={() => handleView(restaurant.id.toString())}
+                  className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                >
+                  View Details
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setRestaurantToDelete(restaurant)}
+                  className='text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20'
+                >
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )
+      },
+    },
+  ]
 
-	// Handle saving edited data using server action
-	const handleSave = async (rowIndex: number, restaurant: RestaurantData) => {
-		try {
-			setPending({ ...pending, [rowIndex]: true });
+  // Handle view restaurant details
+  const handleView = (id: string) => {
+    router.push(`/admin/restaurants/${id}`)
+  }
 
-			const { id, ...updateData } = restaurant;
+  // Handle saving edited data using server action
+  const handleSave = async (rowIndex: number, restaurant: RestaurantData) => {
+    try {
+      setPending({...pending, [rowIndex]: true})
 
-			const result = await updateRestaurantAction(id, updateData);
+      const {id, ...updateData} = restaurant
 
-			if (result.success) {
-				toast.success(result.message);
-			} else {
-				toast.error(result.error?._form?.[0] || "Failed to update restaurant");
-				// Reset to original data if update failed
-				setData(initialData);
-			}
-		} catch (error) {
-			toast.error("An error occurred while updating the restaurant");
-			console.error(error);
-		} finally {
-			setPending({ ...pending, [rowIndex]: false });
-		}
-	};
+      const result = await updateRestaurantAction(id, updateData)
 
-	// Handle restaurant deletion
-	const handleDelete = async () => {
-		if (!restaurantToDelete) return;
+      if (result.success) {
+        toast.success(result.message)
+      } else {
+        toast.error(result.error?._form?.[0] || 'Failed to update restaurant')
+        // Reset to original data if update failed
+        setData(initialData)
+      }
+    } catch (error) {
+      toast.error('An error occurred while updating the restaurant')
+      console.error(error)
+    } finally {
+      setPending({...pending, [rowIndex]: false})
+    }
+  }
 
-		try {
-			const result = await deleteRestaurantAction(restaurantToDelete.id);
+  // Handle restaurant deletion
+  const handleDelete = async () => {
+    if (!restaurantToDelete) return
 
-			if (result.success) {
-				toast.success(result.message);
-				// Remove from local state
-				setData(data.filter((r) => r.id !== restaurantToDelete.id));
-			} else {
-				toast.error(result.error?._form?.[0] || "Failed to delete restaurant");
-			}
-		} catch (error) {
-			toast.error("An error occurred while deleting the restaurant");
-			console.error(error);
-		} finally {
-			setRestaurantToDelete(null);
-		}
-	};
+    try {
+      const result = await deleteRestaurantAction(restaurantToDelete.id)
 
-	// Define data table using TanStack
-	const table = useReactTable({
-		data: filteredRestaurants as unknown as RestaurantData[], // Use filtered restaurants instead of all data
-		columns,
-		state: {
-			sorting,
-			rowSelection,
-		},
-		// Initial page size - adjust for better fit with truncated content
-		initialState: {
-			pagination: {
-				pageSize: 10,
-			},
-		},
-		enableRowSelection: true,
-		onRowSelectionChange: (updatedSelection) => {
-			console.log("Row selection changed:", updatedSelection);
-			setRowSelection(updatedSelection);
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		meta: {
-			updateData: (rowIndex, columnId, value) => {
-				// Find actual restaurant by ID to handle filtered restaurants correctly
-				const restaurantId = filteredRestaurants[rowIndex].id;
-				const dataIndex = data.findIndex((r) => r.id === restaurantId);
+      if (result.success) {
+        toast.success(result.message)
+        // Remove from local state
+        setData(data.filter((r) => r.id !== restaurantToDelete.id))
+      } else {
+        toast.error(result.error?._form?.[0] || 'Failed to delete restaurant')
+      }
+    } catch (error) {
+      toast.error('An error occurred while deleting the restaurant')
+      console.error(error)
+    } finally {
+      setRestaurantToDelete(null)
+    }
+  }
 
-				if (dataIndex >= 0) {
-					const newData = [...data];
-					newData[dataIndex] = {
-						...newData[dataIndex],
-						[columnId]: value,
-					};
-					setData(newData);
+  // Define data table using TanStack
+  const table = useReactTable({
+    data: filteredRestaurants as unknown as RestaurantData[], // Use filtered restaurants instead of all data
+    columns,
+    state: {
+      sorting,
+      rowSelection,
+    },
+    // Initial page size - adjust for better fit with truncated content
+    initialState: {
+      pagination: {
+        pageSize: 200,
+      },
+    },
 
-					// Save changes to the database
-					handleSave(dataIndex, newData[dataIndex]);
-				}
-			},
-		} as TableMeta,
-	});
+    enableRowSelection: true,
+    onRowSelectionChange: (updatedSelection) => {
+      console.log('Row selection changed:', updatedSelection)
+      setRowSelection(updatedSelection)
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    meta: {
+      updateData: (rowIndex, columnId, value) => {
+        // Find actual restaurant by ID to handle filtered restaurants correctly
+        const restaurantId = filteredRestaurants[rowIndex].id
+        const dataIndex = data.findIndex((r) => r.id === restaurantId)
 
-	// Add a function to handle bulk QR code generation
-	const handleBulkGenerate = () => {
-		const selectedIndices = Object.keys(rowSelection).map(Number);
-		const selectedRestaurants = selectedIndices.map(
-			(index) => filteredRestaurants[index],
-		) as Restaurant[];
+        if (dataIndex >= 0) {
+          const newData = [...data]
+          newData[dataIndex] = {
+            ...newData[dataIndex],
+            [columnId]: value,
+          }
+          setData(newData)
 
-		if (selectedRestaurants.length === 0) {
-			toast.error("Please select at least one restaurant");
-			return;
-		}
+          // Save changes to the database
+          handleSave(dataIndex, newData[dataIndex])
+        }
+      },
+    } as TableMeta,
+  })
 
-		handleGenerateAll(selectedRestaurants);
-	};
+  // Add a function to handle bulk QR code generation
+  const handleBulkGenerate = () => {
+    const selectedIndices = Object.keys(rowSelection).map(Number)
+    const selectedRestaurants = selectedIndices.map(
+      (index) => filteredRestaurants[index]
+    ) as Restaurant[]
 
-	return (
-		<div className="space-y-4 p-4 bg-sidebar rounded-xl shadow-sm">
-			<AdminRestaurantSearchBar
-				searchTerm={searchTerm}
-				onSearchChange={setSearchTerm}
-				sortOption={sortOption}
-				onSortChange={setSortOption}
-			/>
+    if (selectedRestaurants.length === 0) {
+      toast.error('Please select at least one restaurant')
+      return
+    }
 
-			{/* Selection Debug - Remove in production */}
-			<div className="text-xs mb-2">
-				Selection state: {selectedCount} items selected
-			</div>
+    handleGenerateAll(selectedRestaurants)
+  }
 
-			{/* Bulk Actions Toolbar */}
-			{selectedCount > 0 && (
-				<div className="bg-background border-2 border-primary rounded-lg p-4 mb-4 shadow-md">
-					<div className="flex flex-col sm:flex-row justify-between gap-4">
-						<div className="flex items-center">
-							<span className="text-sm font-medium">
-								{selectedCount} restaurant{selectedCount !== 1 ? "s" : ""}{" "}
-								selected
-							</span>
-						</div>
+  // Add a handler for exporting CSV
+  const handleExportCSV = React.useCallback(
+    (exportAll = false) => {
+      try {
+        setIsExporting(true)
 
-						<div className="flex flex-wrap gap-2">
-							{!bulkGenerating && !bulkSuccess && (
-								<Button
-									size="sm"
-									onClick={handleBulkGenerate}
-									disabled={bulkGenerating}
-									className="h-8 bg-primary text-primary-foreground hover:bg-primary/90"
-								>
-									<QrCode className="h-3.5 w-3.5 mr-1.5" />
-									Generate QR Codes
-								</Button>
-							)}
+        // Determine which restaurants to export
+        const restaurantsToExport = exportAll
+          ? filteredRestaurants
+          : Object.keys(rowSelection).map(
+              (key) => filteredRestaurants[Number.parseInt(key)]
+            )
 
-							{bulkGenerating && !bulkSuccess && (
-								<Button
-									size="sm"
-									onClick={handleSaveAll}
-									disabled={!results.length || bulkSaving}
-									className="h-8 bg-background border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-								>
-									<Save className="h-3.5 w-3.5 mr-1.5" />
-									{bulkSaving ? "Saving..." : "Save QR Codes"}
-								</Button>
-							)}
+        // Create a clean export data structure with only the fields we want
+        const exportData = restaurantsToExport.map((restaurant) => ({
+          id: restaurant.id,
+          name: restaurant.name,
+          address: restaurant.address,
+          description: restaurant.description || '',
+          imageUrl: restaurant.imageUrl || '',
+        }))
 
-							{bulkSuccess && (
-								<>
-									<Button
-										size="sm"
-										onClick={handleDownloadAll}
-										variant="outline"
-										className="h-8 bg-background border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-									>
-										<Download className="h-3.5 w-3.5 mr-1.5" />
-										Download All
-									</Button>
+        // Export to CSV with all columns from our clean data structure
+        exportToCSV(exportData, 'restaurants-export')
 
-									<Button
-										size="sm"
-										variant="ghost"
-										onClick={handleReset}
-										className="h-8"
-									>
-										Reset
-									</Button>
-								</>
-							)}
-						</div>
-					</div>
+        toast.success(
+          `Successfully exported ${restaurantsToExport.length} restaurants to CSV`
+        )
+      } catch (error) {
+        console.error('Error exporting CSV:', error)
+        toast.error('Failed to export CSV. Please try again.')
+      } finally {
+        setIsExporting(false)
+      }
+    },
+    [filteredRestaurants, rowSelection]
+  )
 
-					{/* Progress bar for bulk operations */}
-					{bulkGenerating && progress > 0 && (
-						<div className="mt-4 space-y-2">
-							<div className="flex justify-between text-sm">
-								<span>Generating QR codes...</span>
-								<span>{progress}%</span>
-							</div>
-							<Progress value={progress} className="h-2" />
-						</div>
-					)}
+  // Add handler for CSV import
+  const handleImportCSV = React.useCallback(
+    async (data: Record<string, unknown>[]) => {
+      try {
+        setIsImporting(true)
+        const result = await importRestaurantsFromCSV(data)
 
-					{/* Error and success messages */}
-					{bulkError && (
-						<div className="mt-4 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-md text-sm">
-							{bulkError}
-						</div>
-					)}
+        if (result.success) {
+          // Force refresh to get updated data
+          router.refresh()
+        } else {
+          toast.error(result.message)
+          if (result.error?._form) {
+            throw new Error(result.error._form[0])
+          }
+        }
+      } catch (error) {
+        console.error('CSV import error:', error)
+        throw error
+      } finally {
+        setIsImporting(false)
+      }
+    },
+    [router]
+  )
 
-					{bulkSuccess && (
-						<div className="mt-4 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-md text-sm">
-							QR codes have been saved successfully for{" "}
-							{results.filter((r) => r.success).length} restaurants!
-						</div>
-					)}
-				</div>
-			)}
+  return (
+    <div className='space-y-4 p-4 rounded-xl mb-4 shadow-sm bg-white'>
+      <AdminRestaurantSearchBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        sortOption={sortOption}
+        onSortChange={setSortOption}
+      />
+      <div className='flex justify-between align-middle items-center px-2 bg-white rounded-full'>
+        {/* Selection Debug - Remove in production */}
+        {selectedCount > 0 && (
+          <div className='text-xs p-4 bg-[#e0d9d1] rounded-xl'>
+            {selectedCount} items selected
+          </div>
+        )}
 
-			{/* Mobile card view with selection support */}
-			<div className={cn(isMobileView ? "block" : "hidden")}>
-				{filteredRestaurants.length > 0 ? (
-					<>
-						{filteredRestaurants.map((restaurant, index) => {
-							const rowId = String(index);
-							const isSelected = rowSelection[rowId] === true;
-							return (
-								<div
-									key={restaurant.id.toString()}
-									className={cn(
-										"bg-background rounded-lg border p-4 mb-4 shadow-sm transition-colors",
-										isSelected
-											? "border-primary bg-primary/5"
-											: "border-sidebar-border",
-									)}
-								>
-									<div className="flex justify-between items-start mb-3">
-										<div className="flex items-center gap-2">
-											<Checkbox
-												checked={isSelected}
-												onCheckedChange={(value) => {
-													handleToggleRow(rowId, !!value);
+        {/* Bulk Actions Toolbar */}
+        <div className='bg-background border-2 border-primary rounded-lg p-4 mb-4 shadow-md'>
+          <div className='flex flex-col sm:flex-row justify-between gap-4'>
+            <div className='flex items-center'>
+              <span className='text-sm font-medium'>
+                {selectedCount} restaurant{selectedCount !== 1 ? 's' : ''}{' '}
+                selected
+              </span>
+            </div>
 
-													// Also update the table selection state
-													const newRowSelection = { ...rowSelection };
-													if (value === true) {
-														newRowSelection[rowId] = true;
-													} else {
-														delete newRowSelection[rowId];
-													}
-													setRowSelection(newRowSelection);
-												}}
-												aria-label={`Select ${restaurant.name}`}
-												className="translate-y-[2px]"
-											/>
-											<h3 className="font-medium text-base">
-												{restaurant.name}
-											</h3>
-										</div>
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
-												<Button variant="ghost" className="h-8 w-8 p-0">
-													<MoreHorizontal className="h-4 w-4" />
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent
-												align="end"
-												className="bg-background border-sidebar-border"
-											>
-												<DropdownMenuItem
-													onClick={() => handleView(restaurant.id.toString())}
-													className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-												>
-													View Details
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onClick={() =>
-														setRestaurantToDelete(restaurant as RestaurantData)
-													}
-													className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
-												>
-													Delete
-												</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</div>
+            <div className='flex flex-wrap gap-2 ml-auto'>
+              {/* Add CSV Export button with dropdown for "Export Selected" and "Export All" */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    disabled={isExporting}
+                    className='h-8 bg-[#e0d9d1] border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                  >
+                    <FileSpreadsheet className='h-3.5 w-3.5 mr-1.5' />
+                    {isExporting ? 'Exporting...' : 'Export Options'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align='end'
+                  className='bg-background border-sidebar-border'
+                >
+                  {selectedCount > 0 ? (
+                    <DropdownMenuItem
+                      onClick={() => handleExportCSV(false)}
+                      className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                    >
+                      Export Selected ({selectedCount})
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() => handleExportCSV(true)}
+                      disabled={filteredRestaurants.length === 0}
+                      className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                    >
+                      Export All ({filteredRestaurants.length})
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-									{/* Result status if this restaurant was part of bulk operation */}
-									{results.length > 0 && (
-										<div className="mb-3">
-											{(() => {
-												const resultItem = results.find(
-													(r) => r.restaurantId === restaurant.id.toString(),
-												);
-												if (!resultItem) return null;
+              {/* Existing buttons for bulk QR code operations */}
+              {bulkGenerating && !bulkSuccess && (
+                <Button
+                  size='sm'
+                  onClick={handleSaveAll}
+                  disabled={!results.length || bulkSaving}
+                  className='h-8 bg-background border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                >
+                  <Save className='h-3.5 w-3.5 mr-1.5' />
+                  {bulkSaving ? 'Saving...' : 'Save QR Codes'}
+                </Button>
+              )}
 
-												return resultItem.success ? (
-													<Badge className="bg-green-100 text-green-800 border-green-200">
-														<Check className="h-3 w-3 mr-1" />
-														QR Code Generated
-													</Badge>
-												) : (
-													<Badge
-														variant="destructive"
-														className="bg-red-100 text-red-800 border-red-200"
-													>
-														<X className="h-3 w-3 mr-1" />
-														Failed
-													</Badge>
-												);
-											})()}
-										</div>
-									)}
+              {bulkSuccess && (
+                <>
+                  <Button
+                    size='sm'
+                    onClick={handleDownloadAll}
+                    variant='outline'
+                    className='h-8 bg-background border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                  >
+                    <Download className='h-3.5 w-3.5 mr-1.5' />
+                    Download All
+                  </Button>
 
-									{/* Restaurant Image */}
-									{restaurant.imageUrl && (
-										<div className="mb-3 w-full h-32 rounded-lg overflow-hidden">
-											<img
-												src={restaurant.imageUrl}
-												alt={restaurant.name}
-												className="w-full h-full object-cover"
-											/>
-										</div>
-									)}
+                  <Button
+                    size='sm'
+                    variant='ghost'
+                    onClick={handleReset}
+                    className='h-8'
+                  >
+                    Reset
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
 
-									<div className="flex flex-wrap gap-2 mt-3">
-										{/* QR Code */}
-										<div className="text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md flex items-center">
-											<QrCode className="h-3 w-3 mr-1" />
-											<QRCodeManager
-												restaurant={restaurant as Restaurant}
-												variant="table"
-											/>
-										</div>
+          {/* Progress bar for bulk operations */}
+          {bulkGenerating && progress > 0 && (
+            <div className='mt-4 space-y-2'>
+              <div className='flex justify-between text-sm'>
+                <span>Generating QR codes...</span>
+                <span>{progress}%</span>
+              </div>
+              <Progress value={progress} className='h-2' />
+            </div>
+          )}
 
-										{/* Punch Cards Count */}
-										<div className="text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md">
-											Punch Cards:{" "}
-											{(restaurant as unknown as ExtendedRestaurant)
-												.punchCardCount || 0}
-										</div>
+          {/* Error and success messages */}
+          {bulkError && (
+            <div className='mt-4 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-md text-sm'>
+              {bulkError}
+            </div>
+          )}
 
-										{/* Deals Count */}
-										<div className="text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md">
-											Deals:{" "}
-											{(restaurant as unknown as ExtendedRestaurant).deals
-												?.length || 0}
-										</div>
-									</div>
+          {bulkSuccess && (
+            <div className='mt-4 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-md text-sm'>
+              QR codes have been saved successfully for{' '}
+              {results.filter((r) => r.success).length} restaurants!
+            </div>
+          )}
+        </div>
 
-									{/* Quick View Button */}
-									<div className="flex justify-end mt-4 pt-3 border-t border-sidebar-border">
-										<RestaurantQuickView restaurantId={restaurant.id} />
-									</div>
-								</div>
-							);
-						})}
-					</>
-				) : (
-					<div className="bg-background rounded-lg border border-sidebar-border p-8 text-center">
-						<Building className="h-10 w-10 text-sidebar-foreground/30 mx-auto mb-2" />
-						{isSearching ? (
-							<p>No restaurants found matching your search</p>
-						) : (
-							<p>No restaurants available</p>
-						)}
-					</div>
-				)}
-			</div>
+        {/* 
+        <div className='flex justify-around gap-2 align-middle items-center'>
+          
+          <CSVUpload
+            onUpload={handleImportCSV}
+            requiredColumns={['name', 'address']}
+            entityName='Restaurants'
+            buttonText='Import Restaurants'
+            icon={<Upload className='h-3.5 w-3.5 mr-1.5' />}
+          />
 
-			{/* Desktop table view */}
-			<div
-				className={cn(
-					"rounded-xl border border-sidebar-border shadow-sm overflow-hidden",
-					isMobileView ? "hidden" : "block",
-				)}
-			>
-				<div className="w-full overflow-x-auto">
-					<Table className="bg-background w-full">
-						<TableHeader
-							className="bg-sidebar/50"
-							style={{ borderBottom: "1px solid var(--sidebar-border)" }}
-						>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id}>
-									{headerGroup.headers.map((header) => (
-										<TableHead
-											key={header.id}
-											className="text-sidebar-foreground px-4 py-3"
-											style={{
-												minWidth: header.id === "select" ? "60px" : "120px",
-												height: "60px",
-												borderRight: "1px solid var(--sidebar-border)",
-											}}
-										>
-											{header.isPlaceholder
-												? null
-												: flexRender(
-														header.column.columnDef.header,
-														header.getContext(),
-													)}
-										</TableHead>
-									))}
-								</TableRow>
-							))}
-						</TableHeader>
-						<TableBody>
-							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row) => (
-									<TableRow
-										key={row.id}
-										data-state={row.getIsSelected() && "selected"}
-										className="group border-b-1 border-sidebar-border hover:bg-sidebar/10"
-										style={{ borderBottom: "1px solid var(--sidebar-border)" }}
-									>
-										{row.getVisibleCells().map((cell) => (
-											<TableCell
-												key={cell.id}
-												className="px-4 py-3 max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap"
-											>
-												<div className="relative">
-													{flexRender(
-														cell.column.columnDef.cell,
-														cell.getContext(),
-													)}
-												</div>
-											</TableCell>
-										))}
-									</TableRow>
-								))
-							) : (
-								<TableRow>
-									<TableCell
-										colSpan={columns.length}
-										className="h-24 text-center py-8"
-									>
-										<div className="flex flex-col items-center justify-center text-sidebar-foreground/70">
-											<Building className="h-10 w-10 text-sidebar-foreground/30 mb-2" />
-											{isSearching ? (
-												<p>No restaurants found matching your search</p>
-											) : (
-												<p>No restaurants available</p>
-											)}
-										</div>
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</div>
-			</div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size='sm'
+                variant='outline'
+                disabled={isExporting}
+                className='h-8 bg-background border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              >
+                <FileSpreadsheet className='h-3.5 w-3.5 mr-1.5' />
+                {isExporting ? 'Exporting...' : 'Export Options'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align='end'
+              className='bg-background border-sidebar-border'
+            >
+              {selectedCount > 0 && (
+                <DropdownMenuItem
+                  onClick={() => handleExportCSV(false)}
+                  className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                >
+                  Export Selected ({selectedCount})
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={() => handleExportCSV(true)}
+                disabled={filteredRestaurants.length === 0}
+                className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              >
+                Export All ({filteredRestaurants.length})
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-			{/* Pagination controls - work for both mobile and desktop */}
-			<div className="flex items-center justify-between py-4">
-				<div className="text-xs text-sidebar-foreground/70">
-					Page {table.getState().pagination.pageIndex + 1} of{" "}
-					{table.getPageCount()}
-				</div>
-				<div className="flex items-center space-x-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.previousPage()}
-						disabled={!table.getCanPreviousPage()}
-						className="rounded-lg px-3 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-					>
-						Previous
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.nextPage()}
-						disabled={!table.getCanNextPage()}
-						className="rounded-lg px-3 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-					>
-						Next
-					</Button>
-				</div>
-			</div>
+          
+          {selectedCount > 0 && (
+            <Button
+              variant='outline'
+              onClick={handleBulkGenerate}
+              disabled={bulkGenerating}
+              className='h-8 bg-[#e0d9d1] text-primary-foreground hover:bg-primary/90'
+            >
+              <QrCode className='h-3.5 w-3.5 mr-1.5' />
+              Generate QR Codes
+            </Button>
+          )}
+        </div> */}
+      </div>
 
-			{/* Confirmation dialog for restaurant deletion */}
-			<AlertDialog
-				open={!!restaurantToDelete}
-				onOpenChange={(open) => !open && setRestaurantToDelete(null)}
-			>
-				<AlertDialogContent className="bg-background border-sidebar-border">
-					<AlertDialogHeader>
-						<AlertDialogTitle className="text-foreground">
-							Delete Restaurant
-						</AlertDialogTitle>
-						<AlertDialogDescription className="text-foreground/70">
-							Are you sure you want to delete the restaurant &quot;
-							{restaurantToDelete?.name}&quot;? This action cannot be undone.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel className="bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground border-sidebar-border">
-							Cancel
-						</AlertDialogCancel>
-						<AlertDialogAction
-							onClick={handleDelete}
-							className="bg-red-600 hover:bg-red-700 text-white"
-						>
-							Delete
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
-		</div>
-	);
+      {/* Mobile card view with selection support */}
+      <div className={cn(isMobileView ? 'block' : 'hidden')}>
+        {filteredRestaurants.length > 0 ? (
+          <>
+            {filteredRestaurants.map((restaurant, index) => {
+              const rowId = String(index)
+              const isSelected = rowSelection[rowId] === true
+              return (
+                <div
+                  key={restaurant.id.toString()}
+                  className={cn(
+                    'bg-background rounded-lg border p-4 mb-4 shadow-sm transition-colors',
+                    isSelected
+                      ? 'border-primary bg-primary/5'
+                      : 'border-sidebar-border'
+                  )}
+                >
+                  <div className='flex justify-between items-start mb-3'>
+                    <div className='flex items-center gap-2'>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(value) => {
+                          handleToggleRow(rowId, !!value)
+
+                          // Also update the table selection state
+                          const newRowSelection = {...rowSelection}
+                          if (value === true) {
+                            newRowSelection[rowId] = true
+                          } else {
+                            delete newRowSelection[rowId]
+                          }
+                          setRowSelection(newRowSelection)
+                        }}
+                        aria-label={`Select ${restaurant.name}`}
+                        className='translate-y-[2px]'
+                      />
+                      <h3 className='font-medium text-base'>
+                        {restaurant.name}
+                      </h3>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant='ghost' className='h-8 w-8 p-0'>
+                          <MoreHorizontal className='h-4 w-4' />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align='end'
+                        className='bg-background border-sidebar-border'
+                      >
+                        <DropdownMenuItem
+                          onClick={() => handleView(restaurant.id.toString())}
+                          className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        >
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setRestaurantToDelete(restaurant as RestaurantData)
+                          }
+                          className='text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20'
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  {/* Result status if this restaurant was part of bulk operation */}
+                  {results.length > 0 && (
+                    <div className='mb-3'>
+                      {(() => {
+                        const resultItem = results.find(
+                          (r) => r.restaurantId === restaurant.id.toString()
+                        )
+                        if (!resultItem) return null
+
+                        return resultItem.success ? (
+                          <Badge className='bg-green-100 text-green-800 border-green-200'>
+                            <Check className='h-3 w-3 mr-1' />
+                            QR Code Generated
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant='destructive'
+                            className='bg-red-100 text-red-800 border-red-200'
+                          >
+                            <X className='h-3 w-3 mr-1' />
+                            Failed
+                          </Badge>
+                        )
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Restaurant Image */}
+                  {restaurant.imageUrl && (
+                    <div className='mb-3 w-full h-32 rounded-lg overflow-hidden'>
+                      <img
+                        src={restaurant.imageUrl}
+                        alt={restaurant.name}
+                        className='w-full h-full object-cover'
+                      />
+                    </div>
+                  )}
+
+                  <div className='flex flex-wrap gap-2 mt-3'>
+                    {/* QR Code */}
+                    <div className='text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md flex items-center'>
+                      <QrCode className='h-3 w-3 mr-1' />
+                      <QRCodeManager
+                        restaurant={restaurant as Restaurant}
+                        variant='table'
+                      />
+                    </div>
+
+                    {/* Punch Cards Count */}
+                    <div className='text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md'>
+                      Punch Cards:{' '}
+                      {(restaurant as unknown as ExtendedRestaurant)
+                        .punchCardCount || 0}
+                    </div>
+
+                    {/* Deals Count */}
+                    <div className='text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md'>
+                      Deals:{' '}
+                      {(restaurant as unknown as ExtendedRestaurant).deals
+                        ?.length || 0}
+                    </div>
+                  </div>
+
+                  {/* Quick View Button */}
+                  <div className='flex justify-end mt-4 pt-3 border-t border-sidebar-border'>
+                    <RestaurantQuickView restaurantId={restaurant.id} />
+                  </div>
+                </div>
+              )
+            })}
+          </>
+        ) : (
+          <div className='bg-background rounded-lg border border-sidebar-border p-8 text-center'>
+            <Building className='h-10 w-10 text-sidebar-foreground/30 mx-auto mb-2' />
+            {isSearching ? (
+              <p>No restaurants found matching your search</p>
+            ) : (
+              <p>No restaurants available</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop table view */}
+      <div
+        className={cn(
+          'rounded-xl border border-sidebar-border mt-4 shadow-sm overflow-hidden',
+          isMobileView ? 'hidden' : 'block'
+        )}
+        style={{border: '1px solid #ddd'}}
+      >
+        <div className='w-full overflow-x-auto bg-gray '>
+          <Table className='w-full'>
+            <TableHeader
+              className='bg-sidebar/50 sticky top-0 z-10'
+              style={{borderBottom: '1px solid var(--sidebar-border)'}}
+            >
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className='text-sidebar-foreground px-4 py-3'
+                      style={{
+                        // minWidth: header.id === 'select' ? '60px' : '120px',
+                        height: '60px',
+                        borderRight: '1px solid var(--sidebar-border)',
+                      }}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className='group border-b-1 border-sidebar-border hover:bg-sidebar/10'
+                    style={{borderBottom: '1px solid var(--sidebar-border)'}}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className='px-4 py-3 align-middle overflow-hidden'
+                        style={{
+                          maxWidth: 'xxx', // Set based on content type
+                          whiteSpace: 'nowrap',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        <div className='relative'>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </div>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className='h-24 text-center py-8'
+                  >
+                    <div className='flex flex-col items-center justify-center text-sidebar-foreground/70'>
+                      <Building className='h-10 w-10 text-sidebar-foreground/30 mb-2' />
+                      {isSearching ? (
+                        <p>No restaurants found matching your search</p>
+                      ) : (
+                        <p>No restaurants available</p>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Pagination controls - work for both mobile and desktop */}
+      <div className='flex items-center justify-between py-4'>
+        <div className='text-xs text-sidebar-foreground/70'>
+          Page {table.getState().pagination.pageIndex + 1} of{' '}
+          {table.getPageCount()}
+        </div>
+        <div className='flex items-center space-x-2'>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className='rounded-lg px-3 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+          >
+            Previous
+          </Button>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className='rounded-lg px-3 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+
+      {/* Confirmation dialog for restaurant deletion */}
+      <AlertDialog
+        open={!!restaurantToDelete}
+        onOpenChange={(open) => !open && setRestaurantToDelete(null)}
+      >
+        <AlertDialogContent className='bg-background border-sidebar-border'>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='text-foreground'>
+              Delete Restaurant
+            </AlertDialogTitle>
+            <AlertDialogDescription className='text-foreground/70'>
+              Are you sure you want to delete the restaurant &quot;
+              {restaurantToDelete?.name}&quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className='bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground border-sidebar-border'>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className='bg-red-600 hover:bg-red-700 text-white'
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
 }

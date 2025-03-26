@@ -122,3 +122,68 @@ export async function updateRestaurantQRCodeAction(
 		};
 	}
 }
+
+// Action result type
+type ActionResult = {
+	success: boolean;
+	message: string;
+	error?: Record<string, string[]>;
+};
+
+// Add this new function to handle CSV bulk import
+export async function importRestaurantsFromCSV(
+	restaurantsData: Record<string, unknown>[],
+): Promise<ActionResult> {
+	try {
+		// Validate the restaurant data with Zod
+		const RestaurantSchema = z.object({
+			name: z.string().min(1, "Name is required"),
+			address: z.string().min(1, "Address is required"),
+			description: z.string().optional().nullable(),
+			imageUrl: z.string().optional().nullable(),
+		});
+
+		// Validate each restaurant
+		const validatedData = restaurantsData.map((restaurant) => {
+			try {
+				return RestaurantSchema.parse(restaurant);
+			} catch (error) {
+				// If validation fails, throw with details
+				if (error instanceof z.ZodError) {
+					throw new Error(
+						`Invalid restaurant data: ${error.errors.map((e) => e.message).join(", ")}`,
+					);
+				}
+				throw error;
+			}
+		});
+
+		// Convert validated data to the format expected by Drizzle
+		const restaurantsToInsert = validatedData.map((restaurant) => ({
+			name: restaurant.name,
+			address: restaurant.address,
+			description: restaurant.description || "",
+			imageUrl: restaurant.imageUrl || "",
+		}));
+
+		// Insert all restaurants into the database
+		await db.insert(restaurants).values(restaurantsToInsert);
+
+		// Revalidate the restaurants page to show the new data
+		revalidatePath("/admin/restaurants");
+
+		return {
+			success: true,
+			message: `Successfully imported ${validatedData.length} restaurants.`,
+		};
+	} catch (error) {
+		console.error("Error importing restaurants:", error);
+		return {
+			success: false,
+			message: "Failed to import restaurants.",
+			error: {
+				_form: [(error as Error).message || "Unknown error occurred."],
+			},
+		};
+	}
+}
