@@ -20,8 +20,45 @@ export const getRestaurants = async () => {
 		...restaurant,
 		punchCardCount: restaurant?.punchCards?.length || 0,
 		dealCount: restaurant?.deals?.length || 0,
-		prizeCount: restaurant?.prizes?.length || 0,
 	}));
+};
+
+export const getPaginatedRestaurants = async (page = 1, pageSize = 10) => {
+	// Get paginated restaurants and only load essential relations
+	const offset = (page - 1) * pageSize;
+
+	// First get total count for pagination metadata
+	const totalCount = await db.query.restaurants.count();
+
+	// Then get the paginated data
+	const restaurantsList = await db.query.restaurants.findMany({
+		with: {
+			deals: true,
+			prizes: true,
+			punchCards: true,
+		},
+		limit: pageSize,
+		offset: offset,
+	});
+
+	// Add count metadata to each restaurant
+	const restaurants = restaurantsList.map((restaurant) => ({
+		...restaurant,
+		punchCardCount: restaurant?.punchCards?.length || 0,
+		dealCount: restaurant?.deals?.length || 0,
+	}));
+
+	// Return both the restaurants and pagination metadata
+	return {
+		restaurants,
+		pagination: {
+			total: totalCount,
+			pageSize,
+			currentPage: page,
+			totalPages: Math.ceil(totalCount / pageSize),
+			hasMore: offset + pageSize < totalCount,
+		},
+	};
 };
 
 export const getDeals = async () => {

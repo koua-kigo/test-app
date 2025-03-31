@@ -38,14 +38,6 @@ export default function RootLayout({
             <body
               className={`${geistSans.variable} ${geistMono.variable} antialiased relative min-h-screen bg-[#faf9f6] overflow-x-hidden`}
             >
-              <div
-                className='absolute inset-0 z-[-1]'
-                style={{
-                  backgroundImage:
-                    'radial-gradient(#e0e0e0 1px, transparent 1px)',
-                  backgroundSize: '20px 20px',
-                }}
-              />
               {/* <div className='grid-bg' /> */}
               <div className='app relative z-10 h-screen w-screen overflow-x-hidden px-safe py-safe'>
                 {children}

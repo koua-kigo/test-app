@@ -30,6 +30,8 @@ import {
   Download,
   FileSpreadsheet,
   Upload,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react'
 import {Checkbox} from '@/components/ui/checkbox'
 import type {z} from 'zod'
@@ -320,14 +322,13 @@ export function RestaurantsTable({
   // Define a handler for toggling all selection
   const handleToggleAllRows = (selected: boolean) => {
     if (selected) {
-      const allRows = filteredRestaurants.reduce<RowSelectionState>(
-        (acc, _, index) => {
-          acc[index.toString()] = true
-          return acc
-        },
-        {}
-      )
-      setRowSelection(allRows)
+      // Only select rows on the current page, not all filtered rows
+      const pageRows = table.getRowModel().rows
+      const newSelection = pageRows.reduce<RowSelectionState>((acc, row) => {
+        acc[row.id] = true
+        return acc
+      }, {})
+      setRowSelection(newSelection)
     } else {
       setRowSelection({})
     }
@@ -337,36 +338,32 @@ export function RestaurantsTable({
   const columns: ColumnDef<RestaurantData>[] = [
     {
       id: 'select',
-      size: 200,
+      size: 60,
       header: ({table}) => (
-        <div className=''>
-          <p>Select</p>
+        <div className='flex justify-center items-center'>
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => {
-              // Make this explicit to fix deselect issues
               const isChecked = value === true
               handleToggleAllRows(isChecked)
               table.toggleAllPageRowsSelected(isChecked)
             }}
             aria-label='Select all rows'
-            className='translate-y-[2px] border-gray-400 dark:border-gray-600'
+            className='border-gray-400 dark:border-gray-600'
           />
         </div>
       ),
       cell: ({row}) => (
-        <div className='flex justify-center gap-0.5 h-auto w-min-[20px]'>
-          <p>Select</p>
+        <div className='flex justify-center items-center'>
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(value) => {
-              // Make this explicit as well
               const isChecked = value === true
               handleToggleRow(row.id, isChecked)
               row.toggleSelected(isChecked)
             }}
             aria-label='Select row'
-            className='translate-y-[2px] border-gray-400 dark:border-gray-600 '
+            className='border-gray-400 dark:border-gray-600'
           />
         </div>
       ),
@@ -377,10 +374,12 @@ export function RestaurantsTable({
       id: 'id',
       accessorKey: 'id',
       header: 'ID',
-      size: 200,
+      size: 80,
       cell: ({row}) => {
         const restaurant = row.original as Restaurant
-        return <div className='text-sm'>{restaurant.id.toString()}</div>
+        return (
+          <div className='text-sm truncate'>{restaurant.id.toString()}</div>
+        )
       },
     },
     {
@@ -438,7 +437,7 @@ export function RestaurantsTable({
     },
     {
       accessorKey: 'punchCardCount',
-      size: 200,
+      size: 120,
       header: ({column}) => (
         <div className='flex items-center gap-0.5'>
           Punch Cards
@@ -457,7 +456,7 @@ export function RestaurantsTable({
           punchCardCount?: number
         }
         return (
-          <div className='font-medium text-sm'>
+          <div className='font-medium text-sm text-center'>
             {restaurant.punchCardCount || 0}
           </div>
         )
@@ -465,7 +464,7 @@ export function RestaurantsTable({
     },
     {
       accessorKey: 'dealCount',
-      size: 200,
+      size: 100,
       header: ({column}) => (
         <div className='flex items-center gap-0.5'>
           Deals
@@ -486,7 +485,7 @@ export function RestaurantsTable({
       cell: ({row}) => {
         const restaurant = row.original as ExtendedRestaurant
         return (
-          <div className='font-medium text-sm'>
+          <div className='font-medium text-sm text-center'>
             {restaurant.deals?.length || 0}
           </div>
         )
@@ -495,6 +494,7 @@ export function RestaurantsTable({
     {
       id: 'quickView',
       header: 'Quick View',
+      size: 100,
       cell: ({row}) => {
         const restaurant = row.original
         return (
@@ -599,24 +599,21 @@ export function RestaurantsTable({
 
   // Define data table using TanStack
   const table = useReactTable({
-    data: filteredRestaurants as unknown as RestaurantData[], // Use filtered restaurants instead of all data
+    data: filteredRestaurants as unknown as RestaurantData[],
     columns,
     state: {
       sorting,
       rowSelection,
     },
-    // Initial page size - adjust for better fit with truncated content
+    // Adjust page size to a more reasonable number
     initialState: {
       pagination: {
-        pageSize: 200,
+        pageSize: 10,
       },
     },
-
+    // Fix to handle row selection properly with pagination
     enableRowSelection: true,
-    onRowSelectionChange: (updatedSelection) => {
-      console.log('Row selection changed:', updatedSelection)
-      setRowSelection(updatedSelection)
-    },
+    onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -642,11 +639,11 @@ export function RestaurantsTable({
     } as TableMeta,
   })
 
-  // Add a function to handle bulk QR code generation
+  // Update the bulk operations to use table row IDs for selection
   const handleBulkGenerate = () => {
-    const selectedIndices = Object.keys(rowSelection).map(Number)
-    const selectedRestaurants = selectedIndices.map(
-      (index) => filteredRestaurants[index]
+    const selectedRows = table.getSelectedRowModel().rows
+    const selectedRestaurants = selectedRows.map(
+      (row) => row.original
     ) as Restaurant[]
 
     if (selectedRestaurants.length === 0) {
@@ -657,7 +654,7 @@ export function RestaurantsTable({
     handleGenerateAll(selectedRestaurants)
   }
 
-  // Add a handler for exporting CSV
+  // Update CSV export to use table row selections
   const handleExportCSV = React.useCallback(
     (exportAll = false) => {
       try {
@@ -666,9 +663,7 @@ export function RestaurantsTable({
         // Determine which restaurants to export
         const restaurantsToExport = exportAll
           ? filteredRestaurants
-          : Object.keys(rowSelection).map(
-              (key) => filteredRestaurants[Number.parseInt(key)]
-            )
+          : table.getSelectedRowModel().rows.map((row) => row.original)
 
         // Create a clean export data structure with only the fields we want
         const exportData = restaurantsToExport.map((restaurant) => ({
@@ -692,7 +687,7 @@ export function RestaurantsTable({
         setIsExporting(false)
       }
     },
-    [filteredRestaurants, rowSelection]
+    [filteredRestaurants, table]
   )
 
   // Add handler for CSV import
@@ -729,16 +724,18 @@ export function RestaurantsTable({
         sortOption={sortOption}
         onSortChange={setSortOption}
       />
-      <div className='flex justify-between align-middle items-center px-2 bg-white rounded-full'>
-        {/* Selection Debug - Remove in production */}
-        {selectedCount > 0 && (
-          <div className='text-xs p-4 bg-[#e0d9d1] rounded-xl'>
-            {selectedCount} items selected
-          </div>
-        )}
 
+      {/* Selection indicator and bulk actions */}
+      <div className='flex flex-col space-y-4'>
         {/* Bulk Actions Toolbar */}
-        <div className='bg-background border-2 border-primary rounded-lg p-4 mb-4 shadow-md'>
+        <div
+          className={cn(
+            'bg-background border border-primary/20 rounded-lg p-4 shadow-sm transition-opacity',
+            selectedCount > 0
+              ? 'opacity-100'
+              : 'opacity-0 h-0 p-0 overflow-hidden'
+          )}
+        >
           <div className='flex flex-col sm:flex-row justify-between gap-4'>
             <div className='flex items-center'>
               <span className='text-sm font-medium'>
@@ -748,14 +745,14 @@ export function RestaurantsTable({
             </div>
 
             <div className='flex flex-wrap gap-2 ml-auto'>
-              {/* Add CSV Export button with dropdown for "Export Selected" and "Export All" */}
+              {/* Export dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     size='sm'
                     variant='outline'
                     disabled={isExporting}
-                    className='h-8 bg-[#e0d9d1] border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                    className='h-8 border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                   >
                     <FileSpreadsheet className='h-3.5 w-3.5 mr-1.5' />
                     {isExporting ? 'Exporting...' : 'Export Options'}
@@ -784,7 +781,18 @@ export function RestaurantsTable({
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Existing buttons for bulk QR code operations */}
+              {/* QR code generation button */}
+              <Button
+                variant='outline'
+                onClick={handleBulkGenerate}
+                disabled={bulkGenerating || selectedCount === 0}
+                className='h-8 border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              >
+                <QrCode className='h-3.5 w-3.5 mr-1.5' />
+                Generate QR Codes
+              </Button>
+
+              {/* QR code actions when applicable */}
               {bulkGenerating && !bulkSuccess && (
                 <Button
                   size='sm'
@@ -847,72 +855,12 @@ export function RestaurantsTable({
             </div>
           )}
         </div>
-
-        {/* 
-        <div className='flex justify-around gap-2 align-middle items-center'>
-          
-          <CSVUpload
-            onUpload={handleImportCSV}
-            requiredColumns={['name', 'address']}
-            entityName='Restaurants'
-            buttonText='Import Restaurants'
-            icon={<Upload className='h-3.5 w-3.5 mr-1.5' />}
-          />
-
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size='sm'
-                variant='outline'
-                disabled={isExporting}
-                className='h-8 bg-background border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-              >
-                <FileSpreadsheet className='h-3.5 w-3.5 mr-1.5' />
-                {isExporting ? 'Exporting...' : 'Export Options'}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align='end'
-              className='bg-background border-sidebar-border'
-            >
-              {selectedCount > 0 && (
-                <DropdownMenuItem
-                  onClick={() => handleExportCSV(false)}
-                  className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                >
-                  Export Selected ({selectedCount})
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem
-                onClick={() => handleExportCSV(true)}
-                disabled={filteredRestaurants.length === 0}
-                className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-              >
-                Export All ({filteredRestaurants.length})
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          
-          {selectedCount > 0 && (
-            <Button
-              variant='outline'
-              onClick={handleBulkGenerate}
-              disabled={bulkGenerating}
-              className='h-8 bg-[#e0d9d1] text-primary-foreground hover:bg-primary/90'
-            >
-              <QrCode className='h-3.5 w-3.5 mr-1.5' />
-              Generate QR Codes
-            </Button>
-          )}
-        </div> */}
       </div>
 
       {/* Mobile card view with selection support */}
       <div className={cn(isMobileView ? 'block' : 'hidden')}>
         {filteredRestaurants.length > 0 ? (
-          <>
+          <div className='space-y-4'>
             {filteredRestaurants.map((restaurant, index) => {
               const rowId = String(index)
               const isSelected = rowSelection[rowId] === true
@@ -920,7 +868,7 @@ export function RestaurantsTable({
                 <div
                   key={restaurant.id.toString()}
                   className={cn(
-                    'bg-background rounded-lg border p-4 mb-4 shadow-sm transition-colors',
+                    'bg-background rounded-lg border p-4 shadow-sm transition-colors',
                     isSelected
                       ? 'border-primary bg-primary/5'
                       : 'border-sidebar-border'
@@ -932,8 +880,6 @@ export function RestaurantsTable({
                         checked={isSelected}
                         onCheckedChange={(value) => {
                           handleToggleRow(rowId, !!value)
-
-                          // Also update the table selection state
                           const newRowSelection = {...rowSelection}
                           if (value === true) {
                             newRowSelection[rowId] = true
@@ -943,7 +889,7 @@ export function RestaurantsTable({
                           setRowSelection(newRowSelection)
                         }}
                         aria-label={`Select ${restaurant.name}`}
-                        className='translate-y-[2px]'
+                        className='border-gray-400 dark:border-gray-600'
                       />
                       <h3 className='font-medium text-base'>
                         {restaurant.name}
@@ -977,77 +923,54 @@ export function RestaurantsTable({
                     </DropdownMenu>
                   </div>
 
-                  {/* Result status if this restaurant was part of bulk operation */}
-                  {results.length > 0 && (
-                    <div className='mb-3'>
-                      {(() => {
-                        const resultItem = results.find(
-                          (r) => r.restaurantId === restaurant.id.toString()
-                        )
-                        if (!resultItem) return null
+                  {/* Mobile card content */}
+                  <div className='space-y-3'>
+                    {/* Restaurant Image if available */}
+                    {restaurant.imageUrl && (
+                      <div className='w-full h-32 rounded-lg overflow-hidden'>
+                        <img
+                          src={restaurant.imageUrl}
+                          alt={restaurant.name}
+                          className='w-full h-full object-cover'
+                        />
+                      </div>
+                    )}
 
-                        return resultItem.success ? (
-                          <Badge className='bg-green-100 text-green-800 border-green-200'>
-                            <Check className='h-3 w-3 mr-1' />
-                            QR Code Generated
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant='destructive'
-                            className='bg-red-100 text-red-800 border-red-200'
-                          >
-                            <X className='h-3 w-3 mr-1' />
-                            Failed
-                          </Badge>
-                        )
-                      })()}
-                    </div>
-                  )}
+                    {/* Status badges and info */}
+                    <div className='flex flex-wrap gap-2'>
+                      {/* QR Code */}
+                      <div className='text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md flex items-center'>
+                        <QrCode className='h-3 w-3 mr-1' />
+                        <QRCodeManager
+                          restaurant={restaurant as Restaurant}
+                          variant='table'
+                        />
+                      </div>
 
-                  {/* Restaurant Image */}
-                  {restaurant.imageUrl && (
-                    <div className='mb-3 w-full h-32 rounded-lg overflow-hidden'>
-                      <img
-                        src={restaurant.imageUrl}
-                        alt={restaurant.name}
-                        className='w-full h-full object-cover'
-                      />
-                    </div>
-                  )}
+                      {/* Punch Cards Count */}
+                      <div className='text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md'>
+                        Punch Cards:{' '}
+                        {(restaurant as unknown as ExtendedRestaurant)
+                          .punchCardCount || 0}
+                      </div>
 
-                  <div className='flex flex-wrap gap-2 mt-3'>
-                    {/* QR Code */}
-                    <div className='text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md flex items-center'>
-                      <QrCode className='h-3 w-3 mr-1' />
-                      <QRCodeManager
-                        restaurant={restaurant as Restaurant}
-                        variant='table'
-                      />
+                      {/* Deals Count */}
+                      <div className='text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md'>
+                        Deals:{' '}
+                        {(restaurant as unknown as ExtendedRestaurant).deals
+                          ?.length || 0}
+                      </div>
                     </div>
 
-                    {/* Punch Cards Count */}
-                    <div className='text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md'>
-                      Punch Cards:{' '}
-                      {(restaurant as unknown as ExtendedRestaurant)
-                        .punchCardCount || 0}
+                    {/* Quick View Button */}
+                    <div className='flex justify-end pt-3 border-t border-sidebar-border'>
+                      <RestaurantQuickView restaurantId={restaurant.id} />
                     </div>
-
-                    {/* Deals Count */}
-                    <div className='text-xs bg-sidebar-accent/30 px-2 py-1 rounded-md'>
-                      Deals:{' '}
-                      {(restaurant as unknown as ExtendedRestaurant).deals
-                        ?.length || 0}
-                    </div>
-                  </div>
-
-                  {/* Quick View Button */}
-                  <div className='flex justify-end mt-4 pt-3 border-t border-sidebar-border'>
-                    <RestaurantQuickView restaurantId={restaurant.id} />
                   </div>
                 </div>
               )
             })}
-          </>
+          </div>
         ) : (
           <div className='bg-background rounded-lg border border-sidebar-border p-8 text-center'>
             <Building className='h-10 w-10 text-sidebar-foreground/30 mx-auto mb-2' />
@@ -1063,27 +986,31 @@ export function RestaurantsTable({
       {/* Desktop table view */}
       <div
         className={cn(
-          'rounded-xl border border-sidebar-border mt-4 shadow-sm overflow-hidden',
+          'rounded-md border border-sidebar-border shadow-sm overflow-hidden',
           isMobileView ? 'hidden' : 'block'
         )}
-        style={{border: '1px solid #ddd'}}
       >
-        <div className='w-full overflow-x-auto bg-gray '>
+        <div className='w-full overflow-x-auto'>
           <Table className='w-full'>
-            <TableHeader
-              className='bg-sidebar/50 sticky top-0 z-10'
-              style={{borderBottom: '1px solid var(--sidebar-border)'}}
-            >
+            <TableHeader className='bg-sidebar/50 sticky top-0 z-10'>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow
+                  key={headerGroup.id}
+                  className='border-b border-sidebar-border'
+                >
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className='text-sidebar-foreground px-4 py-3'
+                      className='text-sidebar-foreground px-4 py-3 h-14'
                       style={{
-                        // minWidth: header.id === 'select' ? '60px' : '120px',
-                        height: '60px',
-                        borderRight: '1px solid var(--sidebar-border)',
+                        width:
+                          header.column.getSize() !== 150
+                            ? header.column.getSize()
+                            : undefined,
+                        minWidth:
+                          header.column.getSize() !== 150
+                            ? header.column.getSize()
+                            : 100,
                       }}
                     >
                       {header.isPlaceholder
@@ -1103,25 +1030,22 @@ export function RestaurantsTable({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
-                    className='group border-b-1 border-sidebar-border hover:bg-sidebar/10'
-                    style={{borderBottom: '1px solid var(--sidebar-border)'}}
+                    className='border-b border-sidebar-border hover:bg-sidebar/10'
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className='px-4 py-3 align-middle overflow-hidden'
+                        className='px-4 py-3 align-middle'
                         style={{
-                          maxWidth: 'xxx', // Set based on content type
-                          whiteSpace: 'nowrap',
-                          textOverflow: 'ellipsis',
+                          maxWidth:
+                            cell.column.id === 'actions' ? '80px' : '300px',
+                          overflow: 'hidden',
                         }}
                       >
-                        <div className='relative'>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </div>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -1149,30 +1073,76 @@ export function RestaurantsTable({
       </div>
 
       {/* Pagination controls - work for both mobile and desktop */}
-      <div className='flex items-center justify-between py-4'>
-        <div className='text-xs text-sidebar-foreground/70'>
-          Page {table.getState().pagination.pageIndex + 1} of{' '}
-          {table.getPageCount()}
-        </div>
+      <div className='flex items-center justify-between py-4 bg-white rounded-md px-4 border border-sidebar-border shadow-sm'>
         <div className='flex items-center space-x-2'>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className='rounded-lg px-3 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+          <span className='text-xs text-sidebar-foreground/70'>
+            Rows per page:
+          </span>
+          <select
+            value={table.getState().pagination.pageSize}
+            onChange={(e) => {
+              table.setPageSize(Number(e.target.value))
+            }}
+            className='h-8 text-xs rounded-md border border-sidebar-border bg-background px-2'
           >
-            Previous
-          </Button>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className='rounded-lg px-3 bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-          >
-            Next
-          </Button>
+            {[5, 10, 20, 50].map((pageSize) => (
+              <option key={pageSize} value={pageSize}>
+                {pageSize}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className='flex items-center gap-2'>
+          <div className='bg-sidebar/10 px-3 py-1 rounded-md flex items-center'>
+            <span className='text-sm font-medium'>
+              Page {table.getState().pagination.pageIndex + 1} of{' '}
+              {table.getPageCount() || 1}
+            </span>
+          </div>
+
+          <div className='flex items-center gap-1'>
+            <Button
+              variant='outline'
+              size='icon'
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+              className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              aria-label='First page'
+            >
+              <ChevronsLeft className='h-4 w-4' />
+            </Button>
+            <Button
+              variant='outline'
+              size='icon'
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              aria-label='Previous page'
+            >
+              <ChevronLeft className='h-4 w-4' />
+            </Button>
+            <Button
+              variant='outline'
+              size='icon'
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              aria-label='Next page'
+            >
+              <ChevronRight className='h-4 w-4' />
+            </Button>
+            <Button
+              variant='outline'
+              size='icon'
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
+              className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              aria-label='Last page'
+            >
+              <ChevronsRight className='h-4 w-4' />
+            </Button>
+          </div>
         </div>
       </div>
 

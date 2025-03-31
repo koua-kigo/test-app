@@ -186,28 +186,6 @@ export function RestaurantDetail({
             </p>
           )}
         </div>
-
-        {/* Prizes Section */}
-        <div className='bg-white rounded-xl shadow-sm border p-6 col-span-full'>
-          <div className='flex items-center justify-between mb-6'>
-            <div className='flex items-center'>
-              <Gift className='w-5 h-5 mr-2 text-purple-500' />
-              <h2 className='text-2xl font-semibold'>Available Prizes</h2>
-            </div>
-          </div>
-
-          {prizes.length > 0 ? (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-              {prizes.map((prize) => (
-                <PrizeCard key={prize.id.toString()} prize={prize} />
-              ))}
-            </div>
-          ) : (
-            <p className='text-gray-600 py-4'>
-              No prizes available at this restaurant yet.
-            </p>
-          )}
-        </div>
       </div>
     </div>
   )
