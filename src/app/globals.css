@@ -429,3 +429,15 @@ td.data-cell:has([role="checkbox"]) {
 td.data-cell > [role="checkbox"] {
 	/* @apply translate-y-0.5; */
 }
+
+#app {
+	height: 100vh;
+	overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+	#app {
+		height: calc(100vh - 80px) !important;
+		overflow-y: scroll;
+	}
+}

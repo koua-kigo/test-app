@@ -1,13 +1,14 @@
 import type {Metadata} from 'next'
 import {Geist, Geist_Mono} from 'next/font/google'
 import {ClerkProvider} from '@clerk/nextjs'
-import './globals.css'
+
 import {LocationProvider} from '@/context/location-context'
 import {Analytics} from '@vercel/analytics/react'
 import {Nav} from '@/components/nav/nav'
 import {Toaster} from '@/components/ui/sonner'
 import {UserProvider} from '@/context/user-context'
-
+import './globals.css'
+import {StyleWrapper} from '@/context/style-wrapper'
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -36,14 +37,13 @@ export default function RootLayout({
         <UserProvider>
           <html lang='en'>
             <body
-              className={`${geistSans.variable} ${geistMono.variable} antialiased relative min-h-screen bg-[#faf9f6] overflow-x-hidden`}
+              className={`${geistSans.variable} ${geistMono.variable} antialiased relative h-screen overflow-scroll bg-[#faf9f6] overflow-x-hidden`}
             >
-              {/* <div className='grid-bg' /> */}
-              <div className='app relative z-10 h-screen w-screen overflow-x-hidden px-safe py-safe'>
-                {children}
-              </div>
+              <StyleWrapper>{children}</StyleWrapper>
+
               <Nav />
               <Toaster />
+
               {/* <Analytics /> */}
             </body>
           </html>

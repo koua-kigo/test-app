@@ -1,51 +1,54 @@
-import Link from "next/link";
-import Image from "next/image";
+import Link from 'next/link'
+import Image from 'next/image'
 
-import { getRestaurants } from "@/db/models/restaurants/restaurants";
-import type { Restaurant } from "@/types/db";
-import { RestaurantsList } from "@/features/restaurants/RestaurantList";
+import {getRestaurants} from '@/db/models/restaurants/restaurants'
+import type {Restaurant} from '@/types/db'
+import {RestaurantsList} from '@/features/restaurants/RestaurantList'
 
 export interface RestaurantsPageProps {
-	searchParams: Promise<{
-		deals?: string;
-	}>;
+  searchParams: Promise<{
+    deals?: string
+  }>
 }
 
 export default async function RestaurantsPage({
-	searchParams,
+  searchParams,
 }: RestaurantsPageProps) {
-	const restaurants = await getRestaurants();
-	const params = await searchParams;
-	const hasDeals = params.deals === "true";
+  const restaurants = await getRestaurants()
 
-	// Apply default sorting (A-Z by name)
-	const sortedRestaurants = [...restaurants].sort((a, b) =>
-		a.name.localeCompare(b.name),
-	);
+  console.log('🚀 ~ restaurants:', restaurants)
 
-	return (
-		<div className="px-4 py-8 h-full w-full overflow-auto">
-			<div className="flex justify-between items-center mb-8">
-				<h1 className="text-3xl font-bold">Restaurants</h1>
-				<Link
-					href="/"
-					className="text-blue-600 hover:text-blue-800 transition-colors"
-				>
-					Back to Home
-				</Link>
-			</div>
+  const params = await searchParams
+  const hasDeals = params.deals === 'true'
 
-			<div className="mb-8">
-				<p className="text-gray-600">
-					Explore our partner restaurants and start collecting stamps on your
-					food passport!
-				</p>
-			</div>
+  // Apply default sorting (A-Z by name)
+  const sortedRestaurants = [...restaurants].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  )
 
-			<RestaurantsList
-				restaurants={sortedRestaurants}
-				initialHasDeals={hasDeals}
-			/>
-		</div>
-	);
+  return (
+    <div className='px-4 py-8 h-full w-full overflow-auto'>
+      <div className='flex justify-between items-center mb-8'>
+        <h1 className='text-3xl font-bold'>Restaurants</h1>
+        <Link
+          href='/'
+          className='text-blue-600 hover:text-blue-800 transition-colors'
+        >
+          Back to Home
+        </Link>
+      </div>
+
+      <div className='mb-8'>
+        <p className='text-gray-600'>
+          Explore our partner restaurants and start collecting stamps on your
+          food passport!
+        </p>
+      </div>
+
+      <RestaurantsList
+        restaurants={sortedRestaurants}
+        initialHasDeals={hasDeals}
+      />
+    </div>
+  )
 }

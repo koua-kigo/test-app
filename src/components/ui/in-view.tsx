@@ -1,7 +1,7 @@
 'use client'
 import {type ReactNode, useRef} from 'react'
 
-import * as motion from 'motion/react-client'
+import {motion} from 'framer-motion'
 import {useInView, type Variant} from 'framer-motion'
 import type {Transition} from 'framer-motion'
 import type {UseInViewOptions} from 'framer-motion'
@@ -35,7 +35,7 @@ export function InView({
   const MotionComponent = motion[as as keyof typeof motion] as typeof as
 
   return (
-    <MotionComponent
+    <motion.div
       ref={ref}
       initial='hidden'
       animate={isInView ? 'visible' : 'hidden'}
@@ -43,6 +43,6 @@ export function InView({
       transition={transition}
     >
       {children}
-    </MotionComponent>
+    </motion.div>
   )
 }

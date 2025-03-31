@@ -190,8 +190,8 @@ export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
         )}
       </AnimatePresence>
 
-      <nav className='fixed bottom-0 left-1/2 -translate-x-1/2 py-4 z-20 '>
-        <div className='flex justify-evenly p-3 w-content border rounded-full bg-[#e0d9d1] backdrop-blur-sm '>
+      <nav className='fixed bottom-0 left-1/2 -translate-x-1/2 sm:py-2 py-4 z-20 s:h-[80px] h-auto'>
+        <div className='flex justify-evenly p-1 w-content border rounded-full bg-[#e0d9d1] backdrop-blur-sm '>
           <Button
             variant='ghost'
             size='sm'
