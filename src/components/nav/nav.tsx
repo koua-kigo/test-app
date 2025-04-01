@@ -139,7 +139,6 @@ export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
   const closeModal = useCallback(() => {
     setShowModal(false)
   }, [])
-
   return (
     <>
       {/* QR Scanner Modal with animations */}
@@ -190,7 +189,7 @@ export const Nav = ({initialActiveTab = 'home', onTabChange}: NavProps) => {
         )}
       </AnimatePresence>
 
-      <nav className='fixed bottom-0 left-1/2 -translate-x-1/2 sm:py-2 py-4 z-20 s:h-[80px] h-auto'>
+      <nav className='fixed bottom-0 left-1/2 -translate-x-1/2 sm:py-2 py-4 z-20 s:h-[80px] h-auto bg-linear-270 from-[#336f4f] from 48% to-[#179b55] '>
         <div className='flex justify-evenly p-1 w-content border rounded-full bg-[#e0d9d1] backdrop-blur-sm '>
           <Button
             variant='ghost'

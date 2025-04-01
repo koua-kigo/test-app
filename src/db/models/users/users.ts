@@ -6,9 +6,15 @@ import { users } from "../../schema";
 import type { User } from "@/types/db";
 
 export const getUsers = async () => {
-	return await db.select().from(users);
+	return await db.query.users.findMany({
+		with: {
+			punchCards: true,
+			achievements: true,
+			pointBalances: true,
+			raffleEntries: true,
+		},
+	});
 };
-
 export const getUserById = async (id: bigint) => {
 	return await db.query.users.findFirst({
 		where: eq(users.id, id),
