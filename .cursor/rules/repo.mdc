@@ -977,7 +977,7 @@ crypto: require.resolve("crypto-browserify"),
 ````typescript
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { restaurantDeals } from "@/db/schema";
+import { restaurantDeals } from "@/db/drizzle/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 ⋮----
@@ -2837,7 +2837,7 @@ export const StyleWrapper = (
 ````typescript
 import { and, eq } from "drizzle-orm";
 import { db } from "../../db";
-import { achievements } from "../../schema";
+import { achievements } from"@/db/drizzle/schema"
 ⋮----
 export const getAchievements = async () =>
 ⋮----
@@ -2881,7 +2881,7 @@ export const deleteAchievement = async (id: bigint) =>
 ````typescript
 import { sql } from "drizzle-orm";
 import { db } from "../../db";
-import { punchCards, users, restaurants } from "../../schema";
+import { punchCards, users, restaurants } from"@/db/drizzle/schema"
 import type {
  UserLeaderboardEntry,
  RestaurantLeaderboardEntry,
@@ -2913,7 +2913,7 @@ export const getPopularRestaurantsByPunchCardCount = async (
 ````typescript
 import { eq } from "drizzle-orm";
 import { db } from "@/db/db";
-import { pointBalances } from "@/db/schema";
+import { pointBalances } from "@/db/drizzle/schema";
 ⋮----
 export const getPointBalances = async () =>
 ⋮----
@@ -2958,7 +2958,7 @@ export const deletePointBalance = async (id: bigint) =>
 ````typescript
 import { eq, or } from "drizzle-orm";
 import { db } from "@/db/db";
-import { pointTransfers } from "@/db/schema";
+import { pointTransfers } from "@/db/drizzle/schema";
 ⋮----
 export const getPointTransfers = async () =>
 ⋮----
@@ -3002,7 +3002,7 @@ export const deletePointTransfer = async (id: bigint) =>
 ````typescript
 import { eq } from "drizzle-orm";
 import { db } from "@/db/db";
-import { prizeRedemptions } from "@/db/schema";
+import { prizeRedemptions } from "@/db/drizzle/schema";
 ⋮----
 export const getPrizeRedemptions = async () =>
 ⋮----
@@ -3048,7 +3048,7 @@ export const deletePrizeRedemption = async (id: bigint) =>
 ````typescript
 import { eq } from "drizzle-orm";
 import { db } from "@/db/db";
-import { prizes } from "@/db/schema";
+import { prizes } from "@/db/drizzle/schema";
 ⋮----
 export const getPrizes = async () =>
 ⋮----
@@ -3106,7 +3106,7 @@ export const deletePrize = async (id: bigint) =>
 ````typescript
 import { eq } from "drizzle-orm";
 import { db } from "@/db/db";
-import { raffleEntries } from "@/db/schema";
+import { raffleEntries } from "@/db/drizzle/schema";
 ⋮----
 export const getRaffleEntries = async () =>
 ⋮----
@@ -4704,7 +4704,7 @@ import React from 'react'
 
 ````typescript
 import { db } from "@/db/db";
-import { restaurants } from "@/db/schema";
+import { restaurants } from "@/db/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -5450,7 +5450,7 @@ export const useUserContext = (): UserContextType =>
 ````typescript
 import { eq } from "drizzle-orm";
 import { db } from "../../db";
-import { users } from "../../schema";
+import { users } from"@/db/drizzle/schema"
 import type { User } from "@/types/db";
 ⋮----
 export const getUsers = async () =>
@@ -6365,7 +6365,7 @@ const compat = new FlatCompat({
 
 ````typescript
 import { db } from "@/db/db";
-import { restaurants } from "@/db/schema";
+import { restaurants } from "@/db/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { createRestaurantSchema } from "@/types/schemas";
 import { z } from "zod";
@@ -6844,7 +6844,7 @@ className=
 ````typescript
 import { and, eq } from "drizzle-orm";
 import { db } from "../../db";
-import { punchCards, restaurants } from "../../schema";
+import { punchCards, restaurants } from"@/db/drizzle/schema"
 ⋮----
 export const getPunchCards = async () =>
 ⋮----
@@ -8211,7 +8211,7 @@ interface UserPunchCardsProps {
 ````typescript
 import { eq } from "drizzle-orm";
 import { db } from "../../db";
-import { restaurants, prizes, punchCards, restaurantDeals } from "../../schema";
+import { restaurants, prizes, punchCards, restaurantDeals } from"@/db/drizzle/schema"
 import { getPrizesByRestaurantId } from "@/db/models/prizes";
 ⋮----
 export const getRestaurants = async () =>

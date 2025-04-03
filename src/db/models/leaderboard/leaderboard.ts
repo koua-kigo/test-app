@@ -2,7 +2,7 @@
 
 import { sql } from "drizzle-orm";
 import { db } from "../../db";
-import { punchCards, users, restaurants } from "../../schema";
+import { punchCards, users, restaurants } from "@/db/drizzle/schema";
 import type {
 	UserLeaderboardEntry,
 	RestaurantLeaderboardEntry,

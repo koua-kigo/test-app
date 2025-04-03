@@ -13,6 +13,7 @@ import {
 import { convertBigInts } from "@/lib/utils";
 import { UserLeaderboard } from "@/components/leaderboard/user-leaderboard";
 import { RestaurantLeaderboard } from "@/components/leaderboard/restaurant-leaderboard";
+import RaffleStatus from "@/features/users/lottery-status";
 
 export const metadata = {
 	title: "Leaderboard | Restaurant Passport",
@@ -33,9 +34,10 @@ export default async function LeaderboardPage() {
 			<h1 className="text-3xl font-bold mb-6">Leaderboard</h1>
 
 			<Tabs defaultValue="users" className="w-full">
-				<TabsList className="grid w-full grid-cols-2 mb-8">
+				<TabsList className="grid w-full grid-cols-3 mb-8">
 					<TabsTrigger value="users">Top Users</TabsTrigger>
 					<TabsTrigger value="restaurants">Popular Restaurants</TabsTrigger>
+					<TabsTrigger value="raffle">Raffle Status</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="users">
@@ -62,6 +64,20 @@ export default async function LeaderboardPage() {
 							<RestaurantLeaderboard
 								restaurants={serializedPopularRestaurants}
 							/>
+						</CardContent>
+					</Card>
+				</TabsContent>
+				
+				<TabsContent value="raffle">
+					<Card>
+						<CardHeader>
+							<CardTitle>Current Raffle</CardTitle>
+							<CardDescription>
+								Check your raffle entry status
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<RaffleStatus />
 						</CardContent>
 					</Card>
 				</TabsContent>

@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const Home = () => {
   return (
-    <main className='flex flex-col justify-center items-center'>
+    <main className='flex flex-col justify-center items-center align-middle'>
       <div>
         <Image
           src='/logo.png'
@@ -20,8 +20,8 @@ export const Home = () => {
           create your own food passport.
         </p>
 
-        <div className='flex gap-4 items-center flex-col sm:flex-row mt-8'>
-          <div className='flex gap-4'>
+        <div className='flex gap-4 items-center flex-row mt-8 justify-center align-middle'>
+          <div className='flex gap-4 justify-center align-middle items-center w-min mx-auto'>
             <Link
               href='/sign-up'
               className='rounded-full  border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[var(--brand-primary)] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5'

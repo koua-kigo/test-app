@@ -90,14 +90,7 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
           // Transform the data to match our expected types
           const transformedData = {
             ...data,
-            prizes: data.prizes.map((prize) => ({
-              ...prize,
-              // Convert createdAt string to Date safely
-              createdAt:
-                typeof prize.createdAt === 'string'
-                  ? new Date(prize.createdAt)
-                  : new Date(),
-            })),
+
             punchCards: data.punchCards.map((card) => ({
               ...card,
               // Convert updatedAt string to Date safely
@@ -107,7 +100,7 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
                   : new Date(),
             })),
             // Initialize deals with mock data if it doesn't exist
-            deals: data.deals || [
+            deals: data.restaurantDeals || [
               {
                 id: 'deal-1',
                 title: 'Happy Hour',

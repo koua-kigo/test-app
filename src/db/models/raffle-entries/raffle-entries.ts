@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db/db";
-import { raffleEntries } from "@/db/schema";
+import { raffleEntries } from "@/db/drizzle/schema";
 
 export const getRaffleEntries = async () => {
 	return await db.select().from(raffleEntries);

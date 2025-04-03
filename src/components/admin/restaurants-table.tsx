@@ -32,6 +32,12 @@ import {
   Upload,
   ChevronsLeft,
   ChevronsRight,
+  User,
+  UserCog,
+  Mail,
+  Phone,
+  Globe,
+  Hash,
 } from 'lucide-react'
 import {Checkbox} from '@/components/ui/checkbox'
 import type {z} from 'zod'
@@ -185,6 +191,18 @@ const EditableCell = ({getValue, row, column, table}: EditableCellProps) => {
         return <MapPin className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
       case 'imageUrl':
         return <ImageIcon className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+      case 'contactName':
+        return <User className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+      case 'contactPosition':
+        return <UserCog className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+      case 'email':
+        return <Mail className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+      case 'phone':
+        return <Phone className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+      case 'website':
+        return <Globe className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
+      case 'code':
+        return <Hash className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
       default:
         return null
     }
@@ -254,11 +272,22 @@ export function RestaurantsTable({
   const [isMobileView, setIsMobileView] = React.useState(false)
   const [isExporting, setIsExporting] = React.useState(false)
   const [isImporting, setIsImporting] = React.useState(false)
+  const [refreshTrigger, setRefreshTrigger] = React.useState(0)
 
   // Track selection count for visibility check
   const selectedCount = Object.keys(rowSelection).length
 
-  // Add bulk QR code generation hook
+  // Function to refresh the restaurant data
+  const refreshData = React.useCallback(() => {
+    // Force Next.js router refresh
+    router.refresh()
+    // Increment trigger to force state update
+    setRefreshTrigger((prev) => prev + 1)
+    // Show success message
+    toast.success('QR codes updated successfully')
+  }, [router])
+
+  // Add bulk QR code generation hook with refresh callback
   const {
     generating: bulkGenerating,
     saving: bulkSaving,
@@ -270,7 +299,14 @@ export function RestaurantsTable({
     handleSaveAll = () => {},
     handleDownloadAll = () => {},
     handleReset = () => {},
-  } = useHandleBulkQRCode()
+  } = useHandleBulkQRCode({
+    onSuccess: refreshData,
+  })
+
+  // Function to handle individual QR code updates
+  const handleQRCodeUpdate = React.useCallback(() => {
+    refreshData()
+  }, [refreshData])
 
   // Check viewport size on mount and window resize
   React.useEffect(() => {
@@ -400,28 +436,149 @@ export function RestaurantsTable({
       ),
       cell: EditableCell,
     },
-    // {
-    //   accessorKey: 'address',
-    //   header: ({column}) => (
-    //     <div className='flex items-center gap-0.5'>
-    //       Address
-    //       <Button
-    //         size='sm'
-    //         variant='ghost'
-    //         className='h-8 w-8 ml-1 p-0'
-    //         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-    //       >
-    //         {getSortingIcon(column.getIsSorted())}
-    //       </Button>
-    //     </div>
-    //   ),
-    //   cell: EditableCell,
-    // },
-    // {
-    // 	accessorKey: "imageUrl",
-    // 	header: "Image URL",
-    // 	cell: EditableCell,
-    // },
+    {
+      accessorKey: 'contactName',
+      size: 160,
+      header: ({column}) => (
+        <div className='flex items-center gap-0.5'>
+          Contact Name
+          <Button
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 ml-1 p-0'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {getSortingIcon(column.getIsSorted())}
+          </Button>
+        </div>
+      ),
+      cell: EditableCell,
+    },
+    {
+      accessorKey: 'contactPosition',
+      size: 150,
+      header: ({column}) => (
+        <div className='flex items-center gap-0.5'>
+          Position
+          <Button
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 ml-1 p-0'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {getSortingIcon(column.getIsSorted())}
+          </Button>
+        </div>
+      ),
+      cell: EditableCell,
+    },
+    {
+      accessorKey: 'address',
+      header: ({column}) => (
+        <div className='flex items-center gap-0.5'>
+          Address
+          <Button
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 ml-1 p-0'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {getSortingIcon(column.getIsSorted())}
+          </Button>
+        </div>
+      ),
+      cell: EditableCell,
+    },
+    {
+      accessorKey: 'email',
+      size: 180,
+      header: ({column}) => (
+        <div className='flex items-center gap-0.5'>
+          Email
+          <Button
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 ml-1 p-0'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {getSortingIcon(column.getIsSorted())}
+          </Button>
+        </div>
+      ),
+      cell: EditableCell,
+    },
+    {
+      accessorKey: 'phone',
+      size: 130,
+      header: ({column}) => (
+        <div className='flex items-center gap-0.5'>
+          Phone
+          <Button
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 ml-1 p-0'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {getSortingIcon(column.getIsSorted())}
+          </Button>
+        </div>
+      ),
+      cell: EditableCell,
+    },
+    {
+      accessorKey: 'website',
+      size: 150,
+      header: ({column}) => (
+        <div className='flex items-center gap-0.5'>
+          Website
+          <Button
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 ml-1 p-0'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {getSortingIcon(column.getIsSorted())}
+          </Button>
+        </div>
+      ),
+      cell: ({row}) => {
+        const website = row.original.website
+        if (!website)
+          return <div className='text-sm text-muted-foreground'>-</div>
+
+        return (
+          <div className='flex items-center text-sm'>
+            <a
+              href={website.startsWith('http') ? website : `https://${website}`}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='flex items-center text-blue-600 hover:underline'
+            >
+              {website.replace(/^(https?:\/\/)?(www\.)?/, '')}
+              <ExternalLink className='h-3 w-3 ml-1' />
+            </a>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'code',
+      size: 100,
+      header: ({column}) => (
+        <div className='flex items-center gap-0.5'>
+          Code
+          <Button
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 ml-1 p-0'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {getSortingIcon(column.getIsSorted())}
+          </Button>
+        </div>
+      ),
+      cell: EditableCell,
+    },
     {
       accessorKey: 'qrCodeUrl',
       header: 'QR Code',
@@ -430,7 +587,11 @@ export function RestaurantsTable({
         return (
           <div className='flex items-center'>
             <QrCode className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
-            <QRCodeManager restaurant={restaurant} variant='table' />
+            <QRCodeManager
+              restaurant={restaurant}
+              variant='table'
+              onUpdate={handleQRCodeUpdate}
+            />
           </div>
         )
       },
@@ -505,7 +666,6 @@ export function RestaurantsTable({
       },
       meta: {editable: false} as ColumnMeta,
     },
-
     {
       id: 'actions',
       header: '',
@@ -639,7 +799,7 @@ export function RestaurantsTable({
     } as TableMeta,
   })
 
-  // Update the bulk operations to use table row IDs for selection
+  // Update the bulk operations to use table row IDs for selection and refresh after success
   const handleBulkGenerate = () => {
     const selectedRows = table.getSelectedRowModel().rows
     const selectedRestaurants = selectedRows.map(
@@ -652,6 +812,14 @@ export function RestaurantsTable({
     }
 
     handleGenerateAll(selectedRestaurants)
+  }
+
+  // Custom function to handle bulk save with immediate data refresh
+  const handleBulkSaveComplete = async () => {
+    await handleSaveAll()
+
+    // Note: we don't need to check bulkSuccess here as the onSuccess callback
+    // in the useHandleBulkQRCode hook will handle the refresh when it succeeds
   }
 
   // Update CSV export to use table row selections
@@ -796,7 +964,7 @@ export function RestaurantsTable({
               {bulkGenerating && !bulkSuccess && (
                 <Button
                   size='sm'
-                  onClick={handleSaveAll}
+                  onClick={handleBulkSaveComplete}
                   disabled={!results.length || bulkSaving}
                   className='h-8 bg-background border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                 >
@@ -936,6 +1104,68 @@ export function RestaurantsTable({
                       </div>
                     )}
 
+                    {/* Contact information */}
+                    {(restaurant.contactName ||
+                      restaurant.email ||
+                      restaurant.phone) && (
+                      <div className='space-y-1 text-sm'>
+                        {restaurant.contactName && (
+                          <div className='flex items-center text-gray-600'>
+                            <User className='h-3.5 w-3.5 mr-2' />
+                            <span>{restaurant.contactName}</span>
+                            {restaurant.contactPosition && (
+                              <span className='ml-1 text-gray-500'>
+                                ({restaurant.contactPosition})
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {restaurant.email && (
+                          <div className='flex items-center text-gray-600'>
+                            <Mail className='h-3.5 w-3.5 mr-2' />
+                            <a
+                              href={`mailto:${restaurant.email}`}
+                              className='text-blue-600 hover:underline'
+                            >
+                              {restaurant.email}
+                            </a>
+                          </div>
+                        )}
+                        {restaurant.phone && (
+                          <div className='flex items-center text-gray-600'>
+                            <Phone className='h-3.5 w-3.5 mr-2' />
+                            <a
+                              href={`tel:${restaurant.phone}`}
+                              className='text-blue-600 hover:underline'
+                            >
+                              {restaurant.phone}
+                            </a>
+                          </div>
+                        )}
+                        {restaurant.website && (
+                          <div className='flex items-center text-gray-600'>
+                            <Globe className='h-3.5 w-3.5 mr-2' />
+                            <a
+                              href={
+                                restaurant.website.startsWith('http')
+                                  ? restaurant.website
+                                  : `https://${restaurant.website}`
+                              }
+                              target='_blank'
+                              rel='noopener noreferrer'
+                              className='text-blue-600 hover:underline flex items-center'
+                            >
+                              {restaurant.website.replace(
+                                /^(https?:\/\/)?(www\.)?/,
+                                ''
+                              )}
+                              <ExternalLink className='h-3 w-3 ml-1' />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Status badges and info */}
                     <div className='flex flex-wrap gap-2'>
                       {/* QR Code */}
@@ -944,6 +1174,7 @@ export function RestaurantsTable({
                         <QRCodeManager
                           restaurant={restaurant as Restaurant}
                           variant='table'
+                          onUpdate={handleQRCodeUpdate}
                         />
                       </div>
 

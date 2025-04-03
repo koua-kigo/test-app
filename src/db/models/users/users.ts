@@ -2,15 +2,14 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "../../db";
-import { users } from "../../schema";
+import { users } from "@/db/drizzle/schema";
 import type { User } from "@/types/db";
 
 export const getUsers = async () => {
 	return await db.query.users.findMany({
 		with: {
 			punchCards: true,
-			achievements: true,
-			pointBalances: true,
+
 			raffleEntries: true,
 		},
 	});
@@ -24,8 +23,7 @@ export const getUserById = async (id: bigint) => {
 					restaurant: true,
 				},
 			},
-			achievements: true,
-			pointBalances: true,
+
 			raffleEntries: true,
 		},
 	});
@@ -40,8 +38,7 @@ export const getUserByClerkId = async (clerkId: string) => {
 					restaurant: true,
 				},
 			},
-			achievements: true,
-			pointBalances: true,
+
 			raffleEntries: true,
 		},
 	});
@@ -58,8 +55,7 @@ export const getUserByClerkIdWithPunchCards = async (clerkId: string) => {
 					restaurant: true,
 				},
 			},
-			achievements: true,
-			pointBalances: true,
+
 			raffleEntries: true,
 		},
 	});

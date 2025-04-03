@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db/db";
-import { restaurants } from "@/db/schema";
+import { restaurants } from "@/db/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { createRestaurantSchema } from "@/types/schemas";
 import { z } from "zod";
@@ -9,10 +9,7 @@ import { createRestaurant } from "@/db/models/restaurants";
 import { revalidatePath } from "next/cache";
 
 // Function to convert QR code SVG to a data URL
-export async function saveQRCodeUrl(
-	restaurantId: string,
-	qrCodeUrl: string,
-) {
+export async function saveQRCodeUrl(restaurantId: string, qrCodeUrl: string) {
 	try {
 		const updatedRestaurant = await db
 			.update(restaurants)
@@ -23,19 +20,19 @@ export async function saveQRCodeUrl(
 		if (!updatedRestaurant || updatedRestaurant.length === 0) {
 			return {
 				success: false,
-				error: "No restaurant was updated"
+				error: "No restaurant was updated",
 			};
 		}
 
 		return {
 			success: true,
-			restaurant: updatedRestaurant[0]
+			restaurant: updatedRestaurant[0],
 		};
 	} catch (error) {
 		console.error("Error saving QR code URL:", error);
 		return {
 			success: false,
-			error: error instanceof Error ? error.message : "Failed to save QR code"
+			error: error instanceof Error ? error.message : "Failed to save QR code",
 		};
 	}
 }

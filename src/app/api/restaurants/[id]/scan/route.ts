@@ -2,10 +2,13 @@ import {
 	createPunchCard,
 	getUserPunchCardForRestaurant,
 	incrementPunchCard,
+	getPunchCardsByUserId,
+	updatePunchCard,
 } from "@/db/models/punch-cards/punch-cards";
 import { getRestaurantById } from "@/db/models/restaurants/restaurants";
 import { PUNCH_THRESHOLD } from "@/components/ui/restaurant-specific-user-punch-card";
 import type { PunchCard } from "@/types/db";
+import { createRaffleEntry, getRaffleEntriesByUserId } from "@/db/models/raffle-entries/raffle-entries";
 
 // NEW: Helper to safely serialize data with BigInt conversion
 const safeJson = (data: unknown) =>
@@ -99,11 +102,32 @@ export async function POST(request: Request) {
 
 		// Check if the punch card is now completed
 		const isCompleted = (punchCardData.punches ?? 0) >= PUNCH_THRESHOLD;
+		let raffleEntryCreated = false;
 
-		// If completed, update the punch card
+		// If completed, update the punch card and check for raffle eligibility
 		if (isCompleted && !punchCardData.completed) {
-			// Here you would add logic to mark the card as completed
-			// and create a raffle entry if needed
+			// Mark the card as completed
+			await updatePunchCard(punchCardData.id, { completed: true });
+			punchCardData.completed = true;
+			
+			// Check if user has 8 completed punch cards (including this one)
+			const userPunchCards = await getPunchCardsByUserId(BigInt(userId));
+			const completedPunchCards = userPunchCards.filter(card => card.completed).length;
+			
+			// Check if user already has a raffle entry
+			const existingRaffleEntries = await getRaffleEntriesByUserId(BigInt(userId));
+			
+			// If user has 8 completed punch cards and no raffle entry, create one
+			if (completedPunchCards >= 8 && existingRaffleEntries.length === 0) {
+				const raffleEntryResult = await createRaffleEntry({
+					userId: BigInt(userId),
+					punchCardId: punchCardData.id
+				});
+				
+				if (raffleEntryResult && raffleEntryResult.length > 0) {
+					raffleEntryCreated = true;
+				}
+			}
 		}
 
 		return new Response(
@@ -120,6 +144,7 @@ export async function POST(request: Request) {
 				isExisting,
 				restaurantName: restaurant.name,
 				status: 200,
+				raffleEntryCreated,
 			}),
 			{
 				headers: { "Content-Type": "application/json" },

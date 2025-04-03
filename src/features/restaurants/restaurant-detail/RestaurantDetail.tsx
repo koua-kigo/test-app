@@ -2,7 +2,7 @@
 
 import {getUserByClerkId} from '@/db/models/users/users'
 import {PrizeCard} from '@/features/prizes/prize-card/PrizeCard'
-import {UserScanQrCode} from '@/features/users'
+
 import {GetUserRestaurantPunchCard} from '@/features/users/GetUserPunchCard'
 import {DealsList} from '@/features/deals'
 import {
@@ -55,10 +55,10 @@ export function RestaurantDetail({
     }
   }, [clerkUser, userData, user])
 
-  const {prizes = [], deals = [], ...restaurant} = restaurantDetail
+  const {restaurantDeals = [], ...restaurant} = restaurantDetail
 
   // Convert Deal[] to DatabaseDeal[] for DealsList
-  const formattedDeals = deals?.map((deal) => ({
+  const formattedDeals = restaurantDeals?.map((deal) => ({
     id: deal.id,
     restaurantId: deal.restaurantId,
     title: deal.title,

@@ -1,10 +1,10 @@
 import {UserButton} from '@clerk/nextjs'
 import {getUserByClerkId} from '@/db/models/users/users'
 import {auth} from '@clerk/nextjs/server'
+import type {PunchCardWithRestaurant} from '@/hooks/use-punch-card-subscription'
 
 import {UserPunchCards} from '@/features/users/UserPunchCards'
 import {BentoGrid} from '@/components/kokonutui/bento-grid'
-import {usePunchCardSubscription} from '@/hooks/use-punch-card-subscription'
 
 // Define viewport metadata as per Next.js recommendations
 export const viewport = {
@@ -20,6 +20,9 @@ export default async function ProfilePage() {
   console.log('🚀 ~ ProfilePage ~ user:', user)
 
   if (!user) return <div>Not logged in</div>
+
+  // Let the client component handle all data fetching with realtime updates
+  const initialPunchCards: PunchCardWithRestaurant[] = []
 
   return (
     <div className='p-6'>
@@ -37,7 +40,7 @@ export default async function ProfilePage() {
       </div>
 
       {/* Display user's punch cards with real-time updates */}
-      <UserPunchCards user={user} initialPunchCards={user?.punchCards || []} />
+      <UserPunchCards user={user} initialPunchCards={initialPunchCards} />
 
       {/* {user?.id && <UserScanQrCode user={user} />} */}
 

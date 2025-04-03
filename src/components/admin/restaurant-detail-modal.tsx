@@ -14,12 +14,11 @@ import {PrizeCard} from './prize-card'
 import {QRCodeManager} from '@/app/admin/restaurants/qr-code-manager'
 import {Badge} from '@/components/ui/badge'
 import Image from 'next/image'
-import type {Restaurant, Prize, PunchCard} from '@/types/db'
+import type {Restaurant, PunchCard} from '@/types/db'
 import {PunchCardsList} from './punch-cards-list'
 
 // Define a type for the detailed restaurant with associated data
 interface DetailedRestaurant extends Restaurant {
-  prizes: Prize[]
   punchCards: PunchCard[]
   punchCardCount: number
 }

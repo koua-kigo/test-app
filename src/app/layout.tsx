@@ -9,7 +9,7 @@ import {Toaster} from '@/components/ui/sonner'
 import {UserProvider} from '@/context/user-context'
 import './globals.css'
 import {StyleWrapper} from '@/context/style-wrapper'
-import * as Sentry from '@sentry/nextjs'
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -26,14 +26,6 @@ export const metadata: Metadata = {
   // viewport:
   // "width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover",
 }
-
-Sentry.init({
-  dsn: 'https://afe7d4e49dc8a20137a21aee362ad370@o4509075582287872.ingest.us.sentry.io/4509075584385024',
-
-  // We recommend adjusting this value in production, or using tracesSampler
-  // for finer control
-  tracesSampleRate: 1.0,
-})
 
 export default function RootLayout({
   children,
@@ -53,7 +45,7 @@ export default function RootLayout({
               <Nav />
               <Toaster />
 
-              {/* <Analytics /> */}
+              <Analytics />
             </body>
           </html>
         </UserProvider>

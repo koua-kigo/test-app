@@ -1,187 +1,101 @@
 'use client'
 
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
-import {Spinner} from '@/components/ui/spinner'
-import Image from 'next/image'
-import Link from 'next/link'
-import {AnimatePresence, motion} from 'framer-motion'
-import type {User} from '@/types/db'
-import {UserPunchCard} from '@/features/users/UserPunchCard'
 import {
   usePunchCardSubscription,
   type PunchCardWithRestaurant,
 } from '@/hooks/use-punch-card-subscription'
-import {useEffect, useState} from 'react'
-import {useSearchParams} from 'next/navigation'
-import {cn} from '@/lib/utils'
-import {type Badge, Award} from 'lucide-react'
-import React from 'react'
-import {LotteryStatus} from '@/features/users/lottery-status'
-import {SharePunchMenu} from '@/features/users/share-punch-menu'
-import {Passport} from '@/features/users/passport'
 
-interface UserPunchCardsProps {
-  user: User | Record<string, unknown>
-  initialPunchCards?: PunchCardWithRestaurant[]
+type User = {
+  id: bigint
+  name: string
+  email: string
+}
+
+type UserPunchCardsProps = {
+  user: User
+  initialPunchCards: PunchCardWithRestaurant[]
 }
 
 export function UserPunchCards({
   user,
   initialPunchCards = [],
 }: UserPunchCardsProps) {
-  const searchParams = useSearchParams()
-  const highlightId = searchParams.get('highlight')
-  const [highlightedCardId, setHighlightedCardId] = useState<string | null>(
-    null
-  )
+  // Start with initial data from server, then get real-time updates
+  const {punchCards, isLoading, error} = usePunchCardSubscription(user.id)
 
-  // Use static data display if we can't get the user ID
-  const [useFallbackData, setUseFallbackData] = useState(false)
+  // If we have realtime data, use it, otherwise use the initial data
+  const displayPunchCards =
+    punchCards.length > 0 ? punchCards : initialPunchCards
 
-  // Extract user ID safely, ensuring it's a bigint
-  const userId = (() => {
-    try {
-      if (user && typeof user === 'object' && 'id' in user) {
-        const id = user.id
-        // If id is already a bigint, use it
-        if (typeof id === 'bigint') return id
-        // If id is a number or string, convert to bigint
-        if (typeof id === 'number' || typeof id === 'string') {
-          return BigInt(id.toString())
-        }
-      }
-      setUseFallbackData(true)
-      return undefined
-    } catch (e) {
-      setUseFallbackData(true)
-      return undefined
-    }
-  })()
+  if (isLoading && displayPunchCards.length === 0) {
+    return <div className='text-center py-6'>Loading punch cards...</div>
+  }
 
-  // Use the real-time subscription hook only when we have a valid bigint userId
-  const {punchCards, isLoading, error} = !userId
-    ? {punchCards: [], isLoading: false, error: null}
-    : usePunchCardSubscription(userId)
-  console.log('🚀 ~ punchCards:', punchCards)
-
-  // Use the data from the subscription or the initial data
-  const [displayPunchCards, setDisplayPunchCards] = useState(
-    useFallbackData || punchCards.length === 0 ? initialPunchCards : punchCards
-  )
-
-  // Set the highlighted card when we have punch cards and a highlight parameter
-  useEffect(() => {
-    if (highlightId && displayPunchCards.length > 0) {
-      // Find the punch card with the matching restaurant ID
-      const matchingCard = displayPunchCards.find(
-        (card) => String(card.restaurantId) === highlightId
-      )
-
-      if (matchingCard) {
-        setHighlightedCardId(String(matchingCard.id))
-
-        // Auto-scroll to the highlighted card
-        setTimeout(() => {
-          const element = document.getElementById(
-            `punch-card-${matchingCard.id}`
-          )
-          if (element) {
-            element.scrollIntoView({behavior: 'smooth', block: 'center'})
-          }
-        }, 500)
-
-        // Remove the highlight after 5 seconds
-        setTimeout(() => {
-          setHighlightedCardId(null)
-        }, 5000)
-      }
-    }
-  }, [highlightId, displayPunchCards])
-
-  // If loading and no initial punch cards
-  if (isLoading && initialPunchCards.length === 0) {
+  if (error) {
     return (
-      <Card className='mb-6'>
-        <CardHeader>
-          <CardTitle>Your Punch Cards</CardTitle>
-        </CardHeader>
-        <CardContent className='flex justify-center items-center py-8'>
-          <Spinner size='lg' />
-        </CardContent>
-      </Card>
+      <div className='text-red-500 py-6'>
+        Error loading punch cards: {error.message}
+      </div>
     )
   }
 
-  // If error and no punch cards to display
-  if (error && displayPunchCards.length === 0) {
+  if (!displayPunchCards || displayPunchCards.length === 0) {
     return (
-      <Card className='mb-6'>
-        <CardHeader>
-          <CardTitle>Your Punch Cards</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className='text-muted-foreground'>
-            Something went wrong loading your punch cards. Please try again
-            later.
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  // If no punch cards
-  if (displayPunchCards.length === 0) {
-    return (
-      <Card className='mb-6'>
-        <CardHeader>
-          <CardTitle>Your Punch Cards</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className='text-muted-foreground'>
-            You don't have any punch cards yet. Visit a restaurant to get
-            started!
-          </p>
-        </CardContent>
-      </Card>
+      <div className='bg-white shadow-sm rounded-lg p-6'>
+        <h2 className='text-xl font-semibold mb-4'>My Punch Cards</h2>
+        <p className='text-gray-500'>
+          You don&apos;t have any punch cards yet. Visit a restaurant to get
+          started!
+        </p>
+      </div>
     )
   }
 
   return (
-    <div className=''>
-      <Card className='mb-6'>
-        <CardHeader>
-          <CardTitle>Your Passport</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <motion.div
-              initial={{opacity: 0, y: 20}}
-              animate={{opacity: 1, y: 0}}
-              transition={{duration: 0.5}}
-              className={cn(
-                'relative overflow-hidden rounded-xl bg-card shadow-lg',
-                'w-full flex flex-col'
-              )}
-              style={{perspective: 1000}}
-            >
-              <div className='rounded-lg border border-border bg-card/50 hover:bg-card/80 transition-colors p-4'>
-                <div className='flex items-center gap-3 mt-2'>
-                  <div className='flex-grow space-y-1'>
-                    <div className='text-xs text-muted-foreground'>
-                      {/* {currentPunches} of {MAX_PUNCH_THRESHOLD} punches */}
-                    </div>
-
-                    {/* Punch indicators as horizontal dots */}
-                    <div className='flex gap-1'>
-                      <Passport punches={displayPunchCards} />
-                    </div>
-                  </div>
-                </div>
+    <div className='bg-white shadow-sm rounded-lg p-6'>
+      <h2 className='text-xl font-semibold mb-4'>My Punch Cards</h2>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+        {displayPunchCards.map((card) => (
+          <div
+            key={String(card.id)}
+            className='border rounded-lg p-4 hover:shadow-md transition-shadow'
+          >
+            <div className='flex justify-between items-start'>
+              <div>
+                <h3 className='font-medium'>{card.restaurant?.name}</h3>
+                <p className='text-sm text-gray-500'>
+                  {card.restaurant?.address}
+                </p>
               </div>
-            </motion.div>
+              {card.restaurant?.imageUrl && (
+                <img
+                  src={card.restaurant.imageUrl}
+                  alt={card.restaurant.name}
+                  className='w-16 h-16 object-cover rounded'
+                />
+              )}
+            </div>
+
+            <div className='mt-4'>
+              <div className='text-sm font-medium'>
+                Progress: {card.punches} / 10
+              </div>
+              <div className='mt-1 bg-gray-200 rounded-full h-2.5'>
+                <div
+                  className='bg-blue-600 h-2.5 rounded-full'
+                  style={{width: `${(card.punches / 10) * 100}%`}}
+                />
+              </div>
+            </div>
+
+            {card.completed && (
+              <div className='mt-2 inline-block px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded'>
+                Completed!
+              </div>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
     </div>
   )
 }

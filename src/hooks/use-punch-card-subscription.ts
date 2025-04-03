@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-// import { supabase } from "@/db/supabase";
+
 import type { PunchCard } from "@/types/db";
 import { getPunchCardsByUserId } from "@/db/models/punch-cards";
-import { supabase } from "@/db/supabase";
+import { supabaseClient } from "@/db/supabase-client";
 
 export type PunchCardWithRestaurant = {
 	id: bigint;
@@ -39,11 +39,21 @@ export function usePunchCardSubscription(userId: bigint) {
 			try {
 				setIsLoading(true);
 
-				// Call your existing API to get punch cards
-				const existingPunchCards: any = await getPunchCardsByUserId(userId);
+				// Use the client-side API endpoint to get punch cards
+				const response = await fetch(`/api/punch-cards?userId=${userId}`);
 
-				console.log("🚀 ~ fetchPunchCards ~ punchCards:", existingPunchCards);
-				setPunchCards(existingPunchCards);
+				if (!response.ok) {
+					throw new Error("Failed to fetch punch cards");
+				}
+
+				const { success, data, error } = await response.json();
+
+				if (!success) {
+					throw new Error(error || "Failed to fetch punch cards");
+				}
+
+				console.log("🚀 ~ fetchPunchCards ~ punchCards:", data);
+				setPunchCards(data);
 			} catch (err) {
 				console.error("Error fetching punch cards:", err);
 				setError(
@@ -67,7 +77,7 @@ export function usePunchCardSubscription(userId: bigint) {
 		const userIdStr = userId.toString();
 
 		// Subscribe to punch card changes for this user
-		const subscription = supabase
+		const subscription = supabaseClient
 			.channel("punch-cards")
 			.on(
 				"postgres_changes",
@@ -81,22 +91,20 @@ export function usePunchCardSubscription(userId: bigint) {
 					console.log("Punch card change received:", payload);
 
 					try {
-						// Refresh the entire punch cards list to ensure we have the latest data
-						const response = await fetch(`/api/users/${userId}/punch-cards`);
-
-						console.log("🚀 ~ response:", response);
+						// Refresh the data using the API endpoint
+						const response = await fetch(`/api/punch-cards?userId=${userId}`);
 
 						if (!response.ok) {
 							throw new Error("Failed to fetch updated punch cards");
 						}
 
-						const data = await response.json();
+						const { success, data, error } = await response.json();
 
-						console.log("🚀 ~ data:", data);
-
-						if (data.success && data.data) {
-							setPunchCards(data.data);
+						if (!success) {
+							throw new Error(error || "Failed to fetch updated punch cards");
 						}
+
+						setPunchCards(data);
 					} catch (err) {
 						console.error("Error updating punch cards:", err);
 					}
@@ -106,7 +114,7 @@ export function usePunchCardSubscription(userId: bigint) {
 		console.log("🚀 ~ useEffect ~ subscription:", subscription);
 		// Clean up subscription on unmount
 		return () => {
-			supabase.channel("punch-cards").unsubscribe();
+			subscription.unsubscribe();
 		};
 	}, [userId]);
 

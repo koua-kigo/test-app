@@ -1,16 +1,14 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { db } from "../../db";
-import { restaurants, prizes, punchCards, restaurantDeals } from "../../schema";
-import { getPrizesByRestaurantId } from "@/db/models/prizes";
+import { restaurants, restaurantDeals } from "@/db/drizzle/schema";
 
 export const getRestaurants = async () => {
 	// Get all restaurants and only load essential relations
 	const restaurantsList = await db.query.restaurants.findMany({
 		with: {
 			deals: true,
-			prizes: true,
 			punchCards: true,
 		},
 	});
@@ -28,13 +26,15 @@ export const getPaginatedRestaurants = async (page = 1, pageSize = 10) => {
 	const offset = (page - 1) * pageSize;
 
 	// First get total count for pagination metadata
-	const totalCount = await db.query.restaurants.count();
+	const totalCountResult = await db
+		.select({ value: count() })
+		.from(restaurants);
+	const totalCount = totalCountResult[0]?.value || 0;
 
 	// Then get the paginated data
 	const restaurantsList = await db.query.restaurants.findMany({
 		with: {
 			deals: true,
-			prizes: true,
 			punchCards: true,
 		},
 		limit: pageSize,
@@ -42,7 +42,7 @@ export const getPaginatedRestaurants = async (page = 1, pageSize = 10) => {
 	});
 
 	// Add count metadata to each restaurant
-	const restaurants = restaurantsList.map((restaurant) => ({
+	const restaurantsWithCounts = restaurantsList.map((restaurant) => ({
 		...restaurant,
 		punchCardCount: restaurant?.punchCards?.length || 0,
 		dealCount: restaurant?.deals?.length || 0,
@@ -50,7 +50,7 @@ export const getPaginatedRestaurants = async (page = 1, pageSize = 10) => {
 
 	// Return both the restaurants and pagination metadata
 	return {
-		restaurants,
+		restaurants: restaurantsWithCounts,
 		pagination: {
 			total: totalCount,
 			pageSize,
@@ -87,7 +87,6 @@ export const getRestaurantByIdWithPrizesAndDeals = async (id: bigint) => {
 	const restaurant = await db.query.restaurants.findFirst({
 		where: eq(restaurants.id, id),
 		with: {
-			prizes: true,
 			deals: true,
 		},
 	});
@@ -105,7 +104,6 @@ export const getRestaurantByIdWithAll = async (id: bigint) => {
 	return await db.query.restaurants.findFirst({
 		where: eq(restaurants.id, id),
 		with: {
-			prizes: true,
 			deals: true,
 			punchCards: true,
 		},

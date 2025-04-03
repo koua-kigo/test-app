@@ -443,3 +443,11 @@ td.data-cell > [role="checkbox"] {
 		overflow-y: scroll;
 	}
 }
+
+.active-tab {
+	border: 2px solid #268552;
+}
+
+.active-tab svg {
+	@apply text-primary;
+}

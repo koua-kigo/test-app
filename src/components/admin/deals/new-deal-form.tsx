@@ -52,9 +52,14 @@ function SubmitButton() {
   )
 }
 
-export function NewDealForm() {
+export function NewDealForm({
+  restaurants: restaurantDeals,
+}: {
+  restaurants: SimpleRestaurant[]
+}) {
   const router = useRouter()
-  const [restaurants, setRestaurants] = useState<SimpleRestaurant[]>([])
+  const [restaurants, setRestaurants] =
+    useState<SimpleRestaurant[]>(restaurantDeals)
   const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(true)
 
   // Initialize form state using useFormState hook with the createDeal server action

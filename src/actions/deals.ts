@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { restaurantDeals } from "@/db/schema";
+import { restaurantDeals } from "@/db/drizzle/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 

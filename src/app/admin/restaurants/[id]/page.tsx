@@ -4,9 +4,8 @@ import Image from 'next/image'
 import {Suspense} from 'react'
 import {auth} from '@clerk/nextjs/server'
 import {QRCodeManager} from '../qr-code-manager'
-import {getRestaurantById, getPrizesByRestaurantId} from '@/db/models'
+import {getRestaurantById} from '@/db/models'
 import {RestaurantLoading} from '@/features/restaurants/RestaurantLoading'
-import {PrizeCard} from '@/features/prizes/prize-card/PrizeCard'
 
 // Loading component
 
