@@ -1,3 +1,4 @@
+'use client'
 import {
   CheckCircle,
   Circle,
@@ -41,6 +42,7 @@ export function LotteryStatus({
     setCurrentPunchCards(punchCards.length)
     setPercentageProgress(percentage)
   }, [punchCards])
+
   return (
     <main
       className='relative w-auto h-[300px] flex items-center justify-center px-4 py-10 '
