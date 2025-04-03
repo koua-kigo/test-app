@@ -36,7 +36,7 @@ export default function RootLayout({
     <ClerkProvider>
       <LocationProvider>
         <UserProvider>
-          <html lang='en'>
+          <html lang='en' suppressHydrationWarning>
             <body
               className={`${geistSans.variable} ${geistMono.variable} antialiased relative h-screen overflow-scroll bg-[#faf9f6] overflow-x-hidden`}
             >
