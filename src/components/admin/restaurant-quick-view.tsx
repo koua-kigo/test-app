@@ -199,7 +199,28 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
       {
         id: `restaurant-${restaurantData.id.toString()}`,
         title: restaurantData.name,
-        description: restaurantData.description || 'No description available',
+        description: (
+          <div className='py-4'>
+            {restaurantData.description || 'No description available'}
+            <br />
+            <div className='mt-4'>
+              <p className='text-sm text-gray-900 font-bold'>
+                {restaurantData.address}
+              </p>
+              {restaurantData.contactName && (
+                <p className='text-sm text-gray-900 '>
+                  {restaurantData.contactName}
+                </p>
+              )}
+              {restaurantData.phone && (
+                <p className='text-sm text-gray-900 '>{restaurantData.phone}</p>
+              )}
+              {restaurantData.email && (
+                <p className='text-sm text-gray-900 '>{restaurantData.email}</p>
+              )}
+            </div>
+          </div>
+        ),
         icon: <Utensils className='w-4 h-4 text-orange-500' />,
         status: 'Active',
         tags: ['Restaurant'],
@@ -377,7 +398,7 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
                 Close
               </Button>
             </div>
-            <div className='p-1'>
+            <div className='p-1 bg-[#ebe6e7]'>
               <BentoGrid items={getBentoItems()} />
             </div>
           </div>

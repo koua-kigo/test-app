@@ -3,6 +3,7 @@
 import { eq, count } from "drizzle-orm";
 import { db } from "../../db";
 import { restaurants, restaurantDeals } from "@/db/drizzle/schema";
+import type { Restaurant } from "@/types/db";
 
 export const getRestaurants = async () => {
 	// Get all restaurants and only load essential relations
@@ -21,7 +22,21 @@ export const getRestaurants = async () => {
 	}));
 };
 
-export const getPaginatedRestaurants = async (page = 1, pageSize = 10) => {
+export type PaginatedRestaurants = {
+	restaurants: Restaurant[];
+	pagination: {
+		total: number;
+		pageSize: number;
+		currentPage: number;
+		totalPages: number;
+		hasMore: boolean;
+	};
+};
+
+export const getPaginatedRestaurants = async (
+	page = 1,
+	pageSize = 10,
+): Promise<PaginatedRestaurants> => {
 	// Get paginated restaurants and only load essential relations
 	const offset = (page - 1) * pageSize;
 

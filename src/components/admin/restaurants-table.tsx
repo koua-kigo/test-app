@@ -259,9 +259,14 @@ const EditableCell = ({getValue, row, column, table}: EditableCellProps) => {
 
 export function RestaurantsTable({
   restaurants: initialData,
+  pagination,
+
+  fetchRestaurants,
 }: {
   restaurants: RestaurantData[]
+  fetchRestaurants: () => void
 }) {
+  const {total, pageIndex, pageSize} = pagination
   const [data, setData] = React.useState<RestaurantData[]>(initialData)
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
@@ -273,6 +278,8 @@ export function RestaurantsTable({
   const [isExporting, setIsExporting] = React.useState(false)
   const [isImporting, setIsImporting] = React.useState(false)
   const [refreshTrigger, setRefreshTrigger] = React.useState(0)
+  const [tableRestaurants, setTableRestaurants] =
+    React.useState<RestaurantData[][]>(initialData)
 
   // Track selection count for visibility check
   const selectedCount = Object.keys(rowSelection).length
@@ -778,6 +785,21 @@ export function RestaurantsTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    // Add onPaginationChange handler to fetch restaurants when page changes
+    onPaginationChange: (updater) => {
+      // First update the pagination state internally
+      table.setPagination(updater)
+
+      // Then fetch fresh data after pagination has been updated
+      fetchRestaurants(updater.pageIndex + 1, updater.pageSize).then(
+        (restaurants) => {
+          setTableRestaurants((tableRestaurants) => [
+            ...tableRestaurants,
+            restaurants,
+          ])
+        }
+      )
+    },
     meta: {
       updateData: (rowIndex, columnId, value) => {
         // Find actual restaurant by ID to handle filtered restaurants correctly
@@ -798,6 +820,63 @@ export function RestaurantsTable({
       },
     } as TableMeta,
   })
+
+  const getAllRestaurants = () => {
+    const loadedRestaurants = tableRestaurants.flat()
+
+    // Check if we have loaded all restaurants from the database
+
+    const loadedCount = loadedRestaurants.length
+
+    if (loadedCount < total) {
+      // If we haven't loaded all restaurants yet
+      console.warn(
+        `Only ${loadedCount} of ${total} restaurants loaded. Some operations may be incomplete.`
+      )
+      // Attempt to load all remaining restaurants
+      toast.info(`Loading all ${total - loadedCount} remaining restaurants...`)
+
+      // Create a promise to load all remaining restaurants
+      const loadAllRestaurants = async () => {
+        try {
+          // Calculate how many pages we need to fetch
+          const pageSize = 50 // Adjust based on your API's page size
+          const remainingPages = Math.ceil((total - loadedCount) / pageSize)
+
+          // Start from the next page we haven't loaded yet
+          const startPage = Math.floor(loadedCount / pageSize) + 1
+
+          // Create an array of promises for each page fetch
+          const fetchPromises = Array.from({length: remainingPages}, (_, i) => {
+            // Call fetchRestaurants without parameters to use current page
+            return fetchRestaurants()
+          })
+
+          // Execute all fetch requests in parallel
+          const results = await Promise.all(fetchPromises)
+
+          // Update the tableRestaurants state with all fetched data
+          setTableRestaurants((prev) => [...prev, ...results])
+
+          toast.success(`Successfully loaded all ${total} restaurants`)
+          return results.flat()
+        } catch (error) {
+          toast.error('Failed to load all restaurants')
+          console.error('Error loading all restaurants:', error)
+          return []
+        }
+      }
+
+      // Start loading all restaurants in the background
+      loadAllRestaurants()
+
+      // Option: Could trigger loading of remaining restaurants here
+      // fetchRestaurants(1, totalRestaurantsInDb);
+    }
+
+    // Return what we have, with awareness that it might be incomplete
+    return loadedRestaurants
+  }
 
   // Update the bulk operations to use table row IDs for selection and refresh after success
   const handleBulkGenerate = () => {
@@ -827,11 +906,10 @@ export function RestaurantsTable({
     (exportAll = false) => {
       try {
         setIsExporting(true)
-
-        // Determine which restaurants to export
         const restaurantsToExport = exportAll
-          ? filteredRestaurants
+          ? tableRestaurants.flat()
           : table.getSelectedRowModel().rows.map((row) => row.original)
+        // Determine which restaurants to export
 
         // Create a clean export data structure with only the fields we want
         const exportData = restaurantsToExport.map((restaurant) => ({
@@ -930,22 +1008,22 @@ export function RestaurantsTable({
                   align='end'
                   className='bg-background border-sidebar-border'
                 >
-                  {selectedCount > 0 ? (
+                  {selectedCount && (
                     <DropdownMenuItem
                       onClick={() => handleExportCSV(false)}
                       className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     >
                       Export Selected ({selectedCount})
                     </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem
-                      onClick={() => handleExportCSV(true)}
-                      disabled={filteredRestaurants.length === 0}
-                      className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                    >
-                      Export All ({filteredRestaurants.length})
-                    </DropdownMenuItem>
                   )}
+
+                  <DropdownMenuItem
+                    onClick={() => handleExportCSV(true)}
+                    // disabled={filteredRestaurants.length === 0}
+                    className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                  >
+                    Export All ({pagination.total})
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 

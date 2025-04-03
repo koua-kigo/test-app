@@ -5,6 +5,7 @@ import {
   getRestaurants,
 } from '@/db/models/restaurants/restaurants'
 import {Suspense} from 'react'
+import {ArrowLeftIcon, Home} from 'lucide-react'
 
 export const metadata = {
   title: 'Special Deals | Restaurant Passport',
@@ -18,27 +19,30 @@ export default async function DealsPage() {
   console.log('🚀 ~ DealsPage ~ deals:', deals)
 
   return (
-    <div className='px-4 py-8 h-full w-full overflow-auto'>
-      <div className='flex justify-between items-center mb-8'>
-        <h1 className='text-3xl font-bold'>Special Deals</h1>
-        <div className='flex gap-3'>
+    <div className='px-8 py-4 mt-20'>
+      <div className='flex flex-col gap-4 items-center mb-8 relative rounded-lg p-6 bg-white py-4'>
+        <h1 className='text-3xl font-bold text-center my-4'>Special Deals</h1>
+
+        <div className='sm:w-full flex gap-3 justify-center sm:mt-12'>
           <Link
             href='/restaurants'
-            className='text-blue-600 hover:text-blue-800 transition-colors'
+            style={{
+              backgroundColor: '#208F54',
+            }}
+            className='text-white rounded-full w-auto px-4 py-2 flex items-center gap-2 line-clamp-1 shadow-sm hover:shadow-md transition-shadow'
           >
             View Restaurants
           </Link>
+
           <Link
             href='/'
-            className='text-blue-600 hover:text-blue-800 transition-colors'
+            className='rounded-full bg-black text-white p-4 shadow-sm hover:shadow-md transition-shadow'
           >
-            Back to Home
+            <Home size={22} />
+            {/* <BackArrowIcon size={18} /> */}
           </Link>
         </div>
-      </div>
-
-      <div className='mb-8'>
-        <p className='text-gray-600'>
+        <p className='text-gray-600 text-center'>
           Discover special offers and deals from our partner restaurants. Save
           money while collecting stamps on your food passport!
         </p>

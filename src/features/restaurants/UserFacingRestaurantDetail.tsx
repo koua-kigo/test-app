@@ -1,4 +1,4 @@
-import NotificationCard from '@/app/components/ui/NotificationCard'
+import NotificationCard from '@/components/NotificationCard'
 import {getUserRestaurantPunchCard} from '@/db/models/punch-cards/punch-cards'
 import {
   getRestaurantByIdWithAll,
@@ -6,10 +6,8 @@ import {
 } from '@/db/models/restaurants/restaurants'
 import {getUserByClerkId} from '@/db/models/users/users'
 import {RestaurantDetail} from '@/features/restaurants/restaurant-detail/RestaurantDetail'
-import {RestaurantLoading} from '@/features/restaurants/RestaurantLoading'
-import {useUserDistanceFromRestaurant} from '@/hooks/useUserDistance'
+
 import {auth} from '@clerk/nextjs/server'
-import type {Suspense} from 'react'
 
 // Get current user auth status
 

@@ -1,6 +1,8 @@
 'use client'
 
 import {useLocation} from '@/context/location-context'
+import getDistance from 'geolib/es/getDistance'
+
 import geolib from 'geolib'
 import {useEffect, useState} from 'react'
 
@@ -23,12 +25,16 @@ export const useUserDistanceFromRestaurant = ({
   const {coords} = useLocation()
 
   useEffect(() => {
-    if (!coords) return
-    const restaurantCoordinates: any =
-      getCoordinatesFromAddress(restaurantAddress)
-    if (restaurantCoordinates) {
-      const distance = geolib.getDistance(coords, restaurantCoordinates)
-      setDistance(distance)
+    if (coords && restaurantAddress) {
+      const restaurantCoordinates: any =
+        getCoordinatesFromAddress(restaurantAddress)
+      if (restaurantCoordinates) {
+        const d = getDistance(coords, restaurantCoordinates)
+
+        console.log('🚀 ~ useEffect ~ d:', d)
+
+        setDistance(d)
+      }
     }
   }, [coords, restaurantAddress])
 

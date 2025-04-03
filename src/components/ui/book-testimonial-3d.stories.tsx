@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import BookTestimonial3D from '@/app/components/ui/BookTestimonial3D';
+import type {Meta, StoryObj} from '@storybook/react'
+import BookTestimonial3D from '@/components/BookTestimonial3D'
 
 /**
  * The `BookTestimonial3D` component displays testimonials in an interactive 3D book format.
  * Users can flip through pages to read testimonials from different clients.
- * 
+ *
  * It uses `react-pageflip` to create the page-turning effect and supports responsive behavior.
  */
 const meta: Meta<typeof BookTestimonial3D> = {
@@ -14,7 +14,8 @@ const meta: Meta<typeof BookTestimonial3D> = {
     layout: 'centered',
     docs: {
       description: {
-        component: 'A 3D flippable book component to showcase testimonials with an interactive page-turning experience.',
+        component:
+          'A 3D flippable book component to showcase testimonials with an interactive page-turning experience.',
       },
     },
   },
@@ -25,10 +26,10 @@ const meta: Meta<typeof BookTestimonial3D> = {
       control: 'object',
     },
   },
-};
+}
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 // Mock data for testimonials
 const mockTestimonials = [
@@ -67,10 +68,10 @@ const mockTestimonials = [
     jobtitle: 'Travel Influencer',
     rating: 5,
   },
-];
+]
 
 // Short testimonials set for mobile view
-const shortTestimonials = mockTestimonials.slice(0, 2);
+const shortTestimonials = mockTestimonials.slice(0, 2)
 
 // Testimonials with lower ratings
 const mixedRatingTestimonials = [
@@ -89,7 +90,7 @@ const mixedRatingTestimonials = [
     jobtitle: 'UX Designer',
     rating: 3,
   },
-];
+]
 
 /**
  * Default view of the BookTestimonial3D component with 5 testimonials
@@ -98,7 +99,7 @@ export const Default: Story = {
   args: {
     testimonials: mockTestimonials,
   },
-};
+}
 
 /**
  * Compact version with fewer testimonials, ideal for mobile devices or limited space
@@ -113,11 +114,12 @@ export const Compact: Story = {
     },
     docs: {
       description: {
-        story: 'A compact version with fewer testimonials, optimized for mobile devices.',
+        story:
+          'A compact version with fewer testimonials, optimized for mobile devices.',
       },
     },
   },
-};
+}
 
 /**
  * Version with mixed ratings to show how different star ratings appear
@@ -129,11 +131,12 @@ export const MixedRatings: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'This variant showcases testimonials with different star ratings.',
+        story:
+          'This variant showcases testimonials with different star ratings.',
       },
     },
   },
-};
+}
 
 /**
  * Tablet viewport display
@@ -148,11 +151,12 @@ export const TabletView: Story = {
     },
     docs: {
       description: {
-        story: 'The BookTestimonial3D component as displayed on tablet devices.',
+        story:
+          'The BookTestimonial3D component as displayed on tablet devices.',
       },
     },
   },
-};
+}
 
 /**
  * Interactive example that demonstrates the book flipping functionality
@@ -164,14 +168,14 @@ export const Interactive: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'An interactive example that demonstrates the book flipping functionality. Try clicking on the page corners to flip through the testimonials.',
+        story:
+          'An interactive example that demonstrates the book flipping functionality. Try clicking on the page corners to flip through the testimonials.',
       },
     },
   },
-  play: async ({ canvasElement, step }) => {
+  play: async ({canvasElement, step}) => {
     // The play function would typically include interaction testing
     // but this component's interactions are handled by react-pageflip
     // and may be difficult to simulate in a play function
   },
-};
-
+}
