@@ -1,6 +1,6 @@
 'use client'
 
-import {motion} from 'framer-motion'
+import {motion} from 'motion/react'
 
 import {RestaurantCard} from './RestaurantCard'
 import {RestaurantSearchBar} from './RestaurantSearchBar'

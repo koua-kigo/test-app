@@ -6,7 +6,7 @@ import {
   useInView,
   useSpring,
   useTransform,
-} from 'framer-motion'
+} from 'motion/react'
 import {useEffect, useRef, useState} from 'react'
 
 export function AnimatedNumberInView(num: unknown) {

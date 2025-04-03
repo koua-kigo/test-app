@@ -1,7 +1,7 @@
 'use client'
 
-import type {Variants} from 'framer-motion'
-import {animate, motion, useAnimation} from 'framer-motion'
+import type {Variants} from 'motion/react'
+import {animate, motion, useAnimation} from 'motion/react'
 
 const variants: Variants = {
   normal: {

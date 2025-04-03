@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import {motion, AnimatePresence} from 'framer-motion'
+import {motion, AnimatePresence} from 'motion/react'
 import {cn} from '@/lib/utils'
 import {Award, Coffee, Stamp, Utensils} from 'lucide-react'
 import Image from 'next/image'

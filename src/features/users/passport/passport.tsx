@@ -7,7 +7,7 @@ import {MAX_PUNCH_THRESHOLD} from '@/lib/constants'
 import {cn} from '@/lib/utils'
 import type {PunchCardWithRestaurant} from '@/types'
 
-import {AnimatePresence, motion} from 'framer-motion'
+import {AnimatePresence, motion} from 'motion/react'
 import {Coffee, Pizza, Salad, Stamp, Wine} from 'lucide-react'
 import type React from 'react'
 import {useState} from 'react'

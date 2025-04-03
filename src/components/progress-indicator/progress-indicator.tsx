@@ -3,7 +3,7 @@ import {
   AnimatedNumberInView,
 } from '@/components/motion-primitives/animated-number'
 import type {PunchCardWithRestaurant} from '@/types/api'
-import {motion, useMotionValue, useSpring, useTransform} from 'framer-motion'
+import {motion, useMotionValue, useSpring, useTransform} from 'motion/react'
 import React, {useEffect, useState} from 'react'
 
 interface ProgressIndicatorProps {

@@ -46,7 +46,6 @@
         "drizzle-zod": "^0.7.1",
         "figlet": "^1.8.0",
         "file-saver": "^2.0.5",
-        "framer-motion": "^12.6.3",
         "fuse.js": "^7.1.0",
         "geolib": "^3.3.4",
         "gradient-string": "^3.0.0",

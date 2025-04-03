@@ -28,7 +28,7 @@ export function UserPunchCards({
     punchCards.length > 0 ? punchCards : initialPunchCards
 
   if (isLoading && displayPunchCards.length === 0) {
-    return <div className='text-center py-6'>Loading punch cards...</div>
+    return <div className='text-center py-6'>Loading Score Cards...</div>
   }
 
   if (error) {
@@ -42,7 +42,7 @@ export function UserPunchCards({
   if (!displayPunchCards || displayPunchCards.length === 0) {
     return (
       <div className='bg-white shadow-sm rounded-lg p-6'>
-        <h2 className='text-xl font-semibold mb-4'>My Punch Cards</h2>
+        <h2 className='text-xl font-semibold mb-4'>Your Scan Scoreboard</h2>
         <p className='text-gray-500'>
           You don&apos;t have any punch cards yet. Visit a restaurant to get
           started!
@@ -53,7 +53,7 @@ export function UserPunchCards({
 
   return (
     <div className='bg-white shadow-sm rounded-lg p-6'>
-      <h2 className='text-xl font-semibold mb-4'>My Punch Cards</h2>
+      <h2 className='text-xl font-semibold mb-4'>Your Scan Scoreboard</h2>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
         {displayPunchCards.map((card) => (
           <div

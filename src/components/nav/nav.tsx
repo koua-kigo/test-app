@@ -33,7 +33,7 @@ import {
   Settings2,
   BookUser,
 } from 'lucide-react'
-import {motion, AnimatePresence} from 'framer-motion'
+import {motion, AnimatePresence} from 'motion/react'
 import {useCallback, useState, useEffect, Suspense} from 'react'
 
 import {
