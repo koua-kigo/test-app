@@ -1,9 +1,7 @@
 'use client'
 
 import {getUserByClerkId} from '@/db/models/users/users'
-import {PrizeCard} from '@/features/prizes/prize-card/PrizeCard'
 
-import {GetUserRestaurantPunchCard} from '@/features/users/GetUserPunchCard'
 import {DealsList} from '@/features/deals'
 import {
   PunchCard,
@@ -29,6 +27,7 @@ import {
   QrCode,
   User as UserIcon,
 } from 'lucide-react'
+import {useUserDistanceFromRestaurant} from '@/hooks/useUserDistance'
 
 export function RestaurantDetail({
   restaurant: restaurantDetail,
@@ -44,7 +43,9 @@ export function RestaurantDetail({
     useState<PunchCardType | null>(userPunchCard || null)
 
   const {user: clerkUser} = useUser()
-
+  const {distance} = useUserDistanceFromRestaurant({
+    restaurantAddress: restaurantDetail?.address ?? '',
+  })
   useEffect(() => {
     if (clerkUser?.id && !userData) {
       getUserByClerkId(clerkUser.id).then((res) => {
@@ -55,10 +56,10 @@ export function RestaurantDetail({
     }
   }, [clerkUser, userData, user])
 
-  const {restaurantDeals = [], ...restaurant} = restaurantDetail
+  const {deals = [], ...restaurant} = restaurantDetail
 
   // Convert Deal[] to DatabaseDeal[] for DealsList
-  const formattedDeals = restaurantDeals?.map((deal) => ({
+  const formattedDeals = deals?.map((deal) => ({
     id: deal.id,
     restaurantId: deal.restaurantId,
     title: deal.title,
@@ -187,6 +188,13 @@ export function RestaurantDetail({
           )}
         </div>
       </div>
+      {distance && (
+        <NotificationCard title='Distance'>
+          <p>
+            You're only {distance} miles away from {restaurant?.name}
+          </p>
+        </NotificationCard>
+      )}
     </div>
   )
 }

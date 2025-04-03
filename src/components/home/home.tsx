@@ -10,8 +10,8 @@ export const Home = () => {
         <Image
           src='/logo.png'
           alt='Restaurant Passport Logo'
-          width={400}
-          height={400}
+          width={300}
+          height={300}
           className='mx-auto'
         />
 

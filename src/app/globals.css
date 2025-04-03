@@ -451,3 +451,13 @@ td.data-cell > [role="checkbox"] {
 .active-tab svg {
 	@apply text-primary;
 }
+.app-wrapper {
+	height: 100vh;
+}
+
+@media (max-width: 768px) {
+	.app-wrapper {
+		height: calc(100vh - 80px);
+		overflow-y: scroll;
+	}
+}

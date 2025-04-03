@@ -34,7 +34,7 @@ import {
   BookUser,
 } from 'lucide-react'
 import {motion, AnimatePresence} from 'framer-motion'
-import {useCallback, useState, useEffect} from 'react'
+import {useCallback, useState, useEffect, Suspense} from 'react'
 
 import {
   Dialog,
@@ -130,8 +130,6 @@ export const Nav = () => {
   const pathname = usePathname()
   const activeTab = pathname // pathname.split('/').pop()
 
-  console.log('🚀 ~ Nav ~ pathname:', pathname)
-
   const {currentUser} = useUserContext()
   const {session} = useSession()
   const [showModal, setShowModal] = useState(false)
@@ -152,163 +150,98 @@ export const Nav = () => {
   }
   return (
     <>
-      {/* QR Scanner Modal with animations */}
-      <AnimatePresence>
-        {showModal && (
-          <Dialog open={showModal} onOpenChange={toggleModal}>
-            <DialogContent className='sm:max-w-md p-0 overflow-hidden'>
-              <motion.div
-                variants={containerVariants}
-                initial='hidden'
-                animate='visible'
-                exit='exit'
-                className='p-6'
-              >
-                <motion.div variants={itemVariants}>
-                  <DialogHeader>
-                    <DialogTitle>Scan QR Code</DialogTitle>
-                    <DialogDescription>
-                      Point your camera at a restaurant's QR code to earn a
-                      punch.
-                    </DialogDescription>
-                  </DialogHeader>
+      <Suspense>
+        {/* QR Scanner Modal with animations */}
+        <AnimatePresence>
+          {showModal && (
+            <Dialog open={showModal} onOpenChange={toggleModal}>
+              <DialogContent className='sm:max-w-md p-0 overflow-hidden'>
+                <motion.div
+                  variants={containerVariants}
+                  initial='hidden'
+                  animate='visible'
+                  exit='exit'
+                  className='p-6'
+                >
+                  <motion.div variants={itemVariants}>
+                    <DialogHeader>
+                      <DialogTitle>Scan QR Code</DialogTitle>
+                      <DialogDescription>
+                        Point your camera at a restaurant's QR code to earn a
+                        punch.
+                      </DialogDescription>
+                    </DialogHeader>
+                  </motion.div>
+
+                  <div className='flex flex-col items-center space-y-4 mt-4'>
+                    <NavScanner
+                      userId={currentUser?.id || ''}
+                      closeModal={closeModal}
+                    />
+                  </div>
+
+                  <motion.div variants={itemVariants} className='mt-6'>
+                    <DialogFooter className='sm:justify-start'>
+                      <DialogClose asChild>
+                        <Button
+                          type='button'
+                          variant='secondary'
+                          onClick={() => setShowModal(false)}
+                        >
+                          Close
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </motion.div>
                 </motion.div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </AnimatePresence>
 
-                <div className='flex flex-col items-center space-y-4 mt-4'>
-                  <NavScanner
-                    userId={currentUser?.id || ''}
-                    closeModal={closeModal}
-                  />
-                </div>
-
-                <motion.div variants={itemVariants} className='mt-6'>
-                  <DialogFooter className='sm:justify-start'>
-                    <DialogClose asChild>
-                      <Button
-                        type='button'
-                        variant='secondary'
-                        onClick={() => setShowModal(false)}
-                      >
-                        Close
-                      </Button>
-                    </DialogClose>
-                  </DialogFooter>
-                </motion.div>
-              </motion.div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </AnimatePresence>
-
-      <nav className='fixed bottom-0 left-1/2 -translate-x-1/2 sm:py-2 py-2 z-20 s:h-[80px] h-auto'>
-        <div className='flex justify-evenly w-content border rounded-full bg-linear-270 from-[#336f4f] from 48% to-[#179b55] backdrop-blur-sm '>
-          <Button
-            variant='ghost'
-            size='sm'
-            onMouseEnter={() => handleHoverButton('deals')}
-            className={cn(
-              'p-4 h-auto !w-auto rounded-full relative',
-              'text-white',
-              activeTab === 'deals' &&
-                'active-tab text-primary !bg-[#E2FFE5] relative after:content-[" "] after:absolute after:-inset-1 after:h-[60px] after:w-[60px] after:rounded-full after:bg-[#E2FFE5] after:z-[1] after:opacity-50 after:blur-sm'
-            )}
-            style={{
-              backgroundColor:
-                activeTab === 'deals' ? '#E2FFE5' : 'transparent',
-              border: activeTab === 'deals' ? '2px solid #336F4F' : 'none',
+        <motion.nav className='fixed bottom-0 left-1/2 -translate-x-1/2 sm:py-2 py-2 z-20 s:h-[80px] h-auto will-change-transform'>
+          <motion.div
+            className='flex justify-evenly w-content border rounded-full bg-linear-270 from-[#336f4f] from 48% to-[#179b55] backdrop-blur-sm  will-change-transform'
+            initial={{opacity: 0, y: 10, width: 0}}
+            animate={{opacity: 1, y: 0, width: 'auto'}}
+            exit={{opacity: 0, y: -10}}
+            transition={{
+              duration: 0.8,
+              ease: 'easeInOut',
+              type: 'spring',
+              stiffness: 260,
+              damping: 20,
+              delay: 0.5,
             }}
           >
-            <Link
-              href='/deals'
-              className={cn(
-                ' h-auto !w-auto rounded-full text-white ',
-                activeTab === 'deals' && 'active-tab text-primary !bg-[#E2FFE5]'
-              )}
-            >
-              <Tag className='h-6 w-6 ' />
-            </Link>
-            <AnimatePresence>
-              {elementFocused === 'deals' && (
-                <motion.div
-                  animate={{opacity: 1, scale: 1}}
-                  className='-z-10 absolute top-0 right-0 bottom-0 left-0 rounded-md bg-neutral-200 dark:bg-neutral-800'
-                  exit={{opacity: 0, scale: 0.9}}
-                  initial={{opacity: 0, scale: 0.95}}
-                  layout={true}
-                  layoutId='focused-element'
-                  transition={{duration: 0.2}}
-                />
-              )}
-            </AnimatePresence>
-          </Button>
-
-          {currentUser && !userIsAdmin && (
-            // <NavScannerButton onScanClick={toggleModal} />
-            <Button
-              onClick={toggleModal}
-              variant='ghost'
-              onMouseEnter={() => handleHoverButton('qr')}
-              size='sm'
-              className={cn(
-                'p-4 mx-1 h-auto !w-auto rounded-full relative',
-                'text-white',
-                activeTab === 'qr' && 'active-tab text-primary !bg-[#E2FFE5]'
-              )}
-              style={{
-                backgroundColor: activeTab === 'qr' ? '#E2FFE5' : 'transparent',
-                border: activeTab === 'qr' ? '2px solid #336F4F' : 'none',
-              }}
-            >
-              <QrCodeIcon className='h-6 w-6' />
-              <AnimatePresence>
-                {elementFocused === 'qr' && (
-                  <motion.div
-                    animate={{opacity: 1, scale: 1}}
-                    className='-z-10 absolute top-0 right-0 bottom-0 left-0 rounded-md bg-neutral-200 dark:bg-neutral-800'
-                    exit={{opacity: 0, scale: 0.9}}
-                    initial={{opacity: 0, scale: 0.95}}
-                    layout={true}
-                    layoutId='focused-element'
-                    transition={{duration: 0.2}}
-                  />
-                )}
-              </AnimatePresence>
-            </Button>
-          )}
-          {userIsAdmin && (
             <Button
               variant='ghost'
               size='sm'
-              onMouseEnter={() => handleHoverButton('admin')}
+              onMouseEnter={() => handleHoverButton('deals')}
               className={cn(
-                'p-4 mx-1 h-auto !w-auto rounded-full relative',
+                'p-4 h-auto !w-auto rounded-full relative',
                 'text-white',
-                activeTab?.includes('admin') &&
-                  'active-tab text-primary !bg-[#E2FFE5]',
-                activeTab?.includes('admin') &&
-                  'active-tab text-primary !bg-[#E2FFE5]'
+                activeTab === 'deals' &&
+                  'active-tab text-primary !bg-[#E2FFE5] relative after:content-[" "] after:absolute after:-inset-1 after:h-[60px] after:w-[60px] after:rounded-full after:bg-[#E2FFE5] after:z-[1] after:opacity-50 after:blur-sm'
               )}
               style={{
-                backgroundColor: activeTab?.includes('admin')
-                  ? '#E2FFE5'
-                  : 'transparent',
-                border: activeTab?.includes('admin')
-                  ? '2px solid #336F4F'
-                  : 'none',
+                backgroundColor:
+                  activeTab === 'deals' ? '#E2FFE5' : 'transparent',
+                border: activeTab === 'deals' ? '2px solid #336F4F' : 'none',
               }}
             >
               <Link
-                href={'/admin'}
+                href='/deals'
                 className={cn(
-                  '  h-auto !w-auto rounded-full text-white',
-                  activeTab?.includes('admin') &&
+                  ' h-auto !w-auto rounded-full text-white ',
+                  activeTab === 'deals' &&
                     'active-tab text-primary !bg-[#E2FFE5]'
                 )}
               >
-                <Settings2 className='h-6 w-6 ' />
+                <Tag className='h-6 w-6 ' />
               </Link>
               <AnimatePresence>
-                {elementFocused === 'admin' && (
+                {elementFocused === 'deals' && (
                   <motion.div
                     animate={{opacity: 1, scale: 1}}
                     className='-z-10 absolute top-0 right-0 bottom-0 left-0 rounded-md bg-neutral-200 dark:bg-neutral-800'
@@ -321,38 +254,28 @@ export const Nav = () => {
                 )}
               </AnimatePresence>
             </Button>
-          )}
-          {currentUser && (
-            <Button
-              variant='ghost'
-              size='sm'
-              onMouseEnter={() => handleHoverButton('profile')}
-              className={cn(
-                'p-4 mx-1 h-auto !w-auto rounded-full',
-                'text-white',
-                activeTab?.includes('profile') &&
-                  'active-tab text-primary !bg-[#E2FFE5]'
-              )}
-              style={{
-                backgroundColor: activeTab?.includes('profile')
-                  ? '#E2FFE5'
-                  : 'transparent',
-                border: activeTab?.includes('profile')
-                  ? '2px solid #336F4F'
-                  : 'none',
-              }}
-            >
-              <Link
-                href={`/users/${currentUser?.id}/profile`}
+
+            {currentUser && !userIsAdmin && (
+              // <NavScannerButton onScanClick={toggleModal} />
+              <Button
+                onClick={toggleModal}
+                variant='ghost'
+                onMouseEnter={() => handleHoverButton('qr')}
+                size='sm'
                 className={cn(
-                  ' h-auto !w-auto rounded-full text-white',
-                  activeTab?.includes('profile') &&
-                    'active-tab text-primary !bg-[#E2FFE5]'
+                  'p-4 mx-1 h-auto !w-auto rounded-full relative',
+                  'text-white',
+                  activeTab === 'qr' && 'active-tab text-primary !bg-[#E2FFE5]'
                 )}
+                style={{
+                  backgroundColor:
+                    activeTab === 'qr' ? '#E2FFE5' : 'transparent',
+                  border: activeTab === 'qr' ? '2px solid #336F4F' : 'none',
+                }}
               >
-                <BookUser className='h-6 w-6 ' />
+                <QrCodeIcon className='h-6 w-6' />
                 <AnimatePresence>
-                  {elementFocused === 'profile' && (
+                  {elementFocused === 'qr' && (
                     <motion.div
                       animate={{opacity: 1, scale: 1}}
                       className='-z-10 absolute top-0 right-0 bottom-0 left-0 rounded-md bg-neutral-200 dark:bg-neutral-800'
@@ -364,26 +287,118 @@ export const Nav = () => {
                     />
                   )}
                 </AnimatePresence>
-              </Link>
-            </Button>
-          )}
-
-          {!currentUser && (
-            <SignInButton>
+              </Button>
+            )}
+            {userIsAdmin && (
               <Button
                 variant='ghost'
                 size='sm'
+                onMouseEnter={() => handleHoverButton('admin')}
                 className={cn(
-                  'p-4 mx-1 h-auto !w-auto rounded-full hover:bg-[#E2FFE5] text-black',
-                  'text-white'
+                  'p-4 mx-1 h-auto !w-auto rounded-full relative',
+                  'text-white',
+                  activeTab?.includes('admin') &&
+                    'active-tab text-primary !bg-[#E2FFE5]',
+                  activeTab?.includes('admin') &&
+                    'active-tab text-primary !bg-[#E2FFE5]'
                 )}
+                style={{
+                  backgroundColor: activeTab?.includes('admin')
+                    ? '#E2FFE5'
+                    : 'transparent',
+                  border: activeTab?.includes('admin')
+                    ? '2px solid #336F4F'
+                    : 'none',
+                }}
               >
-                <UserPlus className='h-6 w-6 text-white' />
+                <Link
+                  href={'/admin'}
+                  className={cn(
+                    '  h-auto !w-auto rounded-full text-white',
+                    activeTab?.includes('admin') &&
+                      'active-tab text-primary !bg-[#E2FFE5]'
+                  )}
+                >
+                  <Settings2 className='h-6 w-6 ' />
+                </Link>
+                <AnimatePresence>
+                  {elementFocused === 'admin' && (
+                    <motion.div
+                      animate={{opacity: 1, scale: 1}}
+                      className='-z-10 absolute top-0 right-0 bottom-0 left-0 rounded-md bg-neutral-200 dark:bg-neutral-800'
+                      exit={{opacity: 0, scale: 0.9}}
+                      initial={{opacity: 0, scale: 0.95}}
+                      layout={true}
+                      layoutId='focused-element'
+                      transition={{duration: 0.2}}
+                    />
+                  )}
+                </AnimatePresence>
               </Button>
-            </SignInButton>
-          )}
-        </div>
-      </nav>
+            )}
+            {currentUser && (
+              <Button
+                variant='ghost'
+                size='sm'
+                onMouseEnter={() => handleHoverButton('profile')}
+                className={cn(
+                  'p-4 mx-1 h-auto !w-auto rounded-full',
+                  'text-white',
+                  activeTab?.includes('profile') &&
+                    'active-tab text-primary !bg-[#E2FFE5]'
+                )}
+                style={{
+                  backgroundColor: activeTab?.includes('profile')
+                    ? '#E2FFE5'
+                    : 'transparent',
+                  border: activeTab?.includes('profile')
+                    ? '2px solid #336F4F'
+                    : 'none',
+                }}
+              >
+                <Link
+                  href={`/users/${currentUser?.id}/profile`}
+                  className={cn(
+                    ' h-auto !w-auto rounded-full text-white',
+                    activeTab?.includes('profile') &&
+                      'active-tab text-primary !bg-[#E2FFE5]'
+                  )}
+                >
+                  <BookUser className='h-6 w-6 ' />
+                  <AnimatePresence>
+                    {elementFocused === 'profile' && (
+                      <motion.div
+                        animate={{opacity: 1, scale: 1}}
+                        className='-z-10 absolute top-0 right-0 bottom-0 left-0 rounded-md bg-neutral-200 dark:bg-neutral-800'
+                        exit={{opacity: 0, scale: 0.9}}
+                        initial={{opacity: 0, scale: 0.95}}
+                        layout={true}
+                        layoutId='focused-element'
+                        transition={{duration: 0.2}}
+                      />
+                    )}
+                  </AnimatePresence>
+                </Link>
+              </Button>
+            )}
+
+            {!currentUser && (
+              <SignInButton>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  className={cn(
+                    'p-4 mx-1 h-auto !w-auto rounded-full hover:bg-[#E2FFE5] text-black',
+                    'text-white'
+                  )}
+                >
+                  <UserPlus className='h-6 w-6 text-white' />
+                </Button>
+              </SignInButton>
+            )}
+          </motion.div>
+        </motion.nav>
+      </Suspense>
     </>
   )
 }
