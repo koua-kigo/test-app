@@ -218,6 +218,7 @@ export const Nav = () => {
               variant='ghost'
               size='sm'
               onMouseEnter={() => handleHoverButton('deals')}
+              onMouseLeave={() => handleHoverButton(null)}
               className={cn(
                 'p-4 h-auto !w-auto rounded-full relative',
                 'text-white',
@@ -240,19 +241,6 @@ export const Nav = () => {
               >
                 <Tag className='h-6 w-6 ' />
               </Link>
-              <AnimatePresence>
-                {elementFocused === 'deals' && (
-                  <motion.div
-                    animate={{opacity: 1, scale: 1}}
-                    className='-z-10 absolute top-0 right-0 bottom-0 left-0 rounded-md bg-neutral-200 dark:bg-neutral-800'
-                    exit={{opacity: 0, scale: 0.9}}
-                    initial={{opacity: 0, scale: 0.95}}
-                    layout={true}
-                    layoutId='focused-element'
-                    transition={{duration: 0.2}}
-                  />
-                )}
-              </AnimatePresence>
             </Button>
 
             {currentUser && !userIsAdmin && (
@@ -261,6 +249,7 @@ export const Nav = () => {
                 onClick={toggleModal}
                 variant='ghost'
                 onMouseEnter={() => handleHoverButton('qr')}
+                onMouseLeave={() => handleHoverButton(null)}
                 size='sm'
                 className={cn(
                   'p-4 mx-1 h-auto !w-auto rounded-full relative',
@@ -274,19 +263,6 @@ export const Nav = () => {
                 }}
               >
                 <QrCodeIcon className='h-6 w-6' />
-                <AnimatePresence>
-                  {elementFocused === 'qr' && (
-                    <motion.div
-                      animate={{opacity: 1, scale: 1}}
-                      className='-z-10 absolute top-0 right-0 bottom-0 left-0 rounded-md bg-neutral-200 dark:bg-neutral-800'
-                      exit={{opacity: 0, scale: 0.9}}
-                      initial={{opacity: 0, scale: 0.95}}
-                      layout={true}
-                      layoutId='focused-element'
-                      transition={{duration: 0.2}}
-                    />
-                  )}
-                </AnimatePresence>
               </Button>
             )}
             {userIsAdmin && (
@@ -321,19 +297,6 @@ export const Nav = () => {
                 >
                   <Settings2 className='h-6 w-6 ' />
                 </Link>
-                <AnimatePresence>
-                  {elementFocused === 'admin' && (
-                    <motion.div
-                      animate={{opacity: 1, scale: 1}}
-                      className='-z-10 absolute top-0 right-0 bottom-0 left-0 rounded-md bg-neutral-200 dark:bg-neutral-800'
-                      exit={{opacity: 0, scale: 0.9}}
-                      initial={{opacity: 0, scale: 0.95}}
-                      layout={true}
-                      layoutId='focused-element'
-                      transition={{duration: 0.2}}
-                    />
-                  )}
-                </AnimatePresence>
               </Button>
             )}
             {currentUser && (
@@ -365,19 +328,6 @@ export const Nav = () => {
                   )}
                 >
                   <BookUser className='h-6 w-6 ' />
-                  <AnimatePresence>
-                    {elementFocused === 'profile' && (
-                      <motion.div
-                        animate={{opacity: 1, scale: 1}}
-                        className='-z-10 absolute top-0 right-0 bottom-0 left-0 rounded-md bg-neutral-200 dark:bg-neutral-800'
-                        exit={{opacity: 0, scale: 0.9}}
-                        initial={{opacity: 0, scale: 0.95}}
-                        layout={true}
-                        layoutId='focused-element'
-                        transition={{duration: 0.2}}
-                      />
-                    )}
-                  </AnimatePresence>
                 </Link>
               </Button>
             )}
