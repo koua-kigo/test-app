@@ -28,6 +28,7 @@ import {
   User as UserIcon,
 } from 'lucide-react'
 import {useUserDistanceFromRestaurant} from '@/hooks/useUserDistance'
+import NotificationCard from '@/components/NotificationCard'
 
 export function RestaurantDetail({
   restaurant: restaurantDetail,
@@ -46,6 +47,9 @@ export function RestaurantDetail({
   const {distance} = useUserDistanceFromRestaurant({
     restaurantAddress: restaurantDetail?.address ?? '',
   })
+
+  console.log('🚀 ~ distance:', distance)
+
   useEffect(() => {
     if (clerkUser?.id && !userData) {
       getUserByClerkId(clerkUser.id).then((res) => {
@@ -188,13 +192,13 @@ export function RestaurantDetail({
           )}
         </div>
       </div>
-      {distance && (
+      {distance ? (
         <NotificationCard title='Distance'>
           <p>
             You're only {distance} miles away from {restaurant?.name}
           </p>
         </NotificationCard>
-      )}
+      ) : null}
     </div>
   )
 }
