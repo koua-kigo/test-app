@@ -6,6 +6,7 @@ import Image from 'next/image'
 import {UserPunchCards} from '@/features/users/UserPunchCards'
 import {BentoGrid} from '@/components/kokonutui/bento-grid'
 import {Button} from '@/components/ui/button'
+import Link from 'next/link'
 
 // Define viewport metadata as per Next.js recommendations
 export const viewport = {
@@ -59,7 +60,7 @@ export default async function ProfilePage() {
         className='bold text-white w-full mx-auto mt-8  sm:w-min'
         style={{background: '#208F54'}}
       >
-        Where to go Next?
+        <Link href='/deals'>Where to go Next?</Link>
       </Button>
 
       {/* {user?.id && <UserScanQrCode user={user} />} */}
