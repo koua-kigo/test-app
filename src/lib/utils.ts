@@ -65,3 +65,34 @@ export function convertBigIntToString<T>(data: T): T {
 
 	return data;
 }
+
+/**
+ * Checks if a string is a valid URL
+ * @param url - The string to check
+ * @returns boolean - Whether the string is a valid URL
+ */
+export function isValidUrl(url: string | null | undefined): boolean {
+	if (!url) return false;
+	
+	try {
+		// Check for common image file extensions for better validation
+		const hasImageExtension = /\.(jpg|jpeg|png|gif|webp|svg|avif)(\?.*)?$/i.test(url);
+		
+		// If it has an image extension, try to create a URL object
+		if (hasImageExtension) {
+			new URL(url);
+			return true;
+		}
+		
+		// Otherwise, try to create a URL object and check if it has http/https protocol
+		const urlObj = new URL(url);
+		return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+	} catch (e) {
+		// If URL constructor throws an error, it's not a valid URL
+		// Check if it might be a relative path instead (starting with /)
+		if (url.startsWith('/')) {
+			return true; // Valid relative URL
+		}
+		return false;
+	}
+}

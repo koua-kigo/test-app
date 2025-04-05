@@ -86,6 +86,9 @@ export const getDeals = async () => {
 export const getActiveDeals = async () => {
 	return await db.query.restaurantDeals.findMany({
 		where: eq(restaurantDeals.active, true),
+		with: {
+			restaurant: true,
+		},
 	});
 };
 
