@@ -9,11 +9,16 @@ import {
 import {
   getTopUsersByPunchCardCount,
   getPopularRestaurantsByPunchCardCount,
+  getUsersInRaffle,
 } from '@/db/models/leaderboard/leaderboard'
 import {convertBigInts} from '@/lib/utils'
 import {UserLeaderboard} from '@/components/leaderboard/user-leaderboard'
 import {RestaurantLeaderboard} from '@/components/leaderboard/restaurant-leaderboard'
+import {RaffleEntries} from '@/components/leaderboard/raffle-entries'
 import {LotteryStatus} from '@/features/users/lottery-status'
+import {db} from '@/db/db'
+import {punchCards as punchCardsTable} from '@/db/drizzle/schema'
+import {inArray} from 'drizzle-orm'
 
 export const metadata = {
   title: 'Leaderboard | Restaurant Passport',
@@ -24,17 +29,47 @@ export default async function LeaderboardPage() {
   // Fetch leaderboard data
   const topUsers = await getTopUsersByPunchCardCount(10)
   const popularRestaurants = await getPopularRestaurantsByPunchCardCount(10)
+  const raffleEntries = await getUsersInRaffle(10)
 
   // Convert BigInt values to strings for serialization
   const serializedTopUsers = convertBigInts(topUsers)
+  const serializedPopularRestaurants = convertBigInts(popularRestaurants)
+  const serializedRaffleEntries = convertBigInts(raffleEntries)
+
+  // Get punch cards for users in the raffle
+  const userIds = raffleEntries.map((entry) => entry.userId)
+  const userPunchCards = await db.query.punchCards.findMany({
+    where: inArray(punchCardsTable.userId, userIds),
+    with: {
+      restaurant: true,
+    },
+  })
+
+  // Format punch cards for the component
+  const formattedPunchCards = userPunchCards.map((pc) => ({
+    id: pc.id,
+    userId: pc.userId,
+    restaurantId: pc.restaurantId,
+    punches: pc.punches || 0,
+    completed: pc.completed || false,
+    updatedAt: pc.updatedAt || new Date().toISOString(),
+    restaurant: {
+      id: pc.restaurant.id,
+      name: pc.restaurant.name,
+      imageUrl: pc.restaurant.imageUrl,
+    },
+  }))
+
+  const serializedPunchCards = convertBigInts(formattedPunchCards)
 
   console.log('🚀 ~ LeaderboardPage ~ serializedTopUsers:', serializedTopUsers)
-
-  const serializedPopularRestaurants = convertBigInts(popularRestaurants)
-
   console.log(
     '🚀 ~ LeaderboardPage ~ serializedPopularRestaurants:',
     serializedPopularRestaurants
+  )
+  console.log(
+    '🚀 ~ LeaderboardPage ~ serializedRaffleEntries:',
+    serializedRaffleEntries
   )
 
   return (
@@ -77,15 +112,31 @@ export default async function LeaderboardPage() {
         </TabsContent>
 
         <TabsContent value='raffle'>
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Raffle</CardTitle>
-              <CardDescription>Check your raffle entry status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <LotteryStatus punchCards={serializedPunchCards} />
-            </CardContent>
-          </Card>
+          <div className='grid gap-6 grid-cols-1 md:grid-cols-2'>
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Raffle Status</CardTitle>
+                <CardDescription>
+                  Check your progress for raffle entry
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <LotteryStatus punchCards={serializedPunchCards} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Raffle Entries</CardTitle>
+                <CardDescription>
+                  Users currently in the raffle drawing
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RaffleEntries entries={serializedRaffleEntries} />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

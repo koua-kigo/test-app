@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {Trophy} from 'lucide-react'
-import motion from 'motion/react'
+import {motion} from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import type {RestaurantLeaderboardEntry} from '@/types/api'

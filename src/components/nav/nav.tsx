@@ -15,23 +15,15 @@ import {
   useUser,
 } from '@clerk/nextjs'
 import {
-  Award,
-  Clock,
-  Home,
-  Settings,
   Trophy,
   type User,
-  Utensils,
   UserPlus,
   Loader2,
-  QrCode,
-  CheckCircle,
-  Wallet2,
-  MedalIcon,
   QrCodeIcon,
   Tag,
   Settings2,
   BookUser,
+  Utensils,
 } from 'lucide-react'
 import {motion, AnimatePresence} from 'motion/react'
 import {useCallback, useState, useEffect, Suspense} from 'react'
@@ -145,7 +137,7 @@ export const Nav = () => {
 
   const [elementFocused, setElementFocused] = useState<string | null>(null)
 
-  const handleHoverButton = (type: string) => {
+  const handleHoverButton = (type: string | null) => {
     setElementFocused(type)
   }
   return (
@@ -175,7 +167,7 @@ export const Nav = () => {
 
                   <div className='flex flex-col items-center space-y-4 mt-4'>
                     <NavScanner
-                      userId={currentUser?.id || ''}
+                      userId={currentUser?.id ? String(currentUser.id) : ''}
                       closeModal={closeModal}
                     />
                   </div>
@@ -222,24 +214,69 @@ export const Nav = () => {
               className={cn(
                 'p-4 h-auto !w-auto rounded-full relative',
                 'text-white',
-                activeTab === 'deals' &&
+                (activeTab?.includes('deals') ||
+                  activeTab?.includes('restaurants')) &&
                   'active-tab text-primary !bg-[#E2FFE5] relative after:content-[" "] after:absolute after:-inset-1 after:h-[60px] after:w-[60px] after:rounded-full after:bg-[#E2FFE5] after:z-[1] after:opacity-50 after:blur-sm'
               )}
               style={{
                 backgroundColor:
-                  activeTab === 'deals' ? '#E2FFE5' : 'transparent',
-                border: activeTab === 'deals' ? '2px solid #336F4F' : 'none',
+                  activeTab?.includes('deals') ||
+                  activeTab?.includes('restaurants')
+                    ? '#E2FFE5'
+                    : 'transparent',
+                border:
+                  activeTab?.includes('deals') ||
+                  activeTab?.includes('restaurants')
+                    ? '2px solid #336F4F'
+                    : 'none',
               }}
             >
               <Link
                 href='/deals'
                 className={cn(
                   ' h-auto !w-auto rounded-full text-white ',
-                  activeTab === 'deals' &&
+                  activeTab?.includes('deals') ||
+                    (activeTab?.includes('restaurants') &&
+                      'active-tab text-primary !bg-[#E2FFE5]')
+                )}
+              >
+                {activeTab?.includes('restaurants') ? (
+                  <Utensils className='h-6 w-6' />
+                ) : (
+                  <Tag className='h-6 w-6' />
+                )}
+              </Link>
+            </Button>
+
+            <Button
+              variant='ghost'
+              size='sm'
+              onMouseEnter={() => handleHoverButton('leaderboard')}
+              onMouseLeave={() => handleHoverButton(null)}
+              className={cn(
+                'p-4 h-auto !w-auto rounded-full relative',
+                'text-white',
+                activeTab?.includes('leaderboard') &&
+                  'active-tab text-primary !bg-[#E2FFE5] relative after:content-[" "] after:absolute after:-inset-1 after:h-[60px] after:w-[60px] after:rounded-full after:bg-[#E2FFE5] after:z-[1] after:opacity-50 after:blur-sm'
+              )}
+              style={{
+                backgroundColor: activeTab?.includes('leaderboard')
+                  ? '#E2FFE5'
+                  : 'transparent',
+                border: activeTab?.includes('leaderboard')
+                  ? '2px solid #336F4F'
+                  : 'none',
+              }}
+            >
+              <Link
+                href='/leaderboard'
+                className={cn(
+                  ' h-auto !w-auto rounded-full text-white ',
+                  activeTab?.includes('leaderboard') &&
                     'active-tab text-primary !bg-[#E2FFE5]'
                 )}
               >
-                <Tag className='h-6 w-6 ' />
+                <Trophy className='h-6 w-6' />
               </Link>
             </Button>
 
@@ -254,12 +291,16 @@ export const Nav = () => {
                 className={cn(
                   'p-4 mx-1 h-auto !w-auto rounded-full relative',
                   'text-white',
-                  activeTab === 'qr' && 'active-tab text-primary !bg-[#E2FFE5]'
+                  activeTab?.includes('qr') &&
+                    'active-tab text-primary !bg-[#E2FFE5]'
                 )}
                 style={{
-                  backgroundColor:
-                    activeTab === 'qr' ? '#E2FFE5' : 'transparent',
-                  border: activeTab === 'qr' ? '2px solid #336F4F' : 'none',
+                  backgroundColor: activeTab?.includes('qr')
+                    ? '#E2FFE5'
+                    : 'transparent',
+                  border: activeTab?.includes('qr')
+                    ? '2px solid #336F4F'
+                    : 'none',
                 }}
               >
                 <QrCodeIcon className='h-6 w-6' />

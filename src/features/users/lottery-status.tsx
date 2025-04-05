@@ -13,12 +13,11 @@ import {
 import React, {useEffect} from 'react'
 import {motion, AnimatePresence} from 'motion/react'
 import type {PunchCardWithRestaurant} from '@/types/api'
-import type {PunchCard} from '@/types'
 
 export function LotteryStatus({
   punchCards,
 }: {
-  punchCards: PunchCardWithRestaurant[]
+  punchCards: any[] // Accept any array with the required shape
 }) {
   console.log('🚀 ~ punchCards:', punchCards)
   const [percentageProgress, setPercentageProgress] = React.useState(0)
@@ -113,7 +112,7 @@ export function LotteryStatus({
                 >
                   {punchCard.restaurant.name
                     .split(' ')
-                    .map((word: any[]) => word[0])
+                    .map((word) => word.charAt(0))
                     .join('')}
                 </motion.div>
               ))}
@@ -175,7 +174,7 @@ export function LotteryStatus({
                   </motion.div>
 
                   <div className='space-y-3 pl-7 pt-2'>
-                    {punchCards.map((punchCard: PunchCard) => (
+                    {punchCards.map((punchCard: PunchCardWithRestaurant) => (
                       <motion.div
                         key={punchCard.id}
                         className='flex items-center gap-2'

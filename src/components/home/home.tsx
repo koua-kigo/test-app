@@ -6,6 +6,7 @@ import {SignUpButton} from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
 import {BoxReveal} from '@/components/magicui/box-reveal'
+import {Button} from '@/components/ui/button'
 
 export const Home = () => {
   return (
@@ -47,22 +48,21 @@ export const Home = () => {
         <BoxReveal boxColor={'#E2FFE5'} duration={0.5} delay={1.1}>
           <div className='flex gap-4 items-center flex-row mt-8 justify-center align-middle w-full'>
             <div className='flex gap-4 justify-center align-middle items-center w-min mx-auto'>
-              <Link
-                href='/deals'
+              <Button
+                className='bg-[#208F54] border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#E2FFE5] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer'
                 style={{background: '#208F54'}}
-                className='bg=[#208F54] border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#E2FFE5] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer'
               >
-                See Deals
-              </Link>
+                <Link href='/deals'>See Deals</Link>
+              </Button>
 
-              <div
+              <Button
                 style={{
                   background: '#43E790',
                 }}
                 className='bg-[#43E790] relative z-40 border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#E2FFE5] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 text-black cursor-pointer'
               >
                 <SignUpButton>Get Started</SignUpButton>
-              </div>
+              </Button>
             </div>
           </div>
         </BoxReveal>
