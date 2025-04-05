@@ -9,6 +9,7 @@ import {toast} from 'sonner'
 // Server actions (placed outside the component)
 import {getRestaurants} from '@/db/models/restaurants/restaurants'
 import {createDeal} from '@/components/admin/deals/actions'
+import {Checkbox} from '@/components/ui/checkbox'
 
 // Define a simplified restaurant type for the select dropdown
 type SimpleRestaurant = {
@@ -174,13 +175,20 @@ export function NewDealForm({
         {/* Active Status */}
         <div className='col-span-2'>
           <div className='flex items-center'>
-            <input
+            {/* <input
               type='checkbox'
               id='active'
               name='active'
               defaultChecked={true}
-              className='h-4 w-4 rounded border-gray-300 text-[#818cf8] focus:ring-[#818cf8]'
+              className='h-6 w-6 rounded border border-2 border-black '
+            /> */}
+            <Checkbox
+              id='active'
+              name='active'
+              defaultChecked={true}
+              className='h-6 w-6 rounded border border-2 border-black '
             />
+
             <label
               htmlFor='active'
               className='ml-2 block text-sm text-gray-700'

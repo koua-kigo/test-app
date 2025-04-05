@@ -43,7 +43,7 @@ export const restaurants = pgTable("restaurants", {
 	email: varchar(),
 	phone: varchar(),
 	website: varchar(),
-	qrCode: varchar("qr_code"),
+	qrCodeSvg: varchar("qr_code_svg"),
 });
 
 export const punchCards = pgTable(

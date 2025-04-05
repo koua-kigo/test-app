@@ -14,16 +14,20 @@ export const DealsHero = ({children}: {children: React.ReactNode}) => {
           initial={{opacity: 0}}
           animate={{opacity: 1}}
           transition={{duration: 0.5}}
-          className='relative h-[60vh] w-full overflow-hidden'
+          className='relative h-[50vh] w-full overflow-hidden max-h-[50vh]'
+          style={{
+            height: '50vh',
+            maxHeight: '50vh',
+          }}
         >
           {/* Background Image */}
           <Image
             src='/maple-grove.jpg'
             alt='Maple Grove Restaurant Week'
-            height={600}
-            width={600}
+            height={1000}
+            width={1000}
             priority
-            className='object-cover brightness-[0.65]'
+            className='object-cover object-center brightness-[0.65] w-full h-auto'
           />
           <div className='absolute inset-0 top-0 left-0 h-full w-full z-3 bg-gradient-to-b from-transparent to bg-black/50' />
           {/* Floating Sparkles */}
@@ -113,12 +117,31 @@ export const DealsHero = ({children}: {children: React.ReactNode}) => {
             xmlns='http://www.w3.org/2000/svg'
             viewBox='0 0 1440 320'
             aria-hidden='true'
+            style={{
+              marginBottom: '-125px',
+            }}
           >
             <path
-              fill='currentColor'
+              fill='url(#patternFill)'
               fillOpacity='1'
               d='M0,128L48,138.7C96,149,192,171,288,181.3C384,192,480,192,576,170.7C672,149,768,107,864,90.7C960,75,1056,85,1152,96C1248,107,1344,117,1392,122.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'
             />
+            <defs>
+              <pattern
+                id='patternFill'
+                patternUnits='userSpaceOnUse'
+                width='100'
+                height='100'
+              >
+                <image
+                  href='/bg-pattern.png'
+                  x='0'
+                  y='0'
+                  width='100'
+                  height='100'
+                />
+              </pattern>
+            </defs>
           </svg>
         </motion.div>
         <Image

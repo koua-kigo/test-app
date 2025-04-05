@@ -1,13 +1,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import {Suspense} from 'react'
-import {getPaginatedRestaurants, getRestaurants} from '@/db/models'
 import type {restaurantSchema} from '@/types/schemas'
-import {RestaurantsTable} from '@/components/admin/restaurants-table'
 import type {z} from 'zod'
-import type {PaginatedRestaurants} from '@/db'
-import {BackArrowIcon} from '@/components/BackArrowIcon'
+
 import {ArrowLeftIcon} from 'lucide-react'
+import {RestaurantTableWrapper} from './restaurant-table-wrapper'
+import {fetchRestaurants} from './actions'
 
 // Type for restaurant data
 type Restaurant = z.infer<typeof restaurantSchema>
@@ -30,54 +29,21 @@ function RestaurantsLoading() {
   )
 }
 
-// Restaurant card component
-function RestaurantCard({restaurant}: {restaurant: Restaurant}) {
-  console.log('🚀 ~ RestaurantCard ~ restaurant:', restaurant)
+// Main page component as a server component
+export default async function RestaurantsPage({
+  searchParams,
+}: {
+  searchParams: {page?: string; perPage?: string}
+}) {
+  const params = await searchParams
+  const page = Number(params.page || '1')
+  const perPage = Number(params.perPage || '10')
 
-  return (
-    <div className='bg-white rounded-lg shadow-md p-0 overflow-hidden transition-all hover:shadow-lg'>
-      <div className='relative h-48 w-full'>
-        <Image
-          src={
-            restaurant.imageUrl ||
-            'https://via.placeholder.com/400x250?text=Restaurant'
-          }
-          alt={restaurant.name}
-          fill
-          className='object-cover'
-          sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-        />
-      </div>
-      <div className='p-4'>
-        <h3 className='text-xl font-semibold mb-2'>{restaurant.name}</h3>
-        <p className='text-gray-600 text-sm mb-2 line-clamp-2'>
-          {restaurant.description}
-        </p>
-        <p className='text-gray-500 text-sm mb-4'>{restaurant.address}</p>
-        <Link
-          href={`/admin/restaurants/${restaurant.id.toString()}`}
-          className='inline-block bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors'
-        >
-          View Details
-        </Link>
-      </div>
-    </div>
+  // Server-side data fetching
+  const [initialRestaurants, paginationInfo] = await fetchRestaurants(
+    page,
+    perPage
   )
-}
-
-// Restaurants list component with table
-async function RestaurantsList({restaurants}: {restaurants: Restaurant[]}) {
-  // Fetch restaurants from the database
-
-  return <RestaurantsTable restaurants={restaurants} />
-}
-
-// Main page component
-export default async function RestaurantsPage() {
-  const {restaurants, ...rest}: PaginatedRestaurants =
-    await getPaginatedRestaurants()
-
-  console.log('🚀 ~ RestaurantsPage ~ restaurants:', restaurants)
 
   return (
     <>
@@ -130,7 +96,6 @@ export default async function RestaurantsPage() {
               className='rounded-full bg-black text-white p-2'
             >
               <ArrowLeftIcon size={18} />
-              {/* <BackArrowIcon size={18} /> */}
             </Link>
           </div>
         </div>
@@ -142,7 +107,8 @@ export default async function RestaurantsPage() {
           </p>
         </div>
       </div>
-      {restaurants.length === 0 ? (
+
+      {initialRestaurants.length === 0 ? (
         <div className='text-center py-12'>
           <h3 className='text-xl font-medium mb-4'>No restaurants found</h3>
           <p className='text-gray-600 mb-6'>
@@ -151,10 +117,14 @@ export default async function RestaurantsPage() {
         </div>
       ) : (
         <Suspense fallback={<RestaurantsLoading />}>
-          <RestaurantsTable
-            restaurants={restaurants}
-            {...rest}
-            fetchRestaurants={getPaginatedRestaurants}
+          <RestaurantTableWrapper
+            initialRestaurants={initialRestaurants}
+            pagination={{
+              pageIndex: page - 1,
+              pageSize: perPage,
+              total: paginationInfo.total,
+            }}
+            fetchRestaurants={fetchRestaurants}
           />
         </Suspense>
       )}

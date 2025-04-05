@@ -89,6 +89,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {cn} from '@/lib/utils'
+import {useCallback, useEffect} from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {QRCodeGenerator} from '@/components/qr-code/qr-code-generator'
 
 // Define interfaces for TanStack Table metadata
 interface ColumnMeta {
@@ -106,6 +116,11 @@ type RestaurantData = z.infer<typeof restaurantSchema>
 type ExtendedRestaurant = Restaurant & {
   punchCardCount?: number
   deals?: {id: string; title: string; isActive: boolean}[]
+}
+
+// Add this type definition near the top of the file
+type TableRestaurant = Omit<Restaurant, 'qrCodeSvg'> & {
+  qrCodeSvg?: string | null
 }
 
 // Props for editable cells
@@ -260,10 +275,14 @@ const EditableCell = ({getValue, row, column, table}: EditableCellProps) => {
 export function RestaurantsTable({
   restaurants: initialData,
   pagination,
-
   fetchRestaurants,
 }: {
   restaurants: RestaurantData[]
+  pagination: {
+    total: number
+    pageIndex: number
+    pageSize: number
+  }
   fetchRestaurants: () => void
 }) {
   const {total, pageIndex, pageSize} = pagination
@@ -278,8 +297,9 @@ export function RestaurantsTable({
   const [isExporting, setIsExporting] = React.useState(false)
   const [isImporting, setIsImporting] = React.useState(false)
   const [refreshTrigger, setRefreshTrigger] = React.useState(0)
-  const [tableRestaurants, setTableRestaurants] =
-    React.useState<RestaurantData[][]>(initialData)
+  const [tableRestaurants, setTableRestaurants] = React.useState<
+    RestaurantData[][]
+  >([initialData])
 
   // Track selection count for visibility check
   const selectedCount = Object.keys(rowSelection).length
@@ -293,6 +313,20 @@ export function RestaurantsTable({
     // Show success message
     toast.success('QR codes updated successfully')
   }, [router])
+
+  // Generic function to refresh table data after any update
+  const refreshTableData = React.useCallback(
+    (message = 'Data refreshed') => {
+      fetchRestaurants()
+      // Force Next.js router refresh
+      router.refresh()
+      // Increment trigger to force state update
+      setRefreshTrigger((prev) => prev + 1)
+      // Show success message with the provided message
+      toast.success(message)
+    },
+    [router]
+  )
 
   // Add bulk QR code generation hook with refresh callback
   const {
@@ -310,10 +344,27 @@ export function RestaurantsTable({
     onSuccess: refreshData,
   })
 
-  // Function to handle individual QR code updates
-  const handleQRCodeUpdate = React.useCallback(() => {
-    refreshData()
-  }, [refreshData])
+  // Function to handle QR code updates
+  const handleQRCodeUpdate = React.useCallback(
+    (updatedRestaurant: RestaurantData | undefined) => {
+      if (updatedRestaurant) {
+        // Update the local state with the updated restaurant
+        setData((prevData) =>
+          prevData.map((restaurant) =>
+            restaurant.id === updatedRestaurant.id
+              ? {...restaurant, qrCodeUrl: updatedRestaurant.qrCodeUrl}
+              : restaurant
+          )
+        )
+        // Also update the filtered restaurants, though this isn't typically necessary as it's derived from data
+        toast.success('QR code created successfully')
+      } else {
+        // Fall back to the old refresh method if no updated restaurant is provided
+        refreshData()
+      }
+    },
+    [refreshData]
+  )
 
   // Check viewport size on mount and window resize
   React.useEffect(() => {
@@ -445,7 +496,7 @@ export function RestaurantsTable({
     },
     {
       accessorKey: 'contactName',
-      size: 160,
+      size: 250,
       header: ({column}) => (
         <div className='flex items-center gap-0.5'>
           Contact Name
@@ -463,7 +514,7 @@ export function RestaurantsTable({
     },
     {
       accessorKey: 'contactPosition',
-      size: 150,
+      size: 250,
       header: ({column}) => (
         <div className='flex items-center gap-0.5'>
           Position
@@ -481,6 +532,7 @@ export function RestaurantsTable({
     },
     {
       accessorKey: 'address',
+      size: 200,
       header: ({column}) => (
         <div className='flex items-center gap-0.5'>
           Address
@@ -498,7 +550,7 @@ export function RestaurantsTable({
     },
     {
       accessorKey: 'email',
-      size: 180,
+      size: 200,
       header: ({column}) => (
         <div className='flex items-center gap-0.5'>
           Email
@@ -534,7 +586,7 @@ export function RestaurantsTable({
     },
     {
       accessorKey: 'website',
-      size: 150,
+      size: 50,
       header: ({column}) => (
         <div className='flex items-center gap-0.5'>
           Website
@@ -561,7 +613,7 @@ export function RestaurantsTable({
               rel='noopener noreferrer'
               className='flex items-center text-blue-600 hover:underline'
             >
-              {website.replace(/^(https?:\/\/)?(www\.)?/, '')}
+              {/* {website.replace(/^(https?:\/\/)?(www\.)?/, '')} */}
               <ExternalLink className='h-3 w-3 ml-1' />
             </a>
           </div>
@@ -570,7 +622,7 @@ export function RestaurantsTable({
     },
     {
       accessorKey: 'code',
-      size: 100,
+      size: 50,
       header: ({column}) => (
         <div className='flex items-center gap-0.5'>
           Code
@@ -588,24 +640,133 @@ export function RestaurantsTable({
     },
     {
       accessorKey: 'qrCodeUrl',
+      size: 120,
       header: 'QR Code',
       cell: ({row}) => {
-        const restaurant = row.original as Restaurant
+        const restaurant = row.original
+        // State to manage dialog visibility
+        const [dialogOpen, setDialogOpen] = React.useState(false)
+
+        // If restaurant has a QR code, show icon and download button
+        if (restaurant.qrCodeUrl) {
+          return (
+            <div className='flex items-center gap-2'>
+              <QrCode className='h-4.5 w-4.5 text-primary/80' />
+              <Button
+                variant='outline'
+                size='sm'
+                className='flex items-center gap-1 px-2 h-8 touch-manipulation'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  // Create an anchor element for download
+                  const link = document.createElement('a')
+
+                  // Generate QR code SVG using QRCodeSVG from qrcode.react
+                  // We use a hidden div to render the QR code
+                  const tempDiv = document.createElement('div')
+                  tempDiv.style.position = 'absolute'
+                  tempDiv.style.visibility = 'hidden'
+                  document.body.appendChild(tempDiv)
+
+                  // Render QR code and get SVG
+                  import('react-dom/client').then(({createRoot}) => {
+                    const root = createRoot(tempDiv)
+                    import('qrcode.react').then(({QRCodeSVG}) => {
+                      root.render(
+                        <QRCodeSVG
+                          value={restaurant.qrCodeUrl || ''}
+                          size={200}
+                          bgColor={'#ffffff'}
+                          fgColor={'#000000'}
+                          level={'L'}
+                        />
+                      )
+
+                      // Get the SVG element
+                      setTimeout(() => {
+                        const svgEl = tempDiv.querySelector('svg')
+                        if (svgEl) {
+                          // Ensure white background
+                          svgEl.setAttribute('style', 'background-color: white')
+
+                          // Convert SVG to a blob for download
+                          const svgData = new XMLSerializer().serializeToString(
+                            svgEl
+                          )
+                          const blob = new Blob([svgData], {
+                            type: 'image/svg+xml',
+                          })
+                          const url = URL.createObjectURL(blob)
+
+                          // Set up download
+                          link.href = url
+                          link.download = `${restaurant.name
+                            .replace(/\s+/g, '-')
+                            .toLowerCase()}-qrcode.svg`
+                          document.body.appendChild(link)
+                          link.click()
+
+                          // Clean up
+                          document.body.removeChild(link)
+                          URL.revokeObjectURL(url)
+                          root.unmount()
+                          document.body.removeChild(tempDiv)
+                        }
+                      }, 100)
+                    })
+                  })
+                }}
+              >
+                <Download className='h-3.5 w-3.5 mr-1' />
+                Download QR
+              </Button>
+            </div>
+          )
+        }
+
+        // Custom handler that closes the dialog after QR generation
+        const handleQRUpdateAndClose = (updatedRestaurant: any) => {
+          // Call the original handler with the updated restaurant
+          handleQRCodeUpdate(updatedRestaurant)
+          // Close the dialog
+          setDialogOpen(false)
+        }
+
+        // If no QR code, show Create QR button with dialog
         return (
           <div className='flex items-center'>
             <QrCode className='h-4 w-4 text-sidebar-foreground/50 mr-2' />
-            <QRCodeManager
-              restaurant={restaurant}
-              variant='table'
-              onUpdate={handleQRCodeUpdate}
-            />
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  className='flex items-center gap-1 px-2 h-8 touch-manipulation'
+                >
+                  Create QR
+                </Button>
+              </DialogTrigger>
+              <DialogContent className='max-w-md p-6'>
+                <DialogHeader>
+                  <DialogTitle>Create Restaurant QR Code</DialogTitle>
+                </DialogHeader>
+
+                <div className='space-y-4'>
+                  <QRCodeGenerator
+                    restaurant={restaurant}
+                    variant='compact'
+                    onUpdate={handleQRUpdateAndClose}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         )
       },
     },
     {
       accessorKey: 'punchCardCount',
-      size: 120,
+      size: 50,
       header: ({column}) => (
         <div className='flex items-center gap-0.5'>
           Punch Cards
@@ -632,7 +793,7 @@ export function RestaurantsTable({
     },
     {
       accessorKey: 'dealCount',
-      size: 100,
+      size: 50,
       header: ({column}) => (
         <div className='flex items-center gap-0.5'>
           Deals
@@ -662,12 +823,15 @@ export function RestaurantsTable({
     {
       id: 'quickView',
       header: 'Quick View',
-      size: 100,
+      size: 50,
       cell: ({row}) => {
         const restaurant = row.original
         return (
           <div className='flex justify-center'>
-            <RestaurantQuickView restaurantId={restaurant.id} />
+            <RestaurantQuickView
+              restaurantId={restaurant.id}
+              onQRCodeUpdate={handleQRCodeUpdate}
+            />
           </div>
         )
       },
@@ -728,7 +892,7 @@ export function RestaurantsTable({
       const result = await updateRestaurantAction(id, updateData)
 
       if (result.success) {
-        toast.success(result.message)
+        refreshTableData('Restaurant updated successfully')
       } else {
         toast.error(result.error?._form?.[0] || 'Failed to update restaurant')
         // Reset to original data if update failed
@@ -750,7 +914,7 @@ export function RestaurantsTable({
       const result = await deleteRestaurantAction(restaurantToDelete.id)
 
       if (result.success) {
-        toast.success(result.message)
+        refreshTableData('Restaurant deleted successfully')
         // Remove from local state
         setData(data.filter((r) => r.id !== restaurantToDelete.id))
       } else {
@@ -763,6 +927,25 @@ export function RestaurantsTable({
       setRestaurantToDelete(null)
     }
   }
+  const handleFilteredRestaurants = useCallback(
+    (rowIndex: number, columnId: string, value: unknown) => {
+      const restaurantId = filteredRestaurants[rowIndex].id
+      const dataIndex = data.findIndex((r) => r.id === restaurantId)
+
+      if (dataIndex >= 0) {
+        const newData = [...data]
+        newData[dataIndex] = {
+          ...newData[dataIndex],
+          [columnId]: value,
+        }
+        setData(newData)
+
+        // Save changes to the database
+        handleSave(dataIndex, newData[dataIndex])
+      }
+    },
+    [data, filteredRestaurants, handleSave]
+  )
 
   // Define data table using TanStack
   const table = useReactTable({
@@ -778,6 +961,7 @@ export function RestaurantsTable({
         pageSize: 10,
       },
     },
+    manualPagination: false, // Let TanStack handle pagination internally
     // Fix to handle row selection properly with pagination
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -785,39 +969,21 @@ export function RestaurantsTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    // Add onPaginationChange handler to fetch restaurants when page changes
-    onPaginationChange: (updater) => {
-      // First update the pagination state internally
-      table.setPagination(updater)
+    // Add pagination change handler for scroll behavior
+    // onPaginationChange: (updater) => {
+    //   // Log pagination changes for debugging
+    //   console.log('Pagination changed:', updater)
 
-      // Then fetch fresh data after pagination has been updated
-      fetchRestaurants(updater.pageIndex + 1, updater.pageSize).then(
-        (restaurants) => {
-          setTableRestaurants((tableRestaurants) => [
-            ...tableRestaurants,
-            restaurants,
-          ])
-        }
-      )
-    },
+    //   // Scroll to top of table on page change
+    //   if (typeof window !== 'undefined') {
+    //     const tableElement = document.querySelector('.restaurants-table')
+    //     if (tableElement) {
+    //       tableElement.scrollIntoView({behavior: 'smooth', block: 'start'})
+    //     }
+    //   }
+    // },
     meta: {
-      updateData: (rowIndex, columnId, value) => {
-        // Find actual restaurant by ID to handle filtered restaurants correctly
-        const restaurantId = filteredRestaurants[rowIndex].id
-        const dataIndex = data.findIndex((r) => r.id === restaurantId)
-
-        if (dataIndex >= 0) {
-          const newData = [...data]
-          newData[dataIndex] = {
-            ...newData[dataIndex],
-            [columnId]: value,
-          }
-          setData(newData)
-
-          // Save changes to the database
-          handleSave(dataIndex, newData[dataIndex])
-        }
-      },
+      updateData: handleFilteredRestaurants,
     } as TableMeta,
   })
 
@@ -825,7 +991,6 @@ export function RestaurantsTable({
     const loadedRestaurants = tableRestaurants.flat()
 
     // Check if we have loaded all restaurants from the database
-
     const loadedCount = loadedRestaurants.length
 
     if (loadedCount < total) {
@@ -836,42 +1001,8 @@ export function RestaurantsTable({
       // Attempt to load all remaining restaurants
       toast.info(`Loading all ${total - loadedCount} remaining restaurants...`)
 
-      // Create a promise to load all remaining restaurants
-      const loadAllRestaurants = async () => {
-        try {
-          // Calculate how many pages we need to fetch
-          const pageSize = 50 // Adjust based on your API's page size
-          const remainingPages = Math.ceil((total - loadedCount) / pageSize)
-
-          // Start from the next page we haven't loaded yet
-          const startPage = Math.floor(loadedCount / pageSize) + 1
-
-          // Create an array of promises for each page fetch
-          const fetchPromises = Array.from({length: remainingPages}, (_, i) => {
-            // Call fetchRestaurants without parameters to use current page
-            return fetchRestaurants()
-          })
-
-          // Execute all fetch requests in parallel
-          const results = await Promise.all(fetchPromises)
-
-          // Update the tableRestaurants state with all fetched data
-          setTableRestaurants((prev) => [...prev, ...results])
-
-          toast.success(`Successfully loaded all ${total} restaurants`)
-          return results.flat()
-        } catch (error) {
-          toast.error('Failed to load all restaurants')
-          console.error('Error loading all restaurants:', error)
-          return []
-        }
-      }
-
-      // Start loading all restaurants in the background
-      loadAllRestaurants()
-
-      // Option: Could trigger loading of remaining restaurants here
-      // fetchRestaurants(1, totalRestaurantsInDb);
+      // Trigger fetchRestaurants which will load all restaurants through our wrapper
+      fetchRestaurants()
     }
 
     // Return what we have, with awareness that it might be incomplete
@@ -933,7 +1064,7 @@ export function RestaurantsTable({
         setIsExporting(false)
       }
     },
-    [filteredRestaurants, table]
+    [table, tableRestaurants]
   )
 
   // Add handler for CSV import
@@ -944,8 +1075,8 @@ export function RestaurantsTable({
         const result = await importRestaurantsFromCSV(data)
 
         if (result.success) {
-          // Force refresh to get updated data
-          router.refresh()
+          // Use our new generic refresh function
+          refreshTableData('Restaurants imported successfully')
         } else {
           toast.error(result.message)
           if (result.error?._form) {
@@ -959,11 +1090,30 @@ export function RestaurantsTable({
         setIsImporting(false)
       }
     },
-    [router]
+    [router, refreshTableData]
   )
 
+  // Debug effect to track pagination state changes
+  useEffect(() => {
+    console.log('Table pagination state:', table?.getState()?.pagination)
+    // The key to making pagination work is ensuring the table has access to all data
+    // but only displays the current page. The getPaginationRowModel() should handle this,
+    // but we can force a refresh when the pagination state changes.
+    if (table) {
+      table.getRowModel() // Force recalculation of rows
+    }
+  }, [table, table?.getState()?.pagination?.pageIndex, refreshTrigger])
+
+  const next = useCallback(() => {
+    table.nextPage()
+  }, [table])
+
+  const previous = useCallback(() => {
+    table.previousPage()
+  }, [table])
+
   return (
-    <div className='space-y-4 p-4 rounded-xl mb-4 shadow-sm bg-white'>
+    <div className='space-y-4 p-4 rounded-xl mb-4 shadow-sm bg-white restaurants-table'>
       <AdminRestaurantSearchBar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -1273,7 +1423,10 @@ export function RestaurantsTable({
 
                     {/* Quick View Button */}
                     <div className='flex justify-end pt-3 border-t border-sidebar-border'>
-                      <RestaurantQuickView restaurantId={restaurant.id} />
+                      <RestaurantQuickView
+                        restaurantId={restaurant.id}
+                        onQRCodeUpdate={handleQRCodeUpdate}
+                      />
                     </div>
                   </div>
                 </div>
@@ -1390,7 +1543,9 @@ export function RestaurantsTable({
           <select
             value={table.getState().pagination.pageSize}
             onChange={(e) => {
-              table.setPageSize(Number(e.target.value))
+              const newPageSize = Number(e.target.value)
+              table.setPageSize(newPageSize)
+              console.log('Set page size to:', newPageSize)
             }}
             className='h-8 text-xs rounded-md border border-sidebar-border bg-background px-2'
           >
@@ -1411,20 +1566,23 @@ export function RestaurantsTable({
           </div>
 
           <div className='flex items-center gap-1'>
-            <Button
+            {/* <Button
               variant='outline'
               size='icon'
-              onClick={() => table.setPageIndex(0)}
+              onClick={() => {
+                table.setPageIndex(0)
+                console.log('Go to first page')
+              }}
               disabled={!table.getCanPreviousPage()}
               className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
               aria-label='First page'
             >
               <ChevronsLeft className='h-4 w-4' />
-            </Button>
+            </Button> */}
             <Button
               variant='outline'
               size='icon'
-              onClick={() => table.previousPage()}
+              onClick={previous}
               disabled={!table.getCanPreviousPage()}
               className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
               aria-label='Previous page'
@@ -1434,23 +1592,26 @@ export function RestaurantsTable({
             <Button
               variant='outline'
               size='icon'
-              onClick={() => table.nextPage()}
+              onClick={next}
               disabled={!table.getCanNextPage()}
               className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
               aria-label='Next page'
             >
               <ChevronRight className='h-4 w-4' />
             </Button>
-            <Button
+            {/* <Button
               variant='outline'
               size='icon'
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              onClick={() => {
+                table.setPageIndex(table.getPageCount() - 1)
+                console.log('Go to last page')
+              }}
               disabled={!table.getCanNextPage()}
               className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
               aria-label='Last page'
             >
               <ChevronsRight className='h-4 w-4' />
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>
@@ -1485,4 +1646,11 @@ export function RestaurantsTable({
       </AlertDialog>
     </div>
   )
+}
+
+export const refreshRestaurantTable = (router: any) => {
+  // Force Next.js router refresh
+  router.refresh()
+  // Show success message with the provided message
+  toast.success('Restaurant data refreshed')
 }

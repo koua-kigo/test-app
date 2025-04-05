@@ -5,9 +5,7 @@ import {auth, type Session} from '@clerk/nextjs/server'
 
 import dynamic from 'next/dynamic'
 import {Suspense} from 'react'
-const Home = dynamic(() =>
-  import('@/components/home/home').then((mod) => mod.Home)
-)
+import {Home} from '@/components/home/home'
 
 export default async function Index() {
   const session = await auth()
@@ -24,6 +22,7 @@ export default async function Index() {
               alt='Restaurant Passport Logo'
               width={100}
               height={100}
+              priority
             />
           </Link>
         </div>

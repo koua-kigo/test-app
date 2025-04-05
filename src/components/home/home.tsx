@@ -1,8 +1,11 @@
-import {BoxReveal} from '@/components/magicui/box-reveal'
+'use client'
+
+import dynamic from 'next/dynamic'
 import {SignUpButton} from '@clerk/nextjs'
 
 import Image from 'next/image'
 import Link from 'next/link'
+import {BoxReveal} from '@/components/magicui/box-reveal'
 
 export const Home = () => {
   return (
@@ -14,6 +17,7 @@ export const Home = () => {
           width={300}
           height={300}
           className='mx-auto'
+          priority
         />
 
         <BoxReveal boxColor={'#E2FFE5'} duration={0.25}>

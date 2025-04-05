@@ -199,7 +199,7 @@ export const Nav = () => {
           )}
         </AnimatePresence>
 
-        <motion.nav className='fixed bottom-0 left-1/2 -translate-x-1/2 sm:py-2 py-2 z-20 s:h-[80px] h-auto will-change-transform'>
+        <motion.nav className='fixed bottom-0 left-1/2 -translate-x-1/2 sm:py-2 py-2 z-50 s:h-[80px] h-auto will-change-transform'>
           <motion.div
             className='flex justify-evenly w-content border rounded-full bg-linear-270 from-[#336f4f] from 48% to-[#179b55] backdrop-blur-sm  will-change-transform'
             initial={{opacity: 0, y: 10, width: 0}}
@@ -338,7 +338,7 @@ export const Nav = () => {
                   variant='ghost'
                   size='sm'
                   className={cn(
-                    'p-4 mx-1 h-auto !w-auto rounded-full hover:bg-[#E2FFE5] text-black',
+                    'p-4 mx-1 h-auto !w-auto rounded-full hover:bg-[#E2FFE5] text-black relative z-50',
                     'text-white'
                   )}
                 >

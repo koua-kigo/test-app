@@ -57,15 +57,15 @@ export const getPaginatedRestaurants = async (
 	});
 
 	// Add count metadata to each restaurant
-	const restaurantsWithCounts = restaurantsList.map((restaurant) => ({
-		...restaurant,
-		punchCardCount: restaurant?.punchCards?.length || 0,
-		dealCount: restaurant?.deals?.length || 0,
-	}));
+	// const restaurantsWithCounts = restaurantsList.map((restaurant) => ({
+	// 	...restaurant,
+	// 	punchCardCount: restaurant?.punchCards?.length || 0,
+	// 	dealCount: restaurant?.deals?.length || 0,
+	// }));
 
 	// Return both the restaurants and pagination metadata
 	return {
-		restaurants: restaurantsWithCounts,
+		restaurants: restaurantsList,
 		pagination: {
 			total: totalCount,
 			pageSize,

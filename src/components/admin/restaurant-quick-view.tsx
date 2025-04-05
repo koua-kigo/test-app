@@ -1,13 +1,13 @@
 'use client'
 
-import {useState, type ReactNode} from 'react'
+import {useCallback, useEffect, useState, type ReactNode} from 'react'
 import {Button} from '@/components/ui/button'
 import {Eye, Plus} from 'lucide-react'
 import {
   createRestaurantDeal,
   getRestaurantByIdWithAll,
 } from '@/db/models/restaurants/restaurants'
-import type {Restaurant, Prize, PunchCard} from '@/types/db'
+import type {Restaurant, Prize, PunchCard, Deal as DbDeal} from '@/types/db'
 import {toast} from 'sonner'
 import {BentoGrid} from '@/components/kokonutui/bento-grid'
 import {
@@ -34,6 +34,7 @@ import {Textarea} from '@/components/ui/textarea'
 import {Checkbox} from '@/components/ui/checkbox'
 import {DealsList, EmptyDeals} from './restaurant-deals-display'
 import {QRCodeManager} from '@/app/admin/restaurants/qr-code-manager'
+import {QRCodeGenerator} from '@/components/qr-code/qr-code-generator'
 
 // Define the BentoItem interface to match the BentoGrid component's expected types
 interface BentoItem {
@@ -48,7 +49,7 @@ interface BentoItem {
 }
 
 // Define types for deal
-export interface Deal {
+export interface Deal extends Omit<DbDeal, 'id'> {
   id?: string
   restaurantId: bigint
   title: string
@@ -57,22 +58,44 @@ export interface Deal {
 }
 
 // Define a type for the detailed restaurant with associated data
-interface DetailedRestaurant extends Restaurant {
+interface DetailedRestaurant extends Omit<Restaurant, 'deals'> {
   prizes: Prize[]
   punchCards: PunchCard[]
   punchCardCount: number
-  deals?: Deal[] // Add deals to the restaurant data
+  deals?: Deal[] // Using our local Deal type that extends the DB Deal
 }
 
-interface RestaurantQuickViewProps {
-  restaurantId: bigint
+// Update the component props to accept either restaurant or restaurantId
+export interface RestaurantQuickViewProps {
+  restaurant?: {
+    id: bigint
+    name: string
+    qrCodeUrl?: string | null
+    [key: string]: any // Allow any other properties
+  }
+  restaurantId?: bigint | string
+  onQRCodeUpdate?: (updatedRestaurant: any) => void
 }
 
-export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
+export function RestaurantQuickView({
+  restaurant,
+  restaurantId,
+  onQRCodeUpdate,
+}: RestaurantQuickViewProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [restaurantData, setRestaurantData] =
     useState<DetailedRestaurant | null>(null)
+
+  // Since we might receive either restaurant or restaurantId, initialize properly
+  useEffect(() => {
+    if (restaurant) {
+      // If restaurant is provided directly, use it as initial state
+      setRestaurantData(restaurant as unknown as DetailedRestaurant)
+    }
+    // Note: if only restaurantId is provided, data will be fetched in handleOpen
+  }, [restaurant])
+
   const [isDealDialogOpen, setIsDealDialogOpen] = useState(false)
   const [newDeal, setNewDeal] = useState({
     title: '',
@@ -81,16 +104,21 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
   })
 
   const handleOpen = async () => {
+    setIsOpen(true)
     if (!isLoading) {
       setIsLoading(true)
 
       try {
-        const data = await getRestaurantByIdWithAll(restaurantId)
+        // Use either the restaurant id from props or from the restaurantId prop
+        const id = restaurant?.id || BigInt(restaurantId as string)
+        const data = await getRestaurantByIdWithAll(id)
+
+        console.log('🚀 ~ handleOpen ~ data:', data)
+
         if (data) {
           // Transform the data to match our expected types
           const transformedData = {
             ...data,
-
             punchCards: data.punchCards.map((card) => ({
               ...card,
               // Convert updatedAt string to Date safely
@@ -99,25 +127,6 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
                   ? new Date(card.updatedAt)
                   : new Date(),
             })),
-            // Initialize deals with mock data if it doesn't exist
-            deals: data.restaurantDeals || [
-              {
-                id: 'deal-1',
-                title: 'Happy Hour',
-                description: '50% off on all drinks from 5PM to 7PM',
-                isActive: true,
-                createdAt: new Date(),
-                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-              },
-              {
-                id: 'deal-2',
-                title: 'Weekend Special',
-                description: 'Buy one get one free on desserts on weekends',
-                isActive: true,
-                createdAt: new Date(),
-                expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-              },
-            ],
           }
 
           // Now we can safely cast to our expected type
@@ -139,10 +148,10 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
     }
   }
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsOpen(false)
     setRestaurantData(null)
-  }
+  }, [])
 
   // Handle opening the deal creation dialog
   const handleOpenDealDialog = () => {
@@ -190,8 +199,27 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
     toast.success('New deal created successfully')
   }
 
+  // QR code update handler that updates both local state and parent table
+  const handleQRCodeUpdate = useCallback(
+    (updatedRestaurant: any) => {
+      console.log(
+        '🚀 ~ RestaurantQuickView ~ handleQRCodeUpdate:',
+        updatedRestaurant
+      )
+
+      // Update the local restaurant data state
+      setRestaurantData(updatedRestaurant)
+
+      // Propagate the update to the parent table if callback exists
+      if (onQRCodeUpdate) {
+        onQRCodeUpdate(updatedRestaurant)
+      }
+    },
+    [onQRCodeUpdate]
+  )
+
   // Convert restaurant data to bento grid items
-  const getBentoItems = () => {
+  const getBentoItems = useCallback(() => {
     if (!restaurantData) return []
 
     // Create base item for restaurant info
@@ -235,33 +263,20 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
       title: 'Restaurant QR Code',
       description: (
         <div className='flex flex-col items-center space-y-2'>
-          {restaurantData.qrCodeUrl ? (
-            <div className='flex flex-col items-center'>
-              <div className='relative w-24 h-24 mb-2'>
-                <img
-                  src={restaurantData.qrCodeUrl}
-                  alt='QR Code'
-                  className='w-24 h-24 object-contain'
-                />
-              </div>
-              <span className='text-xs text-gray-500'>Scan to add punch</span>
-            </div>
-          ) : (
-            <div className='flex flex-col items-center p-2'>
-              <div className='text-xs text-gray-500 mb-2'>
-                No QR code generated yet
-              </div>
-            </div>
-          )}
-          <div className='mt-2'>
-            <QRCodeManager restaurant={restaurantData} variant='compact' />
-          </div>
+          <QRCodeGenerator
+            restaurant={{
+              ...restaurantData,
+              // Convert the deals to the expected type if needed
+              deals: restaurantData.deals as unknown as DbDeal[] | undefined,
+            }}
+            variant='compact'
+            onUpdate={handleQRCodeUpdate}
+          />
         </div>
       ),
       icon: <QrCode className='w-4 h-4 text-purple-500' />,
       status: restaurantData.qrCodeUrl ? 'Active' : 'Not Generated',
-      tags: ['QR Code', 'Punch Cards'],
-      hasPersistentHover: false,
+      tags: ['QR Code'],
     })
 
     // Add deals section
@@ -300,16 +315,16 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
     }
 
     // Add punch cards summary item
-    if (restaurantData.punchCards.length > 0) {
-      const activeCards = restaurantData.punchCards.filter(
-        (card) => !card.completed
-      ).length
+    if (restaurantData.punchCards?.length > 0) {
+      const activeCards = restaurantData.punchCards?.length || 0
+      const completed =
+        restaurantData?.punchCards?.filter((card) => card?.completed).length ||
+        0
+
       items.push({
         id: `punch-cards-${restaurantData.id.toString()}`,
         title: 'Punch Cards',
-        description: `${activeCards} active punch cards, ${
-          restaurantData.punchCards.length - activeCards
-        } completed`,
+        description: `${activeCards} active punch cards, ${completed} completed`,
         icon: <CreditCard className='w-4 h-4 text-blue-500' />,
         status: 'Active',
         tags: ['Cards', 'Loyalty'],
@@ -373,7 +388,7 @@ export function RestaurantQuickView({restaurantId}: RestaurantQuickViewProps) {
     })
 
     return items
-  }
+  }, [restaurantData])
 
   return (
     <>

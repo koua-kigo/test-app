@@ -29,6 +29,7 @@ export type Restaurant = {
 	imageUrl: string;
 	address: string;
 	qrCodeUrl: string | null;
+	qrCodeSvg: string | null;
 	code?: number | null;
 	contactName?: string | null;
 	contactPosition?: string | null;
