@@ -63,6 +63,11 @@ const menuItems = [
     ],
   },
   {
+    title: 'Leaderboard',
+    href: '/admin/leaderboard',
+    icon: <Trophy size={20} />,
+  },
+  {
     title: 'Settings',
     href: '/admin/settings',
     icon: <Settings size={20} />,

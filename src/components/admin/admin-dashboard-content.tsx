@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import type {User} from '@/types/db'
+import {RaffleEntriesCardList} from './RaffleEntriesCardList'
 
 type AdminDashboardContentProps = {
   user: User | null
@@ -24,7 +25,7 @@ export function AdminDashboardContent({user}: AdminDashboardContentProps) {
         </p>
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
         <Link
           href='/admin/users'
           className='block p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow'
@@ -48,6 +49,15 @@ export function AdminDashboardContent({user}: AdminDashboardContentProps) {
           <h3 className='text-lg font-semibold mb-2'>Settings</h3>
           <p className='text-gray-600'>Configure application settings</p>
         </Link>
+      </div>
+
+      <div className='bg-white rounded-lg shadow-sm p-6 mb-6'>
+        <h2 className='text-xl font-semibold mb-4'>Raffle Entries</h2>
+        <p className='text-gray-600 mb-6'>
+          Below are all the raffle entries in the system. Entries are updated in
+          real-time.
+        </p>
+        <RaffleEntriesCardList />
       </div>
     </div>
   )

@@ -248,38 +248,6 @@ export const Nav = () => {
               </Link>
             </Button>
 
-            <Button
-              variant='ghost'
-              size='sm'
-              onMouseEnter={() => handleHoverButton('leaderboard')}
-              onMouseLeave={() => handleHoverButton(null)}
-              className={cn(
-                'p-4 h-auto !w-auto rounded-full relative',
-                'text-white',
-                activeTab?.includes('leaderboard') &&
-                  'active-tab text-primary !bg-[#E2FFE5] relative after:content-[" "] after:absolute after:-inset-1 after:h-[60px] after:w-[60px] after:rounded-full after:bg-[#E2FFE5] after:z-[1] after:opacity-50 after:blur-sm'
-              )}
-              style={{
-                backgroundColor: activeTab?.includes('leaderboard')
-                  ? '#E2FFE5'
-                  : 'transparent',
-                border: activeTab?.includes('leaderboard')
-                  ? '2px solid #336F4F'
-                  : 'none',
-              }}
-            >
-              <Link
-                href='/leaderboard'
-                className={cn(
-                  ' h-auto !w-auto rounded-full text-white ',
-                  activeTab?.includes('leaderboard') &&
-                    ' text-primary !bg-[#E2FFE5]'
-                )}
-              >
-                <Trophy className='h-6 w-6' />
-              </Link>
-            </Button>
-
             {currentUser && !userIsAdmin && (
               // <NavScannerButton onScanClick={toggleModal} />
               <Button
