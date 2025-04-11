@@ -120,7 +120,7 @@ export const NavScannerButton = ({onScanClick}: NavScannerButtonProps) => {
 
 export const Nav = () => {
   const pathname = usePathname()
-  const activeTab = pathname // pathname.split('/').pop()
+  const activeTab = pathname.split('/').pop()
 
   const {currentUser} = useUserContext()
   const {session} = useSession()
@@ -237,7 +237,7 @@ export const Nav = () => {
                   ' h-auto !w-auto rounded-full text-white ',
                   activeTab?.includes('deals') ||
                     (activeTab?.includes('restaurants') &&
-                      'active-tab text-primary !bg-[#E2FFE5]')
+                      'text-primary !bg-[#E2FFE5]')
                 )}
               >
                 {activeTab?.includes('restaurants') ? (
@@ -273,7 +273,7 @@ export const Nav = () => {
                 className={cn(
                   ' h-auto !w-auto rounded-full text-white ',
                   activeTab?.includes('leaderboard') &&
-                    'active-tab text-primary !bg-[#E2FFE5]'
+                    ' text-primary !bg-[#E2FFE5]'
                 )}
               >
                 <Trophy className='h-6 w-6' />
@@ -291,8 +291,7 @@ export const Nav = () => {
                 className={cn(
                   'p-4 mx-1 h-auto !w-auto rounded-full relative',
                   'text-white',
-                  activeTab?.includes('qr') &&
-                    'active-tab text-primary !bg-[#E2FFE5]'
+                  activeTab?.includes('qr') && ' text-primary !bg-[#E2FFE5]'
                 )}
                 style={{
                   backgroundColor: activeTab?.includes('qr')
@@ -332,8 +331,7 @@ export const Nav = () => {
                   href={'/admin'}
                   className={cn(
                     '  h-auto !w-auto rounded-full text-white',
-                    activeTab?.includes('admin') &&
-                      'active-tab text-primary !bg-[#E2FFE5]'
+                    activeTab?.includes('admin') && 'text-primary !bg-[#E2FFE5]'
                   )}
                 >
                   <Settings2 className='h-6 w-6 ' />
@@ -348,8 +346,7 @@ export const Nav = () => {
                 className={cn(
                   'p-4 mx-1 h-auto !w-auto rounded-full',
                   'text-white',
-                  activeTab?.includes('profile') &&
-                    'active-tab text-primary !bg-[#E2FFE5]'
+                  activeTab?.includes('profile') && 'text-primary !bg-[#E2FFE5]'
                 )}
                 style={{
                   backgroundColor: activeTab?.includes('profile')
@@ -365,7 +362,7 @@ export const Nav = () => {
                   className={cn(
                     ' h-auto !w-auto rounded-full text-white',
                     activeTab?.includes('profile') &&
-                      'active-tab text-primary !bg-[#E2FFE5]'
+                      'text-primary !bg-[#E2FFE5]'
                   )}
                 >
                   <BookUser className='h-6 w-6 ' />

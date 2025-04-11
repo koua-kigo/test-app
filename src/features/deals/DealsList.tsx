@@ -1,12 +1,13 @@
 'use client'
 
-import {useState, useMemo, useCallback} from 'react'
+import {useState, useMemo, useCallback, useEffect} from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {Tag, Clock, ExternalLink} from 'lucide-react'
 import {motion} from 'framer-motion'
 import {cn, isValidUrl} from '@/lib/utils'
 import type {Deal} from '@/types/db'
+import {useDealsSubscription} from '@/hooks/useDealsSubscription'
 
 // This type represents the deal structure as it comes from the database
 interface DatabaseDeal {
@@ -31,22 +32,20 @@ interface DealsListProps {
   className?: string
 }
 
-export const DealsList = ({deals, className}: DealsListProps) => {
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+export const DealsList = ({deals: initialDeals, className}: DealsListProps) => {
+  const {deals: dealsFeed, isLoading, error} = useDealsSubscription()
+  const [deals, setDeals] = useState(
+    isLoading || !dealsFeed ? initialDeals : dealsFeed
+  )
+
+  // Use dealsFeed from subscription when available, otherwise use initialDeals
+  useEffect(() => {
+    if (dealsFeed && dealsFeed.length > 0) {
+      setDeals(dealsFeed)
+    }
+  }, [dealsFeed])
 
   // Sort deals by active status (active first) and then by creation date (newest first)
-  const sortedDeals = useMemo(() => {
-    return [...deals].sort((a, b) => {
-      // First sort by active status (active deals first)
-      if (a.active && !b.active) return -1
-      if (!a.active && b.active) return 1
-
-      // Then sort by creation date (newest first)
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
-      return dateB - dateA
-    })
-  }, [deals])
 
   if (!deals || deals.length === 0) {
     return (
@@ -63,22 +62,15 @@ export const DealsList = ({deals, className}: DealsListProps) => {
     )
   }
 
-  const toggleExpand = useCallback(
-    (id: string) => {
-      setExpandedId(expandedId === id ? null : id)
-    },
-    [expandedId]
-  )
-
   return (
-    <div className={cn('container mt-8 mx-auto space-4', className)}>
+    <div className={cn('container my-8 mx-auto space-4 py-8', className)}>
       <div className='flex items-center mb-4 justify-center'>
         <Tag className='mr-2 h-5 w-5 text-blue-500' />
         <h2 className='text-2xl font-semibold text-center'>Current Deals</h2>
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        {sortedDeals.map((deal) => (
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4 py-8'>
+        {deals.map((deal) => (
           <motion.div
             key={`${deal.id.toString()}-${deal.restaurantId.toString()}`}
             layout

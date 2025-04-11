@@ -76,21 +76,21 @@ export const getPaginatedRestaurants = async (
 	};
 };
 
-export const getDeals = async () => {
-	return await db.query.restaurantDeals.findMany({
-		with: {
-			restaurant: true,
-		},
-	});
-};
-export const getActiveDeals = async () => {
-	return await db.query.restaurantDeals.findMany({
-		where: eq(restaurantDeals.active, true),
-		with: {
-			restaurant: true,
-		},
-	});
-};
+// export const getDeals = async () => {
+// 	return await db.query.restaurantDeals.findMany({
+// 		with: {
+// 			restaurant: true,
+// 		},
+// 	});
+// };
+// export const getActiveDeals = async () => {
+// 	return await db.query.restaurantDeals.findMany({
+// 		where: eq(restaurantDeals.active, true),
+// 		with: {
+// 			restaurant: true,
+// 		},
+// 	});
+// };
 
 export const getRestaurantById = async (id: bigint) => {
 	return await db

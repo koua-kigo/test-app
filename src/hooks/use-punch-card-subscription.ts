@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 import type { PunchCard } from "@/types/db";
 import { getPunchCardsByUserId } from "@/db/models/punch-cards";
-import { supabaseClient } from "@/db/supabase-client";
+import { supabaseBrowserClient } from "@/db/supabase/supabase.client";
 
 export type PunchCardWithRestaurant = {
 	id: bigint;
@@ -77,7 +77,7 @@ export function usePunchCardSubscription(userId: bigint) {
 		const userIdStr = userId.toString();
 
 		// Subscribe to punch card changes for this user
-		const subscription = supabaseClient
+		const subscription = supabaseBrowserClient
 			.channel("punch-cards")
 			.on(
 				"postgres_changes",

@@ -149,7 +149,7 @@ export const DealsHero = ({children}: {children: React.ReactNode}) => {
           alt='Maple Grove Restaurant Week'
           height={200}
           width={300}
-          className='mx-auto'
+          className='mx-auto mt-8 block'
           priority
         />
         {children}
