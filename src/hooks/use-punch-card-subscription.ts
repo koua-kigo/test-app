@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import type { PunchCard } from "@/types/db";
 import { getPunchCardsByUserId } from "@/db/models/punch-cards";
@@ -33,41 +33,45 @@ export function usePunchCardSubscription(userId: bigint) {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
 
+	const fetchPunchCards = useCallback(async () => {
+		try {
+			setIsLoading(true);
+
+			// Use the client-side API endpoint to get punch cards
+			const response = await fetch(`/api/punch-cards?userId=${userId}`);
+
+			if (!response.ok) {
+				// throw new Error("Failed to fetch punch cards");
+			}
+
+			const { success, data, error } = await response.json();
+
+			console.log("🚀 ~ fetchPunchCards ~ error:", error);
+
+			console.log("🚀 ~ fetchPunchCards ~ data:", data);
+
+			if (!success) {
+				// throw new Error(error || "Failed to fetch punch cards");
+			}
+
+			console.log("🚀 ~ fetchPunchCards ~ punchCards:", data);
+			setPunchCards(data);
+		} catch (err) {
+			console.error("Error fetching punch cards:", err);
+			setError(
+				err instanceof Error ? err : new Error("Unknown error occurred"),
+			);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [userId]);
+
 	// Fetch initial punch cards
 	useEffect(() => {
-		const fetchPunchCards = async () => {
-			try {
-				setIsLoading(true);
-
-				// Use the client-side API endpoint to get punch cards
-				const response = await fetch(`/api/punch-cards?userId=${userId}`);
-
-				if (!response.ok) {
-					throw new Error("Failed to fetch punch cards");
-				}
-
-				const { success, data, error } = await response.json();
-
-				if (!success) {
-					throw new Error(error || "Failed to fetch punch cards");
-				}
-
-				console.log("🚀 ~ fetchPunchCards ~ punchCards:", data);
-				setPunchCards(data);
-			} catch (err) {
-				console.error("Error fetching punch cards:", err);
-				setError(
-					err instanceof Error ? err : new Error("Unknown error occurred"),
-				);
-			} finally {
-				setIsLoading(false);
-			}
-		};
-
 		if (userId) {
 			fetchPunchCards();
 		}
-	}, [userId]);
+	}, [userId, fetchPunchCards]);
 
 	// Set up real-time subscription
 	useEffect(() => {
@@ -75,6 +79,8 @@ export function usePunchCardSubscription(userId: bigint) {
 
 		// Convert bigint to string for the subscription
 		const userIdStr = userId.toString();
+
+		console.log("🚀 ~ useEffect ~ userIdStr:", userIdStr);
 
 		// Subscribe to punch card changes for this user
 		const subscription = supabaseBrowserClient
@@ -95,13 +101,17 @@ export function usePunchCardSubscription(userId: bigint) {
 						const response = await fetch(`/api/punch-cards?userId=${userId}`);
 
 						if (!response.ok) {
-							throw new Error("Failed to fetch updated punch cards");
+							// throw new Error("Failed to fetch updated punch cards");
 						}
 
 						const { success, data, error } = await response.json();
 
+						console.log("🚀 ~ success:", success);
+
+						console.log("🚀 ~ data:", data);
+
 						if (!success) {
-							throw new Error(error || "Failed to fetch updated punch cards");
+							// throw new Error(error || "Failed to fetch updated punch cards");
 						}
 
 						setPunchCards(data);
@@ -111,6 +121,7 @@ export function usePunchCardSubscription(userId: bigint) {
 				},
 			)
 			.subscribe();
+
 		console.log("🚀 ~ useEffect ~ subscription:", subscription);
 		// Clean up subscription on unmount
 		return () => {

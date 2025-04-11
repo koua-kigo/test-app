@@ -23,7 +23,6 @@ export const getPunchCardsByUserId = async (userId: bigint) => {
 		where: eq(punchCards.userId, userId),
 		with: {
 			restaurant: true,
-			user: true,
 		},
 	});
 };

@@ -50,6 +50,8 @@ export type PunchCard = {
 	userId: bigint;
 	restaurantId: bigint;
 	punches: number;
+	restaurant?: Restaurant;
+
 	completed: boolean;
 	updatedAt: Date;
 };
