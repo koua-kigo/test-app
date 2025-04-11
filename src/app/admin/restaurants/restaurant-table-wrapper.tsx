@@ -6,6 +6,7 @@ import type {Restaurant} from '@/types/db'
 import {toast} from 'sonner'
 import type {z} from 'zod'
 import type {restaurantSchema} from '@/types/schemas'
+import {useRestaurantSubscription} from '@/hooks'
 
 // Type for restaurant data
 type RestaurantData = z.infer<typeof restaurantSchema>
@@ -297,6 +298,11 @@ export const RestaurantTableWrapper = React.forwardRef<
     pagination.pageSize,
     schedulePoll,
   ])
+
+  // Subscribe to real-time updates
+  useRestaurantSubscription({
+    onUpdate: refreshRestaurants,
+  })
 
   // Create a wrapped version of fetchMoreRestaurants for the RestaurantsTable
   const wrappedFetchRestaurants = React.useCallback(() => {

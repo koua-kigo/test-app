@@ -31,7 +31,7 @@ export default async function ProfilePage() {
   console.log('🚀 ~ ProfilePage ~ initialPunchCards:', initialPunchCards)
 
   return (
-    <div className='p-6'>
+    <div className='p-6 sm:pb-12'>
       <div className='flex justify-between items-center mb-8'>
         <h1 className='text-2xl font-bold'>My Collection</h1>
         <UserButton />
