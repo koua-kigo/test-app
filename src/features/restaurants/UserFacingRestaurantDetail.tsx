@@ -6,6 +6,7 @@ import {
 } from '@/db/models/restaurants/restaurants'
 import {getUserByClerkId} from '@/db/models/users/users'
 import {RestaurantDetail} from '@/features/restaurants/restaurant-detail/RestaurantDetail'
+import type {Restaurant} from '@/types/db'
 
 import {auth} from '@clerk/nextjs/server'
 
@@ -13,14 +14,11 @@ import {auth} from '@clerk/nextjs/server'
 
 // Main page component
 export async function UserFacingRestaurantDetail({
-  params,
+  restaurant,
 }: {
-  params: {id: string}
+  // params: {id: string}
+  restaurant: Restaurant
 }) {
-  const {id} = await params
-  const restaurant = id
-    ? await getRestaurantByIdWithPrizesAndDeals(BigInt(id))
-    : null
   const {userId} = await auth()
   const user = userId ? await getUserByClerkId(userId) : null
 
