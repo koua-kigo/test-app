@@ -33,6 +33,8 @@ export default async function ProfilePage({
 
   const queryParams = await searchParams
 
+  console.log('🚀 ~ queryParams:', queryParams)
+
   const user = userId ? await getUserByClerkId(userId) : null
   console.log('🚀 ~ ProfilePage ~ user:', user)
 
@@ -49,7 +51,7 @@ export default async function ProfilePage({
   const raffleEntry =
     showRaffleAnimation && queryParams?.raffleEntryId
       ? await getRaffleEntryById(BigInt(queryParams.raffleEntryId))
-      : null
+      : user?.raffleEntries?.[0]
   console.log('🚀 ~ raffleEntry:', raffleEntry)
 
   console.log('🚀 ~ ProfilePage ~ initialPunchCards:', initialPunchCards)

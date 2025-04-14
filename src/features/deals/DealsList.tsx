@@ -63,13 +63,13 @@ export const DealsList = ({deals: initialDeals, className}: DealsListProps) => {
   }
 
   return (
-    <div className={cn('container my-8 mx-auto space-4 py-8', className)}>
+    <div className={cn('container my-4 mx-auto space-4 py-8', className)}>
       <div className='flex items-center mb-4 justify-center'>
         <Tag className='mr-2 h-5 w-5 text-blue-500' />
         <h2 className='text-2xl font-semibold text-center'>Current Deals</h2>
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4 py-8'>
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-8'>
         {deals.map((deal) => (
           <motion.div
             key={`${deal.id.toString()}-${deal.restaurantId.toString()}`}
@@ -78,11 +78,12 @@ export const DealsList = ({deals: initialDeals, className}: DealsListProps) => {
             animate={{opacity: 1, y: 0}}
             exit={{opacity: 0, y: -20}}
             transition={{duration: 0.3}}
+            style={{border: '1px solid rgb(51, 111, 79, 0.45)'}}
             className={cn(
               'overflow-hidden rounded-lg',
               'bg-white dark:bg-zinc-900',
-              'shadow-sm',
-              'border border-gray-100 dark:border-zinc-800',
+              'shadow-md',
+              'border border-2 border-yellow-200 dark:border-zinc-800',
               'hover:shadow-md transition-all duration-200'
             )}
           >

@@ -4,29 +4,29 @@ import type { User, WebhookEvent } from "@clerk/nextjs/server";
 import { createUser } from "@/db/models/users";
 
 export async function POST(req: Request) {
-	const SIGNING_SECRET = process.env.SIGNING_SECRET;
+	// const SIGNING_SECRET = process.env.SIGNING_SECRET;
 
-	if (!SIGNING_SECRET) {
-		throw new Error(
-			"Error: Please add SIGNING_SECRET from Clerk Dashboard to .env or .env",
-		);
-	}
+	// if (!SIGNING_SECRET) {
+	// 	throw new Error(
+	// 		"Error: Please add SIGNING_SECRET from Clerk Dashboard to .env or .env",
+	// 	);
+	// }
 
-	// Create new Svix instance with secret
-	const wh = new Webhook(SIGNING_SECRET);
+	// // Create new Svix instance with secret
+	// const wh = new Webhook(SIGNING_SECRET);
 
-	// Get headers
-	const headerPayload = await headers();
-	const svix_id = headerPayload.get("svix-id");
-	const svix_timestamp = headerPayload.get("svix-timestamp");
-	const svix_signature = headerPayload.get("svix-signature");
+	// // Get headers
+	// const headerPayload = await headers();
+	// const svix_id = headerPayload.get("svix-id");
+	// const svix_timestamp = headerPayload.get("svix-timestamp");
+	// const svix_signature = headerPayload.get("svix-signature");
 
-	// If there are no headers, error out
-	if (!svix_id || !svix_timestamp || !svix_signature) {
-		return new Response("Error: Missing Svix headers", {
-			status: 400,
-		});
-	}
+	// // If there are no headers, error out
+	// if (!svix_id || !svix_timestamp || !svix_signature) {
+	// 	return new Response("Error: Missing Svix headers", {
+	// 		status: 400,
+	// 	});
+	// }
 
 	// Get body
 	const payload = await req.json();

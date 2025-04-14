@@ -17,19 +17,33 @@ export const getRaffleEntries = async () => {
 	});
 };
 export const getRaffleEntryById = async (id: bigint) => {
-	return await db
-		.select()
-		.from(raffleEntries)
-		.where(eq(raffleEntries.id, id))
-		.limit(1)
-		.then((res) => [0]);
+	// This returns a single item (or null if not found), not an array
+	// The findFirst method returns the first matching record or null
+	return await db.query.raffleEntries.findFirst({
+		where: eq(raffleEntries.id, id),
+		with: {
+			punchCard: {
+				with: {
+					restaurant: true,
+				},
+			},
+			user: true,
+		},
+	});
 };
 
 export const getRaffleEntriesByUserId = async (userId: bigint) => {
-	return await db
-		.select()
-		.from(raffleEntries)
-		.where(eq(raffleEntries.userId, userId));
+	return await db.query.raffleEntries.findFirst({
+		where: eq(raffleEntries.userId, userId),
+		with: {
+			punchCard: {
+				with: {
+					restaurant: true,
+				},
+			},
+			user: true,
+		},
+	});
 };
 
 export const getRaffleEntriesByPunchCardId = async (punchCardId: bigint) => {

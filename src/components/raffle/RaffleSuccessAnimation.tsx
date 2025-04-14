@@ -66,7 +66,7 @@ export function RaffleSuccessAnimation({
 
   return (
     <AnimatePresence>
-      {isVisible && (
+      {isVisible && raffleEntry && (
         <motion.div
           initial={{opacity: 0, scale: 0.5, y: -50}}
           animate={{opacity: 1, scale: 1, y: 0}}
@@ -79,11 +79,13 @@ export function RaffleSuccessAnimation({
               animate={{scale: [1, 1.2, 1]}}
               transition={{repeat: Number.POSITIVE_INFINITY, duration: 2}}
             >
-              <h2 className='text-2xl font-bold mb-2'>Congratulations! 🎉</h2>
+              <h2 className='text-2xl font-bold mb-2'>
+                Congratulations! {raffleEntry.userId} 🎉
+              </h2>
             </motion.div>
             <p className='text-lg mb-4'>You've been entered into our raffle!</p>
             <p className='text-sm opacity-90'>
-              Raffle Entry #{raffleEntry.id.toString()} was created on{' '}
+              Raffle Entry #{raffleEntry.id} was created on{' '}
               {new Date(raffleEntry.createdAt).toLocaleDateString()}
             </p>
             <div className='mt-4 text-sm'>

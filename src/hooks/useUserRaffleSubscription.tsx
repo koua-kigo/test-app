@@ -11,22 +11,18 @@ import {getRaffleEntriesByUserId} from '@/db/models/raffle-entries'
  * @returns The updated raffle entries array with loading and error states
  */
 export function useUserRaffleSubscription(userId: bigint) {
-  const [raffleEntries, setRaffleEntries] = useState<RaffleEntry[]>([])
+  const [raffleEntry, setRaffleEntry] = useState<RaffleEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   const fetchUserRaffleEntries = useCallback(async () => {
     try {
       setIsLoading(true)
-      const entries = await getRaffleEntriesByUserId(userId)
+      const entry: unknown = await getRaffleEntriesByUserId(userId)
 
-      // Convert string dates to Date objects to match RaffleEntry type
-      const formattedEntries = entries.map((entry) => ({
-        ...entry,
-        createdAt: entry.createdAt ? new Date(entry.createdAt) : new Date(),
-      }))
+      console.log('🚀 ~ fetchUserRaffleEntries ~ entry:', entry)
 
-      setRaffleEntries(formattedEntries)
+      setRaffleEntry(entry)
       setError(null)
     } catch (err) {
       setError(
@@ -68,7 +64,7 @@ export function useUserRaffleSubscription(userId: bigint) {
   }, [userId, fetchUserRaffleEntries])
 
   return {
-    raffleEntries,
+    raffleEntry,
     isLoading,
     error,
   }

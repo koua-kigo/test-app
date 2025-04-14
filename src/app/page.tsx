@@ -13,14 +13,14 @@ export default async function Index() {
   const userid = session?.userId
 
   return (
-    <div className='grid grid-rows-[60px_1fr_20px] items-center justify-items-center h-full p-2 gap-16 font-geistSans'>
-      <nav className='w-full row-start-1 flex justify-between items-center px-8'>
+    <div className='grid grid-rows-[60px_1fr_20px] items-center justify-items-center h-full p-2 font-geistSans'>
+      <nav className='w-full row-start-1 flex justify-between items-center md:px-8'>
         <div className='flex items-center gap-6'>
           <Link href='/'>
             <Image
-              src='/maple-grove.png'
+              src='/logo.png'
               alt='Restaurant Passport Logo'
-              width={100}
+              width={200}
               height={100}
               priority
             />

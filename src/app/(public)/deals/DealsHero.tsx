@@ -4,8 +4,11 @@ import {AnimatePresence, motion} from 'motion/react'
 import {Home, Sparkles} from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import {BoxReveal} from '@/components/magicui/box-reveal'
+import {useMediaQuery} from 'usehooks-ts'
 
 export const DealsHero = ({children}: {children: React.ReactNode}) => {
+  const isMobile = useMediaQuery('(max-width: 768px)')
   return (
     <AnimatePresence>
       <div className='px-0 py-0 mt-0'>
@@ -14,22 +17,28 @@ export const DealsHero = ({children}: {children: React.ReactNode}) => {
           initial={{opacity: 0}}
           animate={{opacity: 1}}
           transition={{duration: 0.5}}
-          className='relative h-[50vh] w-full overflow-hidden max-h-[50vh]'
-          style={{
-            height: '50vh',
-            maxHeight: '50vh',
-          }}
+          className='relative h-auto md:h-[50vh] w-full overflow-hidden md:max-h-[50vh]'
+          // style={{
+          //   height: '50vh',
+          //   maxHeight: '50vh',
+          // }}
         >
           {/* Background Image */}
           <Image
-            src='/maple-grove.jpg'
+            src='/deals-hero.jpeg'
             alt='Maple Grove Restaurant Week'
             height={1000}
             width={1000}
             priority
-            className='object-cover object-center brightness-[0.65] w-full h-auto'
+            loading='eager'
+            className='object-cover object-center w-full h-auto'
+            style={{
+              objectFit: 'cover',
+              objectPosition: 'center',
+              filter: 'brightness(0.5)',
+            }}
           />
-          <div className='absolute inset-0 top-0 left-0 h-full w-full z-3 bg-gradient-to-b from-transparent to bg-black/50' />
+          {/* <div className='absolute inset-0 top-0 left-0 h-full w-full z-3 bg-gradient-to-b from-transparent to bg-black/50' /> */}
           {/* Floating Sparkles */}
           <motion.div
             className='absolute top-1/4 right-1/4 '
@@ -64,29 +73,32 @@ export const DealsHero = ({children}: {children: React.ReactNode}) => {
             <Sparkles size={24} className='text-yellow-400' />
           </motion.div>
 
-          {/* Animated Content */}
           <div className='absolute inset-0 flex flex-col items-center justify-center text-white z-10 px-4'>
-            <motion.div
-              initial={{y: 30, opacity: 0}}
-              animate={{y: 0, opacity: 1}}
-              transition={{duration: 0.7, delay: 0.2}}
-            >
-              <h1 className='text-5xl md:text-7xl font-bold text-center mb-4 drop-shadow-lg'>
-                Exclusive <span className='text-yellow-300'>Deals</span>
-              </h1>
-            </motion.div>
+            <BoxReveal boxColor={'#208F54'} duration={0.5} delay={0.2}>
+              <motion.div
+                initial={{y: 30, opacity: 0}}
+                animate={{y: 0, opacity: 1}}
+                transition={{duration: 0.7, delay: 0.2}}
+              >
+                <h1 className='text-5xl md:text-7xl font-bold text-center mb-4 drop-shadow-lg'>
+                  Exclusive <span className='text-yellow-300'>Deals</span>
+                </h1>
+              </motion.div>
+            </BoxReveal>
 
-            <motion.div
-              initial={{y: 30, opacity: 0}}
-              animate={{y: 0, opacity: 1}}
-              transition={{duration: 0.7, delay: 0.4}}
-              className='max-w-2xl'
-            >
-              <p className='text-xl md:text-2xl text-center mb-8 drop-shadow-md'>
-                Discover special offers from Maple Grove's finest restaurants
-                while collecting stamps on your food passport!
-              </p>
-            </motion.div>
+            <BoxReveal boxColor={'#E2FFE5'} duration={0.5} delay={0.4}>
+              <motion.div
+                initial={{y: 30, opacity: 0}}
+                animate={{y: 0, opacity: 1}}
+                transition={{duration: 0.7, delay: 0.4}}
+                className='max-w-2xl'
+              >
+                <p className='text-md  md:text-2xl text-center mb-8 drop-shadow-md'>
+                  Discover special offers from Maple Grove's finest restaurants
+                  while collecting stamps on your food passport!
+                </p>
+              </motion.div>
+            </BoxReveal>
 
             <motion.div
               initial={{y: 30, opacity: 0}}
@@ -96,14 +108,14 @@ export const DealsHero = ({children}: {children: React.ReactNode}) => {
             >
               <Link
                 href='/restaurants'
-                className='bg-[#208F54] text-white rounded-full px-6 py-3 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105 hover:bg-[#1a7a47]'
+                className='bg-[#208F54] text-white rounded-full px-4 py-2 md:px-6 md:py-3 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105 hover:bg-[#1a7a47]'
               >
                 View Restaurants
               </Link>
 
               <Link
                 href='/'
-                className='bg-black text-white rounded-full px-6 py-3 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105'
+                className='bg-black text-white rounded-full px-4 py-2 md:px-6 md:py-3 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl transition-all hover:scale-105'
               >
                 <Home size={20} />
                 Home
@@ -144,14 +156,22 @@ export const DealsHero = ({children}: {children: React.ReactNode}) => {
             </defs>
           </svg>
         </motion.div>
-        <Image
-          src='/mg-2.png'
-          alt='Maple Grove Restaurant Week'
-          height={200}
-          width={300}
-          className='mx-auto mt-8 block'
-          priority
-        />
+
+        <motion.div
+          initial={{y: 40, opacity: 0}}
+          animate={{y: 0, opacity: 1}}
+          transition={{duration: 0.5, delay: 0.6, ease: 'easeInOut'}}
+          className='flex gap-4 flex-wrap justify-center'
+        >
+          <Image
+            src='/mg-2.png'
+            alt='Maple Grove Restaurant Week'
+            height={isMobile ? 100 : 200}
+            width={isMobile ? 200 : 400}
+            className='mx-auto mt-4 md:mt-8 block'
+            priority
+          />
+        </motion.div>
         {children}
       </div>
     </AnimatePresence>

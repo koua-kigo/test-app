@@ -2,7 +2,7 @@ import {DealsList, DealsListSkeleton} from '@/features/deals'
 
 import {Suspense} from 'react'
 
-import {DealsHero} from './Hero'
+import {DealsHero} from './DealsHero'
 import {getActiveDeals} from '@/db/models/deals'
 export const metadata = {
   title: 'Special Deals | Restaurant Passport',

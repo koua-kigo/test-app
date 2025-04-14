@@ -80,14 +80,17 @@ export function NavScanner({
   const [checkingPunchCardStatus, setCheckingPunchCardStatus] =
     useState<boolean>(false)
   const [result, setResult] = useState<string | null>(null)
+
+  console.log('🚀 ~ result:', result)
+
   // QR scanning logic moved from NavScannerButton to Nav
-  getRaffleEntriesByUserId
+  // getRaffleEntriesByUserId
   // Effect to ensure redirection happens after successful scan
   useEffect(() => {
     if (result && userId) {
       // Give time for modal to close and success message to show
       const route =
-        result?.data?.message.includes('Congrats') && result?.data?.raffleEntry
+        result?.data?.raffleEntry && result?.data?.raffleEntry?.id
           ? `/users/${userId}/profile?raffle=true&raffleEntryId=${result?.data?.raffleEntry?.id}`
           : `/users/${userId}/profile`
 

@@ -12,22 +12,24 @@ export const Home = () => {
   return (
     <main className='flex flex-col justify-center items-center align-middle p-4 w-full'>
       <div className='max-w-lg flex flex-col items-center justify-center align-middle'>
-        <Image
-          src='/logo.png'
-          alt='Restaurant Passport Logo'
-          width={300}
-          height={300}
-          className='mx-auto'
-          priority
-        />
+        <BoxReveal boxColor={'#E2FFE5'} duration={0.5}>
+          <Image
+            src='/maple-grove-home.png'
+            alt='Restaurant Passport Logo'
+            width={300}
+            height={300}
+            className='mx-auto'
+            priority
+          />
+        </BoxReveal>
 
-        <BoxReveal boxColor={'#E2FFE5'} duration={0.25}>
+        <BoxReveal boxColor={'#E2FFE5'} duration={0.25} delay={0.5}>
           <p className='text-xl font-bold' style={{color: '#2A643D'}}>
             Get Started with Your
           </p>
         </BoxReveal>
 
-        <BoxReveal boxColor={'#E2FFE5'} duration={0.35} delay={0.5}>
+        <BoxReveal boxColor={'#E2FFE5'} duration={0.35} delay={0.75}>
           <h2
             className='text-3xl font-bold text-center'
             style={{color: '#2A643D'}}
@@ -36,7 +38,7 @@ export const Home = () => {
           </h2>
         </BoxReveal>
 
-        <BoxReveal boxColor={'#E2FFE5'} duration={0.5} delay={0.8}>
+        <BoxReveal boxColor={'#E2FFE5'} duration={0.5} delay={0.85}>
           <div className='mt-6'>
             <p className='text-center max-w-lg mt-2'>
               Your foodie journey just went digital. Sign in, check in, Scan &
