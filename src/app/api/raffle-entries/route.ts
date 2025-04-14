@@ -1,36 +1,59 @@
 import { NextResponse } from "next/server";
-import { getRaffleEntries } from "@/db/models/raffle-entries";
+import {
+	getRaffleEntries,
+	getRaffleEntriesByUserId,
+} from "@/db/models/raffle-entries";
 import { db } from "@/db/db";
 import { restaurants, punchCards } from "@/db/drizzle/schema";
 import { sql } from "drizzle-orm";
 
-export async function GET() {
+export async function GET(request: Request) {
 	try {
-		// Fetch raffle entries with joined data using the model function
-		const raffleEntriesData = await getRaffleEntries();
+		const { searchParams } = new URL(request.url);
+		const userId = searchParams.get("userId");
 
-		// If we need restaurant information, we need to fetch it separately
-		// since the basic getRaffleEntries() doesn't include relations
-		const entriesWithDetails = await db.query.raffleEntries.findMany({
-			with: {
-				punchCard: {
-					with: {
-						restaurant: true,
+		let entriesWithDetails;
+
+		if (userId) {
+			// Fetch raffle entries for specific user
+			const userIdBigInt = BigInt(userId);
+			entriesWithDetails = await db.query.raffleEntries.findMany({
+				where: (raffleEntries, { eq }) =>
+					eq(raffleEntries.userId, userIdBigInt),
+				with: {
+					punchCard: {
+						with: {
+							restaurant: true,
+						},
 					},
+					user: true,
 				},
-				user: true,
-			},
-		});
+			});
+		} else {
+			// Fetch all raffle entries
+			entriesWithDetails = await db.query.raffleEntries.findMany({
+				with: {
+					punchCard: {
+						with: {
+							restaurant: true,
+						},
+					},
+					user: true,
+				},
+			});
+		}
 
 		// Transform the data for the UI
 		const formattedData = entriesWithDetails.map((entry) => ({
 			id: entry.id,
+			userId: entry.userId,
+			punchCardId: entry.punchCardId,
+			createdAt: entry.createdAt,
 			name: `Raffle Entry #${entry.id}`,
 			description: `Created at ${new Date(entry.createdAt).toLocaleString()} for punch card ${entry.punchCardId}`,
 			imageUrl: "/images/raffle-placeholder.jpg", // Default image since we don't have prize info
-			restaurantId: entry.punchCard.restaurantId,
-			restaurant: entry.punchCard.restaurant || {
-				id: 0,
+			restaurant: entry.punchCard?.restaurant || {
+				id: BigInt(0),
 				name: "Unknown Restaurant",
 				description: "",
 				imageUrl: "/images/restaurant-placeholder.jpg",

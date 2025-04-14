@@ -8,6 +8,8 @@ import {BentoGrid} from '@/components/kokonutui/bento-grid'
 import {Button} from '@/components/ui/button'
 import Link from 'next/link'
 import {getPunchCardsByUserId} from '@/db/models/punch-cards'
+import {getRaffleEntryById} from '@/db/models/raffle-entries/raffle-entries'
+import {RaffleSuccessAnimation} from '@/components/raffle/RaffleSuccessAnimation'
 
 // Define viewport metadata as per Next.js recommendations
 export const viewport = {
@@ -16,8 +18,17 @@ export const viewport = {
   maximumScale: 1,
 }
 
-export default async function ProfilePage() {
+type ProfilePageProps = {
+  params: {id: string}
+  searchParams: {raffle?: string; raffleEntryId?: string}
+}
+
+export default async function ProfilePage({
+  params,
+  searchParams,
+}: ProfilePageProps) {
   const {userId} = await auth()
+  const queryParams = await searchParams
 
   const user = userId ? await getUserByClerkId(userId) : null
   console.log('🚀 ~ ProfilePage ~ user:', user)
@@ -25,8 +36,18 @@ export default async function ProfilePage() {
   if (!user) return <div>Not logged in</div>
 
   // Let the client component handle all data fetching with realtime updates
-  const initialPunchCards: PunchCardWithRestaurant[] =
-    await getPunchCardsByUserId(user.id)
+  const initialPunchCards = await getPunchCardsByUserId(user.id)
+
+  // Check for raffle query parameters
+  const showRaffleAnimation =
+    queryParams?.raffle === 'true' && queryParams?.raffleEntryId
+
+  // Fetch raffle entry if needed
+  const raffleEntry =
+    showRaffleAnimation && queryParams?.raffleEntryId
+      ? await getRaffleEntryById(BigInt(queryParams.raffleEntryId))
+      : null
+  console.log('🚀 ~ raffleEntry:', raffleEntry)
 
   console.log('🚀 ~ ProfilePage ~ initialPunchCards:', initialPunchCards)
 
@@ -57,8 +78,16 @@ export default async function ProfilePage() {
         height={100}
         className='w-full h-auto mb-8 mx-auto display-block'
       />
+
+      {showRaffleAnimation && raffleEntry && (
+        <RaffleSuccessAnimation raffleEntry={raffleEntry} />
+      )}
+
       {/* Display user's punch cards with real-time updates */}
-      <UserPunchCards user={user} initialPunchCards={initialPunchCards} />
+      <UserPunchCards
+        user={user}
+        initialPunchCards={initialPunchCards as PunchCardWithRestaurant[]}
+      />
 
       <Button
         className='bold text-white w-full mx-auto mt-8  sm:w-min'

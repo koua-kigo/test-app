@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {Trophy} from 'lucide-react'
-import {motion} from 'motion/react'
+import {motion} from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import type {RestaurantLeaderboardEntry} from '@/types/api'
@@ -18,6 +18,9 @@ import type {RestaurantLeaderboardEntry} from '@/types/api'
 interface RestaurantLeaderboardProps {
   restaurants: RestaurantLeaderboardEntry[]
 }
+
+// Create an animated table row component
+const AnimatedTableRow = motion(TableRow)
 
 export function RestaurantLeaderboard({
   restaurants,
@@ -55,57 +58,48 @@ export function RestaurantLeaderboard({
             </TableRow>
           ) : (
             restaurants.map((restaurant, index) => (
-              <TableRow
+              <AnimatedTableRow
                 key={restaurant.restaurantId.toString()}
                 className='border-b transition-colors hover:bg-muted/50'
+                initial={{opacity: 0, y: 10}}
+                animate={{opacity: 1, y: 0}}
+                transition={{delay: index * 0.05}}
               >
-                <motion.div
-                  initial={{opacity: 0, y: 10}}
-                  animate={{opacity: 1, y: 0}}
-                  transition={{delay: index * 0.05}}
-                  className='contents' // Using contents to not disrupt table layout
-                >
-                  <TableCell className='text-center font-medium'>
-                    {restaurant.rank <= 3 ? (
-                      <Badge
-                        className={`${getRankBadgeColor(restaurant.rank)}`}
-                      >
-                        {restaurant.rank === 1 && (
-                          <Trophy className='mr-1 h-3 w-3' />
-                        )}
-                        {restaurant.rank}
-                      </Badge>
-                    ) : (
-                      restaurant.rank
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      href={`/restaurants/${restaurant.restaurantId}`}
-                      className='flex items-center gap-3 hover:underline'
-                    >
-                      <div className='relative h-10 w-10 overflow-hidden rounded-md'>
-                        <Image
-                          src={
-                            restaurant.imageUrl ||
-                            'https://via.placeholder.com/40'
-                          }
-                          alt={restaurant.restaurantName}
-                          fill
-                          className='object-cover'
-                          sizes='40px'
-                        />
-                      </div>
-                      <span className='font-medium'>
-                        {restaurant.restaurantName}
-                      </span>
-                    </Link>
-                  </TableCell>
-                  <TableCell className='text-right font-medium'>
-                    {restaurant.punchCardCount}
-                  </TableCell>
-                </motion.div>
-              </TableRow>
+                <TableCell className='text-center font-medium'>
+                  {restaurant.rank <= 3 ? (
+                    <Badge className={`${getRankBadgeColor(restaurant.rank)}`}>
+                      {restaurant.rank === 1 && (
+                        <Trophy className='mr-1 h-3 w-3' />
+                      )}
+                      {restaurant.rank}
+                    </Badge>
+                  ) : (
+                    restaurant.rank
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Link
+                    href={`/restaurants/${restaurant.restaurantId}`}
+                    className='flex items-center gap-3 hover:underline'
+                  >
+                    <div className='relative h-10 w-10 overflow-hidden rounded-md'>
+                      <Image
+                        src={'/RWP.jpg'}
+                        alt={restaurant.restaurantName}
+                        fill
+                        className='object-cover'
+                        sizes='40px'
+                      />
+                    </div>
+                    <span className='font-medium'>
+                      {restaurant.restaurantName}
+                    </span>
+                  </Link>
+                </TableCell>
+                <TableCell className='text-right font-medium'>
+                  {restaurant?.punchCardCount || null}
+                </TableCell>
+              </AnimatedTableRow>
             ))
           )}
         </TableBody>

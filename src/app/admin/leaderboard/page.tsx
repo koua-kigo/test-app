@@ -29,11 +29,23 @@ export default async function AdminLeaderboardPage() {
   // Fetch leaderboard data
   const topUsers = await getTopUsersByPunchCardCount(10)
   const popularRestaurants = await getPopularRestaurantsByPunchCardCount(10)
+
+  console.log(
+    '🚀 ~ AdminLeaderboardPage ~ popularRestaurants:',
+    popularRestaurants
+  )
+
   const raffleEntries = await getUsersInRaffle(10)
 
   // Convert BigInt values to strings for serialization
   const serializedTopUsers = convertBigInts(topUsers)
   const serializedPopularRestaurants = convertBigInts(popularRestaurants)
+
+  console.log(
+    '🚀 ~ AdminLeaderboardPage ~ serializedPopularRestaurants:',
+    serializedPopularRestaurants
+  )
+
   const serializedRaffleEntries = convertBigInts(raffleEntries)
 
   // Get punch cards for users in the raffle
@@ -63,22 +75,24 @@ export default async function AdminLeaderboardPage() {
   const serializedPunchCards = convertBigInts(formattedPunchCards)
 
   return (
-    <div className="w-full">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">Leaderboard & Raffle Management</h1>
-        <p className="text-gray-500">View and manage user statistics and raffle entries</p>
+    <div className='w-full'>
+      <div className='mb-8'>
+        <h1 className='text-2xl font-bold'>Leaderboard & Raffle Management</h1>
+        <p className='text-gray-500'>
+          View and manage user statistics and raffle entries
+        </p>
       </div>
-      
+
       <AdminLeaderboardActions />
 
-      <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-8">
-          <TabsTrigger value="users">Top Users</TabsTrigger>
-          <TabsTrigger value="restaurants">Popular Restaurants</TabsTrigger>
-          <TabsTrigger value="raffle">Raffle Status</TabsTrigger>
+      <Tabs defaultValue='users' className='w-full'>
+        <TabsList className='grid w-full grid-cols-3 mb-8'>
+          <TabsTrigger value='users'>Top Users</TabsTrigger>
+          <TabsTrigger value='restaurants'>Popular Restaurants</TabsTrigger>
+          <TabsTrigger value='raffle'>Raffle Status</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="users">
+        <TabsContent value='users'>
           <Card>
             <CardHeader>
               <CardTitle>Top Users</CardTitle>
@@ -90,7 +104,7 @@ export default async function AdminLeaderboardPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="restaurants">
+        <TabsContent value='restaurants'>
           <Card>
             <CardHeader>
               <CardTitle>Popular Restaurants</CardTitle>
@@ -106,8 +120,8 @@ export default async function AdminLeaderboardPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="raffle">
-          <div className="grid gap-6 grid-cols-1">
+        <TabsContent value='raffle'>
+          <div className='grid gap-6 grid-cols-1'>
             <Card>
               <CardHeader>
                 <CardTitle>Current Raffle Entries</CardTitle>

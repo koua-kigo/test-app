@@ -2,11 +2,13 @@
 
 import {
 	createPunchCard,
+	getPunchCardsByUserId,
 	getUserPunchCardForRestaurant,
 	incrementPunchCard,
 } from "@/db/models/punch-cards/punch-cards";
+import { createRaffleEntry } from "@/db/models/raffle-entries/raffle-entries";
 import { getRestaurantById } from "@/db/models/restaurants/restaurants";
-import { getUserByClerkId } from "@/db/models/users/users";
+import { getUserByClerkId, getUserById } from "@/db/models/users/users";
 import { convertBigInts } from "@/lib/utils";
 
 export async function processQrScan(formData: {
@@ -16,7 +18,7 @@ export async function processQrScan(formData: {
 	const { qrData, userId } = formData;
 
 	console.log("🚀 ~ processQrScan received qrData:", qrData);
-
+	let user;
 	try {
 		// Attempt to parse the QR data if it's a JSON string
 		let qrDataString = qrData;
@@ -44,28 +46,14 @@ export async function processQrScan(formData: {
 			}
 		}
 
-
 		console.log("🚀 ~ Processing QR data as:", qrDataString);
-			const restaurantId = qrDataString.match(/restaurants\/(\d+)\/scan/)?.[1] ?? "";
-			console.log("🚀 ~ restaurantId:", restaurantId)
+		const restaurantId =
+			qrDataString.match(/restaurants\/(\d+)\/scan/)?.[1] ?? "";
+		console.log("🚀 ~ restaurantId:", restaurantId);
 		console.log("🚀 ~ POST ~ restaurantId:", restaurantId);
 		const numericRestaurantId = restaurantId?.replace(/\D/g, "");
 
-		console.log("🚀 ~ numericRestaurantId:", numericRestaurantId)
-
-
-		// Parse the QR URL to extract restaurant ID
-		// const qrCodeUrl = new URL(qrDataString);
-
-		// console.log("🚀 ~ qrCodeUrl:", qrCodeUrl);
-
-		// const pathname = qrCodeUrl.pathname;
-		// // Extract only numeric part from the path to ensure valid BigInt conversion
-		// const pathParts = pathname.split("/").filter(Boolean);
-		// const restaurantId = pathParts.pop();
-		// const numericRestaurantId = restaurantId?.replace(/\D/g, "");
-
-		// console.log("🚀 ~ Extracted restaurant ID:", numericRestaurantId);
+		console.log("🚀 ~ numericRestaurantId:", numericRestaurantId);
 
 		if (!numericRestaurantId || !userId) {
 			return {
@@ -92,7 +80,7 @@ export async function processQrScan(formData: {
 					"userId appears to be a Clerk ID, fetching database user ID",
 				);
 				// If it's not a numeric string, assume it's a Clerk ID and get the real user ID
-				const user = await getUserByClerkId(userIdStr);
+				user = await getUserByClerkId(userIdStr);
 
 				if (!user || !user.id) {
 					throw new Error(`User not found with Clerk ID: ${userIdStr}`);
@@ -103,6 +91,7 @@ export async function processQrScan(formData: {
 			} else {
 				// If it's a numeric string, convert it to BigInt
 				userIdBigInt = BigInt(userIdStr);
+				user = await getUserById(userIdBigInt);
 			}
 		}
 
@@ -136,27 +125,35 @@ export async function processQrScan(formData: {
 			restaurantIdBigInt,
 		);
 
-		console.log("🚀 ~ punchCardExists:", punchCardExists)
-
+		console.log("🚀 ~ punchCardExists:", punchCardExists);
 
 		if (punchCardExists) {
-
-			console.log("🚀 ~ punchCardExists:", punchCardExists)
-
-			// If punch card exists, increment the punches
-			// const updatedPunchCard = await incrementPunchCard(
-			// 	punchCardExists.id,
-			// 	1, // Increment by 1
-			// );
+			console.log("🚀 ~ punchCardExists:", punchCardExists);
 
 			return {
-				message: "Punch card already exists and was updated",
-				data: convertBigInts( punchCardExists), // updatedPunchCard?.[0] ||
+				message: "Punch card already exists. Venture out my friend!",
+				data: convertBigInts(punchCardExists), // updatedPunchCard?.[0] ||
 				restaurantName: restaurant?.name || "Restaurant",
 				isExisting: true,
 			};
-		} else {
+		}
 
+		const userPunchCards = await getPunchCardsByUserId(userIdBigInt);
+
+		console.log("🚀 ~ userPunchCards:", userPunchCards);
+
+		const punchCardCount = userPunchCards.length;
+
+		console.log("🚀 ~ punchCardCount:", punchCardCount);
+
+		if (punchCardCount === 8) {
+			return {
+				message: `You have 8 Punch Cards and have already entered the raffle.`,
+				data: null,
+				success: false,
+			};
+		}
+		if (punchCardCount === 7) {
 			// Create new punch card if it doesn't exist
 			const punchCard = await createPunchCard({
 				userId: userIdBigInt,
@@ -164,18 +161,39 @@ export async function processQrScan(formData: {
 				punches: 1,
 				completed: true, // Set to false initially
 			}).then((res) => res[0]);
-	
-			console.log("🚀 ~ punchCard:", punchCard)
-	
-	
+
+			console.log("🚀 ~ last punch card initiate raffle Entry :", punchCard);
+			const raffleEntry = await createRaffleEntry({
+				userId: userIdBigInt,
+				punchCardId: punchCard.id,
+			}).then((res) => res[0]);
+
+			console.log("🚀 ~ raffleEntry:", raffleEntry);
 			return {
-				message: "Punch card created successfully",
-				data: convertBigInts(punchCard),
-				restaurantName: restaurant?.name || "Restaurant",
-				isExisting: false,
+				message: `Congrats! ${user?.name}! You've entered the raffle!`,
+				data: {
+					raffleEntry,
+					punchCard,
+				},
+				success: true,
 			};
 		}
+		// Create new punch card if it doesn't exist
+		const punchCard = await createPunchCard({
+			userId: userIdBigInt,
+			restaurantId: restaurantIdBigInt,
+			punches: 1,
+			completed: true, // Set to false initially
+		}).then((res) => res[0]);
 
+		console.log("🚀 ~ punchCard:", punchCard);
+
+		return {
+			message: "Punch card created successfully",
+			data: convertBigInts(punchCard),
+			restaurantName: restaurant?.name || "Restaurant",
+			isExisting: false,
+		};
 	} catch (error) {
 		console.error("Error processing QR scan:", error);
 
@@ -203,6 +221,4 @@ export async function processQrScan(formData: {
 			status: 500,
 		};
 	}
-
-
 }

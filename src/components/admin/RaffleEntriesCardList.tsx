@@ -17,7 +17,11 @@ import {AlertCircle} from 'lucide-react'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 
 export function RaffleEntriesCardList() {
-  const {deals, isLoading, error} = useRaffleEntriesSubscription()
+  const {raffleEntries, isLoading, error} = useRaffleEntriesSubscription()
+
+  console.log('🚀 ~ RaffleEntriesCardList ~ raffleEntries:', raffleEntries)
+
+  console.log('🚀 ~ RaffleEntriesCardList ~ raffleEntries:', raffleEntries)
 
   if (error) {
     return (
@@ -53,7 +57,7 @@ export function RaffleEntriesCardList() {
     )
   }
 
-  if (!deals || deals.length === 0) {
+  if (!raffleEntries || raffleEntries.length === 0) {
     return (
       <Alert>
         <AlertCircle className='h-4 w-4' />
@@ -67,12 +71,12 @@ export function RaffleEntriesCardList() {
 
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-      {deals.map((deal) => (
-        <Card key={deal.id.toString()} className='overflow-hidden'>
+      {raffleEntries.map((entry) => (
+        <Card key={entry.id.toString()} className='overflow-hidden'>
           <CardHeader className='p-0 h-48 relative'>
             <Image
-              src={deal.imageUrl}
-              alt={deal.name}
+              src={entry?.punchCard?.restaurant?.imageUrl || '/RWP.jpg'}
+              alt={entry?.punchCard?.restaurant?.name || 'Restaurant Image'}
               fill
               className='object-cover'
               sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
@@ -82,19 +86,18 @@ export function RaffleEntriesCardList() {
                 variant='secondary'
                 className='bg-white/80 backdrop-blur-sm'
               >
-                {deal.restaurant.name}
+                {entry?.punchCard?.restaurant?.name}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className='p-4'>
-            <CardTitle className='text-xl'>{deal.name}</CardTitle>
+            <CardTitle className='text-xl'>{entry.user.name}</CardTitle>
             <CardDescription className='line-clamp-2 mt-2'>
-              {deal.description}
+              {entry.createdAt.toLocaleString()}
             </CardDescription>
           </CardContent>
           <CardFooter className='flex justify-between p-4 text-sm text-muted-foreground'>
-            <span>ID: {deal.id.toString()}</span>
-            <span>Restaurant ID: {deal.restaurantId.toString()}</span>
+            <span>ID: {entry.id.toString()}</span>
           </CardFooter>
         </Card>
       ))}

@@ -4,6 +4,7 @@ import {useState, useEffect, useCallback} from 'react'
 import {supabaseBrowserClient} from '@/db/supabase/supabase.client'
 import {z} from 'zod'
 import type {RaffleEntry} from '@/types'
+import {getRaffleEntries} from '@/db/models/raffle-entries'
 
 /**
  * A hook for subscribing to real-time raffle entries updates
@@ -17,22 +18,12 @@ export function useRaffleEntriesSubscription() {
   const fetchRaffleEntries = useCallback(async () => {
     try {
       setIsLoading(true)
+      const entries = await getRaffleEntries()
 
-      // Use the client-side API endpoint to get all raffle entries
-      const response = await fetch('/api/raffle-entries')
+      console.log('🚀 ~ fetchRaffleEntries ~ entries:', entries)
 
-      console.log('🚀 ~ fetchRaffleEntries ~ response:', response)
-
-      const {success, data, error} = await response.json()
-      console.log('🚀 ~ fetchRaffleEntries ~ response:', response)
-
-      console.log('🚀 ~ fetchRaffleEntries ~ error:', error)
-
-      console.log('🚀 ~ fetchRaffleEntries ~ deals:', data)
-      setRaffleEntries(data)
-    } catch (err) {
-      console.error('Error fetching raffle entries:', err)
-      setError(err instanceof Error ? err : new Error('Unknown error occurred'))
+      setRaffleEntries(entries)
+      setError(null)
     } finally {
       setIsLoading(false)
     }
