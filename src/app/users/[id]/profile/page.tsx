@@ -75,11 +75,16 @@ export default async function ProfilePage({
       </div>
 
       <Image
-        src='/eat-shop-dine-play.png'
+        src='/shop-dine-play-large.png'
         alt='Eat Shop Dine Play'
-        width={100}
-        height={100}
+        width={512}
+        height={200}
         className='w-full h-auto mb-8 mx-auto display-block'
+        style={{
+          height: 'auto',
+          width: '100%',
+          objectFit: 'scale-down',
+        }}
       />
 
       {/* Display user's punch cards with real-time updates */}

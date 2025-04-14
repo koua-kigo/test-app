@@ -13,7 +13,7 @@ export const Home = () => {
     <main className='flex flex-col justify-center items-center align-middle p-4 w-full'>
       <div className='max-w-lg flex flex-col items-center justify-center align-middle'>
         <Image
-          src='/mg-alt.png'
+          src='/logo.png'
           alt='Restaurant Passport Logo'
           width={300}
           height={300}
