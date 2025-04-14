@@ -33,7 +33,7 @@ export function UserPunchCards({
 }: UserPunchCardsProps) {
   // Start with initial data from server, then get real-time updates
   const {punchCards, isLoading, error} = usePunchCardSubscription(user.id)
-  // const {raffleEntries} = useRaffleEntriesSubscription(user.id)
+  const {raffleEntries} = useRaffleEntriesSubscription(user.id)
 
   // If we have realtime data, use it, otherwise use the initial data
   const displayPunchCards =
@@ -79,6 +79,9 @@ export function UserPunchCards({
       </div>
       {showRaffleAnimation && raffleEntry && (
         <RaffleSuccessAnimation raffleEntry={raffleEntry} />
+      )}
+      {!showRaffleAnimation && raffleEntries.length && (
+        <RaffleSuccessAnimation raffleEntry={raffleEntries[0]} />
       )}
       {/* <div className='mt-4'>
         <div className='p-4 bg-blue-50 rounded-lg mb-4'>
