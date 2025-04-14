@@ -79,12 +79,10 @@ export default async function ProfilePage({
         className='w-full h-auto mb-8 mx-auto display-block'
       />
 
-      {showRaffleAnimation && raffleEntry && (
-        <RaffleSuccessAnimation raffleEntry={raffleEntry} />
-      )}
-
       {/* Display user's punch cards with real-time updates */}
       <UserPunchCards
+        raffleEntry={raffleEntry}
+        showRaffleAnimation={showRaffleAnimation}
         user={user}
         initialPunchCards={initialPunchCards as PunchCardWithRestaurant[]}
       />

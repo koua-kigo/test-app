@@ -1,6 +1,7 @@
 'use client'
 
 import Card_10 from '@/components/kokonutui/card-10'
+import {RaffleSuccessAnimation} from '@/components/raffle/RaffleSuccessAnimation'
 import {
   usePunchCardSubscription,
   type PunchCardWithRestaurant,
@@ -20,11 +21,15 @@ type User = {
 type UserPunchCardsProps = {
   user: User
   initialPunchCards: PunchCardWithRestaurant[]
+  showRaffleAnimation: boolean
+  raffleEntry: RaffleEntryWithRestaurant | null
 }
 
 export function UserPunchCards({
   user,
   initialPunchCards = [],
+  showRaffleAnimation,
+  raffleEntry,
 }: UserPunchCardsProps) {
   // Start with initial data from server, then get real-time updates
   const {punchCards, isLoading, error} = usePunchCardSubscription(user.id)
@@ -60,6 +65,7 @@ export function UserPunchCards({
   return (
     <div className='bg-white shadow-sm rounded-lg p-6'>
       <h2 className='text-xl font-semibold mb-4'>Your Scan Scoreboard</h2>
+
       <div className='mt-4'>
         <div className='text-sm font-medium'>
           Progress: {displayPunchCards.length} / 8
@@ -71,6 +77,9 @@ export function UserPunchCards({
           />
         </div>
       </div>
+      {showRaffleAnimation && raffleEntry && (
+        <RaffleSuccessAnimation raffleEntry={raffleEntry} />
+      )}
       {/* <div className='mt-4'>
         <div className='p-4 bg-blue-50 rounded-lg mb-4'>
           <h3 className='font-medium text-blue-800 mb-2'>
