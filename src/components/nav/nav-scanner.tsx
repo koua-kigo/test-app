@@ -12,7 +12,7 @@ import {processQrScan} from '@/actions/scan-actions'
 import {AnimatePresence, motion} from 'framer-motion'
 import {useRouter} from 'next/navigation'
 import {Spinner} from '@/components/ui/spinner'
-import {CheckCircle} from 'lucide-react'
+import {CheckCircle, XCircle} from 'lucide-react'
 import {getRaffleEntriesByUserId} from '@/db/models/raffle-entries'
 
 const containerVariants = {
@@ -239,7 +239,11 @@ export function NavScanner({
           exit='exit'
           className='text-center py-2 bg-green-50 rounded-md p-3 w-full'
         >
-          <CheckCircle className='w-8 h-8 mx-auto text-green-500' />
+          {result?.success ? (
+            <CheckCircle className='w-8 h-8 mx-auto text-green-500' />
+          ) : (
+            <XCircle className='w-8 h-8 mx-auto text-red-500' />
+          )}
           <h3 className='text-lg font-medium mt-2'>{result?.restaurantName}</h3>
           <p className='font-medium mt-2'>{result?.message}</p>
         </motion.div>
