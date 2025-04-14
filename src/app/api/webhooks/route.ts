@@ -2,6 +2,7 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import type { User, WebhookEvent } from "@clerk/nextjs/server";
 import { createUser } from "@/db/models/users";
+import { convertBigInts } from "@/lib/utils";
 
 export async function POST(req: Request) {
 	// const SIGNING_SECRET = process.env.SIGNING_SECRET;
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
 
 			return Response.json({
 				message: "User created",
-				data: user,
+				data: convertBigInts(user),
 			});
 		}
 	} catch (err) {
