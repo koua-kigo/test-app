@@ -32,7 +32,7 @@ export async function saveQRCodeUrl(restaurantId: string, qrCodeUrl: string) {
 
 		// Use targeted revalidation
 		revalidatePath(`/admin/restaurants/${restaurantId}`);
-		
+
 		// Only revalidate the restaurants list, not the entire page
 		revalidatePath("/admin/restaurants", "layout");
 
@@ -78,7 +78,7 @@ export async function saveQrData({
 
 		// Use targeted revalidation
 		revalidatePath(`/admin/restaurants/${restaurantId}`);
-		
+
 		// Only revalidate the restaurants list, not the entire page
 		revalidatePath("/admin/restaurants", "layout");
 

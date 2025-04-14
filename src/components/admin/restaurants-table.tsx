@@ -99,6 +99,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import {QRCodeGenerator} from '@/components/qr-code/qr-code-generator'
+import {fetchRestaurants} from '@/app/admin/restaurants/actions'
+import {getRestaurants} from '@/db/models/restaurants'
 
 // Define interfaces for TanStack Table metadata
 interface ColumnMeta {
@@ -272,20 +274,7 @@ const EditableCell = ({getValue, row, column, table}: EditableCellProps) => {
   )
 }
 
-export function RestaurantsTable({
-  restaurants: initialData,
-  pagination,
-  fetchRestaurants,
-}: {
-  restaurants: RestaurantData[]
-  pagination: {
-    total: number
-    pageIndex: number
-    pageSize: number
-  }
-  fetchRestaurants: () => void
-}) {
-  const {total, pageIndex, pageSize} = pagination
+export function RestaurantsTable({restaurants: initialData}) {
   const [data, setData] = React.useState<RestaurantData[]>(initialData)
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
@@ -301,48 +290,31 @@ export function RestaurantsTable({
     RestaurantData[][]
   >([initialData])
 
+  // Explicitly control pagination state
+  const [tablePagination, setTablePagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  })
+
   // Track selection count for visibility check
   const selectedCount = Object.keys(rowSelection).length
 
   // Function to refresh the restaurant data
   const refreshData = React.useCallback(() => {
-    // Force Next.js router refresh
-    router.refresh()
-    // Increment trigger to force state update
-    setRefreshTrigger((prev) => prev + 1)
+    // Store current pagination before refresh
+
+    // Update the data
+    getRestaurants().then((res) => {
+      setData(res)
+    })
+
+    // Force re-render
+
     // Show success message
     toast.success('QR codes updated successfully')
-  }, [router])
+  }, [])
 
-  // Generic function to refresh table data after any update
-  const refreshTableData = React.useCallback(
-    (message = 'Data refreshed') => {
-      fetchRestaurants()
-      // Force Next.js router refresh
-      router.refresh()
-      // Increment trigger to force state update
-      setRefreshTrigger((prev) => prev + 1)
-      // Show success message with the provided message
-      toast.success(message)
-    },
-    [router]
-  )
-
-  // Add bulk QR code generation hook with refresh callback
-  const {
-    generating: bulkGenerating,
-    saving: bulkSaving,
-    success: bulkSuccess,
-    error: bulkError,
-    progress = 0,
-    results = [],
-    handleGenerateAll = () => {},
-    handleSaveAll = () => {},
-    handleDownloadAll = () => {},
-    handleReset = () => {},
-  } = useHandleBulkQRCode({
-    onSuccess: refreshData,
-  })
+  // Function to update UI state and show a message - no server actions
 
   // Function to handle QR code updates
   const handleQRCodeUpdate = React.useCallback(
@@ -356,11 +328,14 @@ export function RestaurantsTable({
               : restaurant
           )
         )
-        // Also update the filtered restaurants, though this isn't typically necessary as it's derived from data
+
+        // Show success message
         toast.success('QR code created successfully')
       } else {
-        // Fall back to the old refresh method if no updated restaurant is provided
+        // Update the data
         refreshData()
+
+        // Force re-render
       }
     },
     [refreshData]
@@ -395,10 +370,25 @@ export function RestaurantsTable({
     initialSortOption: 'name-asc',
   })
 
-  // Update local data when initialData changes
-  React.useEffect(() => {
-    setData(initialData)
-  }, [initialData])
+  // // Update local data when initialData changes - preserve pagination
+  // React.useEffect(() => {
+  //   // Store the current pagination state
+  //   const currentPageIndex = tablePagination.pageIndex
+  //   const currentPageSize = tablePagination.pageSize
+
+  //   // Update the data
+  //   setData(initialData)
+
+  //   // Restore pagination state in the next render cycle
+  //   if (currentPageIndex !== 0 || currentPageSize !== 10) {
+  //     setTimeout(() => {
+  //       setTablePagination({
+  //         pageIndex: currentPageIndex,
+  //         pageSize: currentPageSize,
+  //       })
+  //     }, 0)
+  //   }
+  // }, [initialData, tablePagination.pageIndex, tablePagination.pageSize])
 
   // Define a handler for toggling selection
   const handleToggleRow = (rowId: string, selected: boolean) => {
@@ -725,7 +715,7 @@ export function RestaurantsTable({
         }
 
         // Custom handler that closes the dialog after QR generation
-        const handleQRUpdateAndClose = (updatedRestaurant: any) => {
+        const handleQRUpdateAndClose = (updatedRestaurant: RestaurantData) => {
           // Call the original handler with the updated restaurant
           handleQRCodeUpdate(updatedRestaurant)
           // Close the dialog
@@ -883,28 +873,33 @@ export function RestaurantsTable({
   }
 
   // Handle saving edited data using server action
-  const handleSave = async (rowIndex: number, restaurant: RestaurantData) => {
-    try {
-      setPending({...pending, [rowIndex]: true})
+  const handleSave = React.useCallback(
+    async (rowIndex: number, restaurant: RestaurantData) => {
+      try {
+        setPending({...pending, [rowIndex]: true})
 
-      const {id, ...updateData} = restaurant
+        const {id, ...updateData} = restaurant
 
-      const result = await updateRestaurantAction(id, updateData)
+        const result = await updateRestaurantAction(id, updateData)
 
-      if (result.success) {
-        refreshTableData('Restaurant updated successfully')
-      } else {
-        toast.error(result.error?._form?.[0] || 'Failed to update restaurant')
-        // Reset to original data if update failed
-        setData(initialData)
+        if (result.success) {
+          // Fetch new data
+          refreshData()
+          // Update UI
+        } else {
+          toast.error(result.error?._form?.[0] || 'Failed to update restaurant')
+          // Reset to original data if update failed
+          // setData(initialData)
+        }
+      } catch (error) {
+        toast.error('An error occurred while updating the restaurant')
+        console.error(error)
+      } finally {
+        setPending({...pending, [rowIndex]: false})
       }
-    } catch (error) {
-      toast.error('An error occurred while updating the restaurant')
-      console.error(error)
-    } finally {
-      setPending({...pending, [rowIndex]: false})
-    }
-  }
+    },
+    [pending, refreshData]
+  )
 
   // Handle restaurant deletion
   const handleDelete = async () => {
@@ -914,7 +909,7 @@ export function RestaurantsTable({
       const result = await deleteRestaurantAction(restaurantToDelete.id)
 
       if (result.success) {
-        refreshTableData('Restaurant deleted successfully')
+        refreshData()
         // Remove from local state
         setData(data.filter((r) => r.id !== restaurantToDelete.id))
       } else {
@@ -927,7 +922,7 @@ export function RestaurantsTable({
       setRestaurantToDelete(null)
     }
   }
-  const handleFilteredRestaurants = useCallback(
+  const handleFilteredRestaurants = React.useCallback(
     (rowIndex: number, columnId: string, value: unknown) => {
       const restaurantId = filteredRestaurants[rowIndex].id
       const dataIndex = data.findIndex((r) => r.id === restaurantId)
@@ -947,21 +942,17 @@ export function RestaurantsTable({
     [data, filteredRestaurants, handleSave]
   )
 
-  // Define data table using TanStack
+  // Define data table using TanStack with controlled pagination
   const table = useReactTable({
     data: filteredRestaurants as unknown as RestaurantData[],
     columns,
     state: {
       sorting,
       rowSelection,
+      pagination: tablePagination,
     },
-    // Adjust page size to a more reasonable number
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
-    },
-    manualPagination: false, // Let TanStack handle pagination internally
+    onPaginationChange: setTablePagination,
+    manualPagination: false,
     // Fix to handle row selection properly with pagination
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -969,45 +960,15 @@ export function RestaurantsTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    // Add pagination change handler for scroll behavior
-    // onPaginationChange: (updater) => {
-    //   // Log pagination changes for debugging
-    //   console.log('Pagination changed:', updater)
-
-    //   // Scroll to top of table on page change
-    //   if (typeof window !== 'undefined') {
-    //     const tableElement = document.querySelector('.restaurants-table')
-    //     if (tableElement) {
-    //       tableElement.scrollIntoView({behavior: 'smooth', block: 'start'})
-    //     }
-    //   }
-    // },
     meta: {
       updateData: handleFilteredRestaurants,
     } as TableMeta,
   })
 
-  const getAllRestaurants = () => {
-    const loadedRestaurants = tableRestaurants.flat()
-
-    // Check if we have loaded all restaurants from the database
-    const loadedCount = loadedRestaurants.length
-
-    if (loadedCount < total) {
-      // If we haven't loaded all restaurants yet
-      console.warn(
-        `Only ${loadedCount} of ${total} restaurants loaded. Some operations may be incomplete.`
-      )
-      // Attempt to load all remaining restaurants
-      toast.info(`Loading all ${total - loadedCount} remaining restaurants...`)
-
-      // Trigger fetchRestaurants which will load all restaurants through our wrapper
-      fetchRestaurants()
-    }
-
-    // Return what we have, with awareness that it might be incomplete
-    return loadedRestaurants
-  }
+  // Debug logging for pagination state
+  useEffect(() => {
+    console.log('Pagination state:', tablePagination)
+  }, [tablePagination])
 
   // Update the bulk operations to use table row IDs for selection and refresh after success
   const handleBulkGenerate = () => {
@@ -1075,8 +1036,9 @@ export function RestaurantsTable({
         const result = await importRestaurantsFromCSV(data)
 
         if (result.success) {
-          // Use our new generic refresh function
-          refreshTableData('Restaurants imported successfully')
+          // Fetch new data
+          refreshData()
+          // Update UI
         } else {
           toast.error(result.message)
           if (result.error?._form) {
@@ -1090,19 +1052,8 @@ export function RestaurantsTable({
         setIsImporting(false)
       }
     },
-    [router, refreshTableData]
+    [refreshData]
   )
-
-  // Debug effect to track pagination state changes
-  useEffect(() => {
-    console.log('Table pagination state:', table?.getState()?.pagination)
-    // The key to making pagination work is ensuring the table has access to all data
-    // but only displays the current page. The getPaginationRowModel() should handle this,
-    // but we can force a refresh when the pagination state changes.
-    if (table) {
-      table.getRowModel() // Force recalculation of rows
-    }
-  }, [table, table?.getState()?.pagination?.pageIndex, refreshTrigger])
 
   const next = useCallback(() => {
     table.nextPage()
@@ -1111,6 +1062,22 @@ export function RestaurantsTable({
   const previous = useCallback(() => {
     table.previousPage()
   }, [table])
+
+  // Add bulk QR code generation hook with refresh callback
+  const {
+    generating: bulkGenerating,
+    saving: bulkSaving,
+    success: bulkSuccess,
+    error: bulkError,
+    progress = 0,
+    results = [],
+    handleGenerateAll = () => {},
+    handleSaveAll = () => {},
+    handleDownloadAll = () => {},
+    handleReset = () => {},
+  } = useHandleBulkQRCode({
+    onSuccess: refreshData,
+  })
 
   return (
     <div className='space-y-4 p-4 rounded-xl mb-4 shadow-sm bg-white restaurants-table'>
@@ -1172,7 +1139,7 @@ export function RestaurantsTable({
                     // disabled={filteredRestaurants.length === 0}
                     className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                   >
-                    Export All ({pagination.total})
+                    Export All ({initialData?.length})
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -1566,25 +1533,12 @@ export function RestaurantsTable({
           </div>
 
           <div className='flex items-center gap-1'>
-            {/* <Button
-              variant='outline'
-              size='icon'
-              onClick={() => {
-                table.setPageIndex(0)
-                console.log('Go to first page')
-              }}
-              disabled={!table.getCanPreviousPage()}
-              className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-              aria-label='First page'
-            >
-              <ChevronsLeft className='h-4 w-4' />
-            </Button> */}
             <Button
               variant='outline'
               size='icon'
               onClick={previous}
               disabled={!table.getCanPreviousPage()}
-              className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer'
               aria-label='Previous page'
             >
               <ChevronLeft className='h-4 w-4' />
@@ -1594,24 +1548,11 @@ export function RestaurantsTable({
               size='icon'
               onClick={next}
               disabled={!table.getCanNextPage()}
-              className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer'
               aria-label='Next page'
             >
               <ChevronRight className='h-4 w-4' />
             </Button>
-            {/* <Button
-              variant='outline'
-              size='icon'
-              onClick={() => {
-                table.setPageIndex(table.getPageCount() - 1)
-                console.log('Go to last page')
-              }}
-              disabled={!table.getCanNextPage()}
-              className='h-8 w-8 p-0 rounded-md bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-              aria-label='Last page'
-            >
-              <ChevronsRight className='h-4 w-4' />
-            </Button> */}
           </div>
         </div>
       </div>
@@ -1648,7 +1589,7 @@ export function RestaurantsTable({
   )
 }
 
-export const refreshRestaurantTable = (router: any) => {
+export const refreshRestaurantTable = (router: {refresh: () => void}) => {
   // Force Next.js router refresh
   router.refresh()
   // Show success message with the provided message

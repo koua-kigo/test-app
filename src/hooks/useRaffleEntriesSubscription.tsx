@@ -3,35 +3,14 @@
 import {useState, useEffect, useCallback} from 'react'
 import {supabaseBrowserClient} from '@/db/supabase/supabase.client'
 import {z} from 'zod'
-
-// Import or redefine the dealSchema
-export const dealSchema = z.object({
-  id: z.bigint(),
-  name: z.string(),
-  description: z.string(),
-  imageUrl: z.string().url(),
-  restaurantId: z.bigint(),
-})
-
-export type Deal = z.infer<typeof dealSchema>
-
-export type DealWithRestaurant = Deal & {
-  restaurant: {
-    id: bigint
-    name: string
-    description: string
-    imageUrl: string
-    address: string
-    qrCodeUrl: string | null
-  }
-}
+import type {RaffleEntry} from '@/types'
 
 /**
  * A hook for subscribing to real-time raffle entries updates
  * @returns The updated raffle entries array with loading and error states
  */
 export function useRaffleEntriesSubscription() {
-  const [deals, setDeals] = useState<DealWithRestaurant[]>([])
+  const [raffleEntries, setRaffleEntries] = useState<RaffleEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
@@ -50,7 +29,7 @@ export function useRaffleEntriesSubscription() {
       console.log('🚀 ~ fetchRaffleEntries ~ error:', error)
 
       console.log('🚀 ~ fetchRaffleEntries ~ deals:', data)
-      setDeals(data)
+      setRaffleEntries(data)
     } catch (err) {
       console.error('Error fetching raffle entries:', err)
       setError(err instanceof Error ? err : new Error('Unknown error occurred'))
@@ -87,7 +66,7 @@ export function useRaffleEntriesSubscription() {
   }, [fetchRaffleEntries])
 
   return {
-    deals,
+    raffleEntries,
     isLoading,
     error,
   }

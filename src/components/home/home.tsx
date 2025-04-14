@@ -55,14 +55,16 @@ export const Home = () => {
                 <Link href='/deals'>See Deals</Link>
               </Button>
 
-              <Button
-                style={{
-                  background: '#43E790',
-                }}
-                className='bg-[#43E790] relative z-40 border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#E2FFE5] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 text-black cursor-pointer'
-              >
-                <SignUpButton>Get Started</SignUpButton>
-              </Button>
+              <SignUpButton>
+                <Button
+                  style={{
+                    background: '#43E790',
+                  }}
+                  className='bg-[#43E790] relative z-40 border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#E2FFE5] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 text-black cursor-pointer'
+                >
+                  Get Started
+                </Button>
+              </SignUpButton>
             </div>
           </div>
         </BoxReveal>

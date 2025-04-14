@@ -5,8 +5,9 @@ import type {restaurantSchema} from '@/types/schemas'
 import type {z} from 'zod'
 
 import {ArrowLeftIcon} from 'lucide-react'
-import {RestaurantTableWrapper} from './restaurant-table-wrapper'
-import {fetchRestaurants} from './actions'
+
+import {getRestaurants} from '@/db/models/restaurants'
+import {RestaurantsTable} from '@/components/admin/restaurants-table'
 
 // Type for restaurant data
 type Restaurant = z.infer<typeof restaurantSchema>
@@ -30,20 +31,10 @@ function RestaurantsLoading() {
 }
 
 // Main page component as a server component
-export default async function RestaurantsPage({
-  searchParams,
-}: {
-  searchParams: {page?: string; perPage?: string}
-}) {
-  const params = await searchParams
-  const page = Number(params.page || '1')
-  const perPage = Number(params.perPage || '10')
+export default async function RestaurantsPage(props) {
+  const restaurants = await getRestaurants()
 
-  // Server-side data fetching
-  const [initialRestaurants, paginationInfo] = await fetchRestaurants(
-    page,
-    perPage
-  )
+  console.log('🚀 ~ RestaurantsPage ~ restaurants:', restaurants)
 
   return (
     <>
@@ -108,7 +99,7 @@ export default async function RestaurantsPage({
         </div>
       </div>
 
-      {initialRestaurants.length === 0 ? (
+      {restaurants.length === 0 ? (
         <div className='text-center py-12'>
           <h3 className='text-xl font-medium mb-4'>No restaurants found</h3>
           <p className='text-gray-600 mb-6'>
@@ -117,15 +108,7 @@ export default async function RestaurantsPage({
         </div>
       ) : (
         <Suspense fallback={<RestaurantsLoading />}>
-          <RestaurantTableWrapper
-            initialRestaurants={initialRestaurants}
-            pagination={{
-              pageIndex: page - 1,
-              pageSize: perPage,
-              total: paginationInfo.total,
-            }}
-            fetchRestaurants={fetchRestaurants}
-          />
+          <RestaurantsTable restaurants={restaurants} />
         </Suspense>
       )}
     </>
