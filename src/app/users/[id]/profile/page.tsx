@@ -28,6 +28,9 @@ export default async function ProfilePage({
   searchParams,
 }: ProfilePageProps) {
   const {userId} = await auth()
+
+  console.log('🚀 ~ userId:', userId)
+
   const queryParams = await searchParams
 
   const user = userId ? await getUserByClerkId(userId) : null

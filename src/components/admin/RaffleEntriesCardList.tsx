@@ -19,10 +19,6 @@ import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 export function RaffleEntriesCardList() {
   const {raffleEntries, isLoading, error} = useRaffleEntriesSubscription()
 
-  console.log('🚀 ~ RaffleEntriesCardList ~ raffleEntries:', raffleEntries)
-
-  console.log('🚀 ~ RaffleEntriesCardList ~ raffleEntries:', raffleEntries)
-
   if (error) {
     return (
       <Alert variant='destructive'>

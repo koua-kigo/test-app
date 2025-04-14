@@ -32,7 +32,28 @@ const nextConfig: NextConfig = {
 
 	// Image configuration
 	images: {
-		domains: ["experiencemaplegrove.com"],
+		remotePatterns: [
+			{
+				protocol: "https",
+				hostname: "fastly.picsum.photos",
+			},
+			{
+				protocol: "https",
+				hostname: "media.canva.com",
+			},
+			{
+				protocol: "https",
+				hostname: "experiencemaplegrove.com",
+			},
+			{
+				protocol: "https",
+				hostname: "hvjiuuzpupgmckuyfahe.supabase.co",
+			},
+			{
+				protocol: "https",
+				hostname: "res.cloudinary.com",
+			},
+		],
 	},
 };
 export default withBundleAnalyzer(nextConfig);
