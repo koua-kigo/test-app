@@ -2,25 +2,23 @@
 
 import {useState, useEffect, useCallback} from 'react'
 import {supabaseBrowserClient} from '@/db/supabase/supabase.client'
-import {z} from 'zod'
 import type {RaffleEntry} from '@/types'
-import {getRaffleEntries} from '@/db/models/raffle-entries'
+import {getRaffleEntriesByUserId} from '@/db/models/raffle-entries'
 
 /**
- * A hook for subscribing to real-time raffle entries updates
+ * A hook for subscribing to real-time raffle entries updates for a specific user
+ * @param userId - The user ID to filter raffle entries by
  * @returns The updated raffle entries array with loading and error states
  */
-export function useRaffleEntriesSubscription() {
+export function useUserRaffleSubscription(userId: bigint) {
   const [raffleEntries, setRaffleEntries] = useState<RaffleEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
-  const fetchRaffleEntries = useCallback(async () => {
+  const fetchUserRaffleEntries = useCallback(async () => {
     try {
       setIsLoading(true)
-      const entries = await getRaffleEntries()
-
-      console.log('🚀 ~ fetchRaffleEntries ~ entries:', entries)
+      const entries = await getRaffleEntriesByUserId(userId)
 
       // Convert string dates to Date objects to match RaffleEntry type
       const formattedEntries = entries.map((entry) => ({
@@ -37,33 +35,37 @@ export function useRaffleEntriesSubscription() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [userId])
 
   // Fetch initial raffle entries
   useEffect(() => {
-    fetchRaffleEntries()
-  }, [fetchRaffleEntries])
+    fetchUserRaffleEntries()
+  }, [fetchUserRaffleEntries])
 
   // Set up real-time subscription
   useEffect(() => {
-    // Subscribe to all events on raffle_entries table
+    // Subscribe to events on raffle_entries table filtered by user ID
     const subscription = supabaseBrowserClient
-      .channel('raffle')
+      .channel(`raffle-user-${userId}`)
       .on(
         'postgres_changes',
-        {event: '*', schema: 'public', table: 'raffle_entries'},
+        {
+          event: '*',
+          schema: 'public',
+          table: 'raffle_entries',
+          filter: `userId=eq.${userId}`,
+        },
         async () => {
-          await fetchRaffleEntries()
+          await fetchUserRaffleEntries()
         }
       )
       .subscribe()
-    console.log('🚀 ~ useEffect ~ subscription:', subscription)
 
-    // Clean up subscriptions on unmount
+    // Clean up subscription on unmount
     return () => {
       subscription.unsubscribe()
     }
-  }, [fetchRaffleEntries])
+  }, [userId, fetchUserRaffleEntries])
 
   return {
     raffleEntries,

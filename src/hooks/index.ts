@@ -10,3 +10,4 @@ export * from "./useRaffleEntriesSubscription";
 export * from "./use-websocket";
 export * from "./use-punch-card-subscription";
 export * from "./use-raffle-entries-subscription";
+export * from "./useUserRaffleSubscription";

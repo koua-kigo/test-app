@@ -6,11 +6,9 @@ import {
   usePunchCardSubscription,
   type PunchCardWithRestaurant,
 } from '@/hooks/use-punch-card-subscription'
-import {
-  useRaffleEntriesSubscription,
-  type RaffleEntryWithRestaurant,
-} from '@/hooks/use-raffle-entries-subscription'
-import {AwardIcon, CheckIcon} from 'lucide-react'
+import {useUserRaffleSubscription} from '@/hooks/useUserRaffleSubscription'
+import {AwardIcon, CheckIcon, TrophyIcon} from 'lucide-react'
+import type {RaffleEntry} from '@/types/db'
 
 type User = {
   id: bigint
@@ -22,7 +20,7 @@ type UserPunchCardsProps = {
   user: User
   initialPunchCards: PunchCardWithRestaurant[]
   showRaffleAnimation: boolean
-  raffleEntry: RaffleEntryWithRestaurant | null
+  raffleEntry: RaffleEntry | null
 }
 
 export function UserPunchCards({
@@ -33,7 +31,7 @@ export function UserPunchCards({
 }: UserPunchCardsProps) {
   // Start with initial data from server, then get real-time updates
   const {punchCards, isLoading, error} = usePunchCardSubscription(user.id)
-  const {raffleEntries} = useRaffleEntriesSubscription(user.id)
+  const {raffleEntries} = useUserRaffleSubscription(user.id)
 
   // If we have realtime data, use it, otherwise use the initial data
   const displayPunchCards =
@@ -62,6 +60,18 @@ export function UserPunchCards({
     )
   }
 
+  // Add restaurant information to each raffle entry from its associated punch card
+  const raffleEntriesWithRestaurant = raffleEntries.map((entry) => {
+    // Find the punch card that this raffle entry is based on
+    const punchCard = displayPunchCards.find(
+      (card) => card.id === entry.punchCardId
+    )
+    return {
+      ...entry,
+      restaurant: punchCard?.restaurant,
+    }
+  })
+
   return (
     <div className='bg-white shadow-sm rounded-lg p-6'>
       <h2 className='text-xl font-semibold mb-4'>Your Scan Scoreboard</h2>
@@ -80,25 +90,44 @@ export function UserPunchCards({
       {showRaffleAnimation && raffleEntry && (
         <RaffleSuccessAnimation raffleEntry={raffleEntry} />
       )}
-      {!showRaffleAnimation && raffleEntries.length && (
+      {!showRaffleAnimation && raffleEntries.length > 0 && (
         <RaffleSuccessAnimation raffleEntry={raffleEntries[0]} />
       )}
-      {/* <div className='mt-4'>
-        <div className='p-4 bg-blue-50 rounded-lg mb-4'>
-          <h3 className='font-medium text-blue-800 mb-2'>
-            {' '}
-            {raffleEntry ? 'Your Raffle Entry' : 'You have no Raffle yet'}
-          </h3>
-          <Card_10>
-            <Card_10.Title>{raffleEntry?.restaurant?.name}</Card_10.Title>
-            <p>{new Date(raffleEntry.createdAt).toLocaleDateString()}</p>
-            <Card_10.Body>
-              <AwardIcon className='w-25 h-25' />
-            </Card_10.Body>
-          </Card_10>
+
+      {/* Raffle Entry Cards */}
+      {raffleEntriesWithRestaurant.length > 0 && (
+        <div className='mt-6'>
+          <h3 className='font-medium text-lg mb-4'>Your Raffle Entries</h3>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            {raffleEntriesWithRestaurant.map((entry) => (
+              <div key={String(entry.id)} className='relative'>
+                <div className='absolute -top-2 -right-2 z-10'>
+                  <div className='bg-yellow-400 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center'>
+                    <TrophyIcon className='w-4 h-4 mr-1' />
+                    RAFFLE ENTRY
+                  </div>
+                </div>
+                <div className='border rounded-lg p-4 shadow-sm'>
+                  <h4 className='font-medium text-lg'>
+                    {entry.restaurant?.name || 'Restaurant'}
+                  </h4>
+                  <p className='text-sm text-gray-500'>
+                    {new Date(entry.createdAt).toLocaleDateString()}
+                  </p>
+                  <div className='mt-4 flex flex-col items-center'>
+                    <AwardIcon className='w-20 h-20 text-yellow-500' />
+                    <p className='text-center mt-2 text-sm font-medium'>
+                      You've been entered into the raffle!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div> */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+      )}
+
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6'>
         {displayPunchCards.map((card) => (
           <div
             key={String(card.id)}
