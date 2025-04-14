@@ -73,19 +73,20 @@ export default async function ProfilePage({
           </div>
         </div>
       </div>
-
-      <Image
-        src='/shop-dine-play-large.png'
-        alt='Eat Shop Dine Play'
-        width={512}
-        height={200}
-        className='w-full h-auto mb-8 mx-auto display-block'
-        style={{
-          height: 'auto',
-          width: '100%',
-          objectFit: 'scale-down',
-        }}
-      />
+      <Link href='/deals'>
+        <Image
+          src='/shop-dine-play-large.png'
+          alt='Eat Shop Dine Play'
+          width={512}
+          height={200}
+          className='w-full h-auto mb-8 mx-auto display-block'
+          style={{
+            height: 'auto',
+            width: '100%',
+            objectFit: 'scale-down',
+          }}
+        />
+      </Link>
 
       {/* Display user's punch cards with real-time updates */}
       <UserPunchCards
