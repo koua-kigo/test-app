@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs";
 import { Nav } from "./nav";
-import { fn, userEvent, within, expect } from "@storybook/test";
+import { fn, userEvent, within, expect } from "storybook/test";
 import { useState } from "react";
 
 /**

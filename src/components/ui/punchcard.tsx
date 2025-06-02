@@ -10,7 +10,7 @@ import {Badge} from '@/components/ui/badge'
 import {ProgressIndicator} from '@/components/progress-indicator/progress-indicator'
 
 // Constant for punch threshold
-export const PUNCH_THRESHOLD = 10
+export const PUNCH_THRESHOLD = 6
 
 // Type for a single restaurant punch record
 export interface RestaurantPunch {
@@ -32,7 +32,7 @@ export const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
   ({className, restaurants, ...props}, ref) => {
     console.log('🚀 ~ restaurants:', restaurants)
     const currentPunches = restaurants.length
-    const MAX_PUNCH_THRESHOLD = 10
+    const MAX_PUNCH_THRESHOLD = 6
 
     return (
       <motion.div
@@ -76,11 +76,7 @@ export const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
               <div
                 className={cn(
                   'grid gap-2 mb-5',
-                  MAX_PUNCH_THRESHOLD <= 5
-                    ? 'grid-cols-5'
-                    : MAX_PUNCH_THRESHOLD <= 8
-                    ? 'grid-cols-4'
-                    : 'grid-cols-5'
+                  'grid-cols-6'
                 )}
               >
                 {restaurants.map((restaurant, index) => (
@@ -88,31 +84,56 @@ export const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
                     key={`punch-${restaurant.restaurantId}`}
                     style={{backgroundColor: '#ddd'}}
                     className={cn(
-                      'bg-gray aspect-square rounded-lg border-2 flex items-center justify-center relative ',
+                      'bg-gray aspect-square rounded-lg border-2 flex items-center justify-center relative transition-all duration-300',
                       index < currentPunches
-                        ? 'border-primary'
-                        : ' border-muted'
+                        ? 'border-primary bg-primary/10 shadow-lg'
+                        : 'border-muted hover:border-primary/50'
                     )}
                     initial={false}
                     animate={
                       index === currentPunches - 1
-                        ? {scale: [1, 1.2, 1], rotate: [0, 15, 0]}
+                        ? {
+                            scale: [1, 1.3, 1.1, 1],
+                            rotate: [0, 10, -5, 0],
+                            backgroundColor: ['#ddd', '#10b981', '#059669', '#ddd']
+                          }
                         : {}
                     }
-                    transition={{duration: 0.5}}
+                    transition={{
+                      duration: 0.8,
+                      ease: 'easeInOut',
+                      times: [0, 0.3, 0.7, 1]
+                    }}
                   >
                     {index < currentPunches && (
                       <motion.div
-                        initial={{scale: 0, opacity: 0}}
-                        animate={{scale: 1, opacity: 1}}
+                        initial={{scale: 0, opacity: 0, rotate: -180}}
+                        animate={{
+                          scale: [0, 1.2, 1],
+                          opacity: [0, 1, 1],
+                          rotate: [-180, 10, 0]
+                        }}
                         transition={{
                           type: 'spring',
-                          stiffness: 500,
-                          damping: 30,
-                          delay: index === currentPunches - 1 ? 0.2 : 0,
+                          stiffness: 400,
+                          damping: 25,
+                          delay: index === currentPunches - 1 ? 0.3 : 0,
+                          duration: 0.6
                         }}
+                        className='relative'
                       >
-                        <Stamp className='h-5 w-5 stroke-black text-black' />
+                        <Stamp className='h-6 w-6 text-primary drop-shadow-sm' />
+                        {index === currentPunches - 1 && (
+                          <motion.div
+                            className='absolute inset-0 rounded-full border-2 border-primary'
+                            initial={{scale: 1, opacity: 1}}
+                            animate={{
+                              scale: [1, 2, 3],
+                              opacity: [1, 0.5, 0]
+                            }}
+                            transition={{duration: 0.6, delay: 0.2}}
+                          />
+                        )}
                       </motion.div>
                     )}
                   </motion.div>

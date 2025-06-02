@@ -1080,7 +1080,7 @@ export function RestaurantsTable({restaurants: initialData}) {
   })
 
   return (
-    <div className='space-y-4 p-4 rounded-xl mb-4 shadow-sm bg-white restaurants-table'>
+    <div className='space-y-4 py-4 px-8 rounded-xl mb-4 shadow-md bg-white restaurants-table'>
       <AdminRestaurantSearchBar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -1415,7 +1415,7 @@ export function RestaurantsTable({restaurants: initialData}) {
       {/* Desktop table view */}
       <div
         className={cn(
-          'rounded-md border border-sidebar-border shadow-sm overflow-hidden',
+          'rounded-md border border-sidebar-border shadow-lg bg-sidebar/80 overflow-hidden',
           isMobileView ? 'hidden' : 'block'
         )}
       >

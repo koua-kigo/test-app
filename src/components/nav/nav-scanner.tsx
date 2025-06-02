@@ -192,8 +192,6 @@ export function NavScanner({
               deviceId: deviceId,
             }}
             onScan={(detectedCodes) => {
-              console.log('🚀 ~ NavScanner ~ detectedCodes:', detectedCodes)
-
               handleScan(detectedCodes[0].rawValue)
             }}
             onError={(error) => {

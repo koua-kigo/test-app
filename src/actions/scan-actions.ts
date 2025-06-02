@@ -146,14 +146,14 @@ export async function processQrScan(formData: {
 
 		console.log("🚀 ~ punchCardCount:", punchCardCount);
 
-		if (punchCardCount === 8) {
+		if (punchCardCount === 6) {
 			return {
-				message: `You have 8 Punch Cards and have already entered the raffle.`,
+				message: `You have 6 Punch Cards and have already entered the raffle.`,
 				data: null,
 				success: false,
 			};
 		}
-		if (punchCardCount === 7) {
+		if (punchCardCount === 5) {
 			// Create new punch card if it doesn't exist
 			const punchCard = await createPunchCard({
 				userId: userIdBigInt,

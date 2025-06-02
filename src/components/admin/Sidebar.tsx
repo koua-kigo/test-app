@@ -148,7 +148,7 @@ export function AdminSidebar() {
           md:translate-x-0
           ${collapsed ? 'md:w-20' : 'md:w-64'} 
           fixed top-0 left-0 h-full text-white transition-all duration-300 ease-in-out z-50
-          flex flex-col border-r border-[#e5e5e5b3]
+          flex flex-col border-r-2 border-gray-200 shadow-sm bg-gray-50
         `}
       >
         {/* Logo and collapse button */}
@@ -181,7 +181,7 @@ export function AdminSidebar() {
         )}
 
         {/* Navigation */}
-        <nav className='flex-1 overflow-y-auto py-4 bg-white text-gray-700 border-r border-[#e5e5e5b3]'>
+        <nav className='flex-1 overflow-y-auto py-4 bg-gray-50 text-gray-700 border-r-2 border-gray-200 shadow-sm'>
           <ul className='space-y-1 px-3'>
             {menuItems.map((item) => (
               <li key={item.title}>

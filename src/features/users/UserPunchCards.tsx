@@ -92,12 +92,12 @@ export function UserPunchCards({
 
       <div className='mt-4'>
         <div className='text-sm font-medium'>
-          Progress: {displayPunchCards.length} / 8
+          Progress: {displayPunchCards.length} / 6
         </div>
         <div className='mt-1 bg-gray-200 rounded-full h-2.5'>
           <div
             className='bg-blue-600 h-2.5 rounded-full'
-            style={{width: `${(displayPunchCards.length / 8) * 100}%`}}
+            style={{width: `${(displayPunchCards.length / 6) * 100}%`}}
           />
         </div>
       </div>
@@ -148,7 +148,7 @@ export function UserPunchCards({
         {displayPunchCards.map((card) => (
           <div
             key={String(card.id)}
-            className='border rounded-lg p-4 hover:shadow-md transition-shadow'
+            className='border border-2 border-gray-200 rounded-lg p-4 shadow-md transition-shadow'
           >
             <div className='flex justify-between items-start'>
               <div>
