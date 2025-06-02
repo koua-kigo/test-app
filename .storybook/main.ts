@@ -27,7 +27,7 @@ const config: StorybookConfig = {
         config.plugins = config.plugins || [];
         config.plugins.push(
             nodePolyfills({
-                include: ['buffer', 'process', 'util'],
+                include: ['buffer', 'process', 'util', 'path', 'stream', 'crypto', 'fs', 'os', 'net'],
                 globals: {
                     Buffer: true,
                     global: true,
@@ -35,6 +35,17 @@ const config: StorybookConfig = {
                 },
             })
         );
+
+        // Add module resolution fallbacks
+        config.resolve = config.resolve || {};
+        config.resolve.fallback = {
+            ...config.resolve.fallback,
+            'tls': false,
+            'perf_hooks': false,
+            'net': false,
+            'fs': false,
+            'child_process': false,
+        };
 
         config.define = {
             ...config.define,
