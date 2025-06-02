@@ -9,6 +9,7 @@ import {Toaster} from '@/components/ui/sonner'
 import {UserProvider} from '@/context/user-context'
 import './globals.css'
 import {StyleWrapper} from '@/context/style-wrapper'
+// import {StagewiseDevToolbar} from '@/components/dev/stagewise-dev-toolbar'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -25,6 +26,14 @@ export const metadata: Metadata = {
   description: 'Track your restaurant visits and experiences',
   // viewport:
   //   'width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover',
+  icons: {
+    icon: [
+      {url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png'},
+      {url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png'},
+    ],
+    apple: [{url: '/apple-touch-icon.png', sizes: '180x180'}],
+  },
+  manifest: '/site.webmanifest',
 }
 
 export default function RootLayout({
@@ -40,11 +49,11 @@ export default function RootLayout({
             <body
               className={`${geistSans.variable} ${geistMono.variable} antialiased relative h-screen overflow-scroll bg-[#faf9f6] overflow-x-hidden`}
             >
-              <StyleWrapper>{children}</StyleWrapper>
+              {/* <StagewiseDevToolbar /> */}
 
+              <StyleWrapper>{children}</StyleWrapper>
               <Nav />
               <Toaster />
-
               <Analytics />
             </body>
           </html>

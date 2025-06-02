@@ -130,20 +130,6 @@ export function RestaurantCard({
 								{restaurant.address}
 							</p> */}
             </div>
-            <Link
-              href={`${restaurant.address}`}
-              target='_blank'
-              rel='noopener noreferrer'
-              className={cn(
-                'p-2 rounded-full',
-                'bg-white/10 dark:bg-zinc-800/50',
-                'backdrop-blur-md',
-                'group-hover:bg-white/20 dark:group-hover:bg-zinc-700/50',
-                'transition-colors duration-300'
-              )}
-            >
-              <ArrowUpRight className='w-4 h-4 text-white group-hover:-rotate-12 transition-transform duration-300' />
-            </Link>
           </div>
         </div>
       </div>
