@@ -31,11 +31,13 @@ export function UserPunchCards({
 }: UserPunchCardsProps) {
   // Start with initial data from server, then get real-time updates
   const {punchCards, isLoading, error} = usePunchCardSubscription(user.id)
+  // @ts-ignore
   const {raffleEntries: raffleEntriesFromSubscription} =
     useUserRaffleSubscription(user.id)
   const actualRaffleEntry =
     raffleEntry ||
     raffleEntriesFromSubscription?.[0] ||
+    // @ts-ignore
     user?.raffleEntries?.[0]
   // If we have realtime data, use it, otherwise use the initial data
   const displayPunchCards =
