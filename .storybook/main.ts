@@ -4,8 +4,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 const config: StorybookConfig = {
     stories: [
         "../src/components/**/*.stories.tsx",
-        "../src/features/**/*.stories.tsx", 
-        "../src/app/**/*.stories.tsx"
+        "../src/features/**/*.stories.tsx"
     ],
 
     addons: [
