@@ -26,7 +26,7 @@ import {
 import {useRouter} from 'next/navigation'
 import {exportToCSV} from '@/lib/csv'
 import {CSVUpload} from '@/components/admin/csv-upload'
-import {importDealsFromCSV} from '@/actions/deals'
+import {importDealsFromCSV} from '@/app/actions/deals'
 import {
   flexRender,
   getCoreRowModel,

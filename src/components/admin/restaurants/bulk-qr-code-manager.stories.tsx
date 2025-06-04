@@ -1,7 +1,7 @@
 import type {Meta, StoryObj} from '@storybook/nextjs'
 import {BulkQRCodeManager} from '@/app/admin/restaurants/bulk-qr-code-manager'
 import * as React from 'react'
-import {fn} from 'storybook/test'
+import {fn} from '@storybook/test'
 import type {Restaurant} from '@/types/db'
 
 // Import the hook after mocking

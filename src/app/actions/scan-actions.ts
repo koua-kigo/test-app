@@ -55,11 +55,19 @@ export async function processQrScan(formData: {
 
 		console.log("🚀 ~ numericRestaurantId:", numericRestaurantId);
 
-		if (!numericRestaurantId || !userId) {
+		if (!numericRestaurantId) {
 			return {
-				error: "Missing required parameters",
-				message: "User ID and restaurant ID are required",
+				error: "Missing restaurant ID",
+				message: "Restaurant ID is required",
 				status: 400,
+			};
+		}
+
+		if (!userId) {
+			return {
+				redirect: `/restaurants/${numericRestaurantId}`,
+				message: "Please sign in to collect punches",
+				status: 302,
 			};
 		}
 

@@ -464,25 +464,8 @@ This document defines the rules and guidelines for the AI coding assistant. It c
 
         ```typescript
         // ✅ DO: Bulk operations with proper data preparation
-        export const bulkCreateRecords = async (records: CreateInput[]) => {
-        const recordsWithTimestamps = records.map((record) => ({
-            ...record,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        }));
-
-        return await db
-            .insert(tableName)
-            .values(recordsWithTimestamps)
-            .returning();
-        };
-        ```
--   **Database Relations**
-    -   **Always include proper with clauses** for related data
-    -   **Reference schema file** via `@/db/drizzle/schema` import
-    -   **Model files** should be organized by domain in separate folders under `src/db/models/`
-
-Reference: [schema.ts](mdc:src/db/drizzle/schema.ts) for table definitions and relationships.
+        export const bulkCreateRecords
+```
 
 ## SEO & METADATA
 
@@ -499,8 +482,7 @@ Reference: [schema.ts](mdc:src/db/drizzle/schema.ts) for table definitions and r
       icons: {
         icon: [
           { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-          { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-        ],
+          { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' }],
         apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
       },
       manifest: '/site.webmanifest',
@@ -511,6 +493,8 @@ Reference: [schema.ts](mdc:src/db/drizzle/schema.ts) for table definitions and r
 ## STORYBOOK INTEGRATION & SERVER COMPONENT HANDLING
 
 -   **General Strategy:** When integrating Storybook, ensure client components are isolated from server components, especially those that depend on database connections. This can be achieved through mocking database interactions or excluding server components from Storybook stories.
+
+-   **Version Consistency:** Ensure all Storybook packages have matching versions. Use `npx storybook doctor` to diagnose and resolve version mismatches.
 
 -   **Mocking Database Interactions:**
     -   When server-side database code is imported into client components for Storybook stories, create mocks for the database interactions.
@@ -547,6 +531,12 @@ Reference: [schema.ts](mdc:src/db/drizzle/schema.ts) for table definitions and r
 -   **Testing:**
     -   Ensure mocks cover all database function signatures, possible return types, error conditions, loading states, and empty data states.
     -   Test that Storybook builds without errors, stories render without server imports, components work with mock data, and real components still work with real data.
+
+-   **Version Management:**
+    -   If encountering "No matching export" or SB_CORE-SERVER_0004 errors in Storybook, ensure all Storybook packages use compatible versions.
+    -   Use `npx storybook doctor` to identify and resolve version mismatches.
+    -   Consider downgrading all Storybook packages to the stable 8.x series (e.g., 8.6.14) if encountering compatibility issues with newer alpha or release candidate versions.
+    -   When downgrading, verify compatibility of `@storybook/nextjs-vite` and `@storybook/addon-vitest` as they may not have corresponding 8.x versions. Use the latest compatible versions for your Storybook setup.
 
 ## PUNCH CARD UI ANIMATIONS
 
@@ -757,5 +747,4 @@ Reference: [schema.ts](mdc:src/db/drizzle/schema.ts) for table definitions and r
     -   **Bulk operations** should handle errors gracefully and maintain data consistency
 
         ```typescript
-        // ✅ DO: Bulk operations with proper data preparation
-        export const bulkCreateRecords
+        // ✅ DO: Bulk operations

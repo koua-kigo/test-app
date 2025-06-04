@@ -1,5 +1,4 @@
-import type { StorybookConfig } from "@storybook/nextjs-vite";
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import type { StorybookConfig } from "@storybook/nextjs";
 
 const config: StorybookConfig = {
     stories: [
@@ -11,49 +10,41 @@ const config: StorybookConfig = {
 		"@storybook/addon-essentials",
 		"@storybook/addon-onboarding",
 		"@chromatic-com/storybook",
-		"@storybook/addon-vitest",
 	],
 
-    framework: "@storybook/nextjs-vite",
+    framework: {
+        name: "@storybook/nextjs",
+        options: {},
+    },
     staticDirs: ["../public"],
 
     typescript: {
         reactDocgen: "react-docgen-typescript"
     },
 
-    viteFinal: async (config) => {
-        // Add Node.js polyfills for browser environment
-        config.plugins = config.plugins || [];
-        config.plugins.push(
-            nodePolyfills({
-                include: ['buffer', 'process', 'util', 'path', 'stream', 'crypto', 'fs', 'os', 'net'],
-                globals: {
-                    Buffer: true,
-                    global: true,
-                    process: true,
-                },
-            })
-        );
+    env: (config) => ({
+        ...config,
+        DATABASE_URL: 'postgresql://mock:mock@localhost:5432/storybook',
+    }),
 
-        // Add module resolution fallbacks
+    webpackFinal: async (config) => {
+        // Add Node.js polyfills for webpack
         config.resolve = config.resolve || {};
         config.resolve.fallback = {
             ...config.resolve.fallback,
-            'tls': false,
-            'perf_hooks': false,
             'net': false,
+            'tls': false,
             'fs': false,
             'child_process': false,
-        };
-
-        config.define = {
-            ...config.define,
-            global: 'globalThis',
-            'process.env.DATABASE_URL': JSON.stringify(process.env.DATABASE_URL || 'postgresql://mock:mock@localhost:5432/storybook'),
+            'perf_hooks': false,
+            'crypto': false,
+            'stream': false,
+            'buffer': false,
+            'util': false,
         };
 
         return config;
-    }
+    },
 };
 export default config;
 

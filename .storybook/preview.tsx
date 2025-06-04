@@ -1,53 +1,11 @@
-// eslint-disable
-// @ts-nocheck
 import type {Preview} from '@storybook/nextjs'
 import '../src/app/globals.css'
-
 import React from 'react'
 
-// Mock modules that depend on Node.js or database functionality
-const mockModules = () => {
-  // Mock database models
-  try {
-    require.cache[require.resolve('@/db/models/users/users')] = {
-      exports: {
-        getUserByClerkId: () => Promise.resolve(null),
-      }
-    };
-  } catch (e) {
-    // Module not found, that's okay
-  }
-
-  // Mock hooks that use database
-  try {
-    require.cache[require.resolve('@/hooks/use-punch-card-subscription')] = {
-      exports: {
-        usePunchCardSubscription: () => ({
-          punchCards: [],
-          isLoading: false,
-          error: null,
-        }),
-      }
-    };
-  } catch (e) {
-    // Module not found, that's okay
-  }
-
-  try {
-    require.cache[require.resolve('@/hooks/useUserRaffleSubscription')] = {
-      exports: {
-        useUserRaffleSubscription: () => ({
-          raffleEntries: [],
-        }),
-      }
-    };
-  } catch (e) {
-    // Module not found, that's okay
-  }
-};
-
-// Initialize mocks
-mockModules();
+// Mock canvas-confetti for Storybook
+if (typeof window !== 'undefined') {
+  (window as any).confetti = () => Promise.resolve();
+}
 
 const preview: Preview = {
   parameters: {

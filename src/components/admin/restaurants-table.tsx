@@ -49,7 +49,7 @@ import {
   updateRestaurantAction,
   deleteRestaurantAction,
   importRestaurantsFromCSV,
-} from '@/actions/restaurants'
+} from '@/app/actions/restaurants'
 import {toast} from 'sonner'
 import {useRestaurantSearch} from '@/hooks/useRestaurantSearch'
 import {AdminRestaurantSearchBar} from '@/features/restaurants/AdminRestaurantSearchBar'

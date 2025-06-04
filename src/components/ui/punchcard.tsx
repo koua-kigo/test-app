@@ -107,24 +107,27 @@ export const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
     const MAX_PUNCH_THRESHOLD = 6
     const [lastPunchCount, setLastPunchCount] = React.useState(currentPunches)
 
-    // Trigger confetti when punch count increases
+    // Trigger confetti when punch count increases - disabled for Storybook
     React.useEffect(() => {
-      if (currentPunches > lastPunchCount && lastPunchCount > 0) {
-        // Check if punch card is completed
-        if (currentPunches >= MAX_PUNCH_THRESHOLD) {
-          // MEGA CELEBRATION for completing punch card!
-          setTimeout(() => {
-            triggerMegaConfetti()
-          }, 500) // Longer delay for the big celebration
-        } else {
-          // Regular confetti for normal punches
-          setTimeout(() => {
-            triggerConfetti()
-          }, 300)
+      // Only trigger animations if we're not in Storybook
+      if (typeof window !== 'undefined' && !window.location.href.includes('storybook')) {
+        if (currentPunches > lastPunchCount && lastPunchCount > 0) {
+          // Check if punch card is completed
+          if (currentPunches >= MAX_PUNCH_THRESHOLD) {
+            // MEGA CELEBRATION for completing punch card!
+            setTimeout(() => {
+              triggerMegaConfetti()
+            }, 500) // Longer delay for the big celebration
+          } else {
+            // Regular confetti for normal punches
+            setTimeout(() => {
+              triggerConfetti()
+            }, 300)
+          }
         }
       }
       setLastPunchCount(currentPunches)
-    }, [currentPunches, lastPunchCount, MAX_PUNCH_THRESHOLD])
+    }, [currentPunches])
 
     return (
       <motion.div
