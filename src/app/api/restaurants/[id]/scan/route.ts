@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import {
 	createPunchCard,
 	getUserPunchCardForRestaurant,
@@ -12,6 +13,7 @@ import {
 	createRaffleEntry,
 	getRaffleEntriesByUserId,
 } from "@/db/models/raffle-entries/raffle-entries";
+import { extractRestaurantIdFromUrl, isValidRestaurantId } from "@/utils/url-parsing";
 
 // NEW: Helper to safely serialize data with BigInt conversion
 const safeJson = (data: unknown) =>
@@ -22,19 +24,46 @@ const safeJson = (data: unknown) =>
 export async function POST(request: Request) {
 	console.log("🚀 ~ POST ~ request:", request);
 
-	// Extract restaurant ID from URL
-	const restaurantId = request.url.match(/restaurants\/(\d+)\/scan/)?.[1] ?? "";
-	console.log("🚀 ~ POST ~ restaurantId:", restaurantId);
+	// Extract restaurant ID from URL using flexible parsing
+	const restaurantId = extractRestaurantIdFromUrl(request.url);
+	console.log("🚀 ~ POST ~ restaurantId extracted from URL:", restaurantId);
+	console.log("🚀 ~ POST ~ URL parsing input:", request.url);
+	console.log("🚀 ~ POST ~ URL parsing result:", restaurantId ? `Found ID: ${restaurantId}` : "No ID found");
 
 	// Parse request body
 	const body = await request.json();
 	console.log("🚀 ~ POST ~ body:", body);
 
-	if (!restaurantId || !body?.userId) {
+	if (!restaurantId || !isValidRestaurantId(restaurantId)) {
+		console.log("🚀 ~ POST ~ Restaurant ID validation failed:", {
+			restaurantId,
+			isValid: restaurantId ? isValidRestaurantId(restaurantId) : false,
+			originalUrl: request.url
+		});
 		return new Response(
 			safeJson({
 				message: "Missing required data",
-				error: "Restaurant ID and user ID are required",
+				error: "Restaurant ID is required",
+			}),
+			{ status: 400, headers: { "Content-Type": "application/json" } },
+		);
+	}
+
+	const { userId: clerkUserId } = await auth();
+	
+	console.log("🚀 ~ POST ~ clerkUserId:", clerkUserId);
+
+	if (!body?.userId && !clerkUserId) {
+		console.log("🚀 ~ POST ~ redirecting out-of-app user to restaurant page");
+		return Response.redirect(`https://experiencemaplegrove.app/restaurants/${restaurantId}`, 302);
+	}
+
+	if (!body?.userId && clerkUserId) {
+		console.log("🚀 ~ POST ~ user authenticated via Clerk but no userId provided");
+		return new Response(
+			safeJson({
+				message: "Missing required data",
+				error: "User ID is required for authenticated users",
 			}),
 			{ status: 400, headers: { "Content-Type": "application/json" } },
 		);

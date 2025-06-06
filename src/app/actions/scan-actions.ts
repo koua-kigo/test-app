@@ -1,5 +1,6 @@
 "use server";
 
+import { auth } from "@clerk/nextjs/server";
 import {
 	createPunchCard,
 	getPunchCardsByUserId,
@@ -10,6 +11,7 @@ import { createRaffleEntry } from "@/db/models/raffle-entries/raffle-entries";
 import { getRestaurantById } from "@/db/models/restaurants/restaurants";
 import { getUserByClerkId, getUserById } from "@/db/models/users/users";
 import { convertBigInts } from "@/lib/utils";
+import { extractRestaurantIdFromUrl, isValidRestaurantId } from "@/utils/url-parsing";
 
 export async function processQrScan(formData: {
 	qrData: string;
@@ -18,6 +20,10 @@ export async function processQrScan(formData: {
 	const { qrData, userId } = formData;
 
 	console.log("🚀 ~ processQrScan received qrData:", qrData);
+	
+	const { userId: clerkUserId } = await auth();
+	
+	console.log("🚀 ~ processQrScan ~ clerkUserId:", clerkUserId);
 	let user;
 	try {
 		// Attempt to parse the QR data if it's a JSON string
@@ -47,15 +53,22 @@ export async function processQrScan(formData: {
 		}
 
 		console.log("🚀 ~ Processing QR data as:", qrDataString);
-		const restaurantId =
-			qrDataString.match(/restaurants\/(\d+)\/scan/)?.[1] ?? "";
-		console.log("🚀 ~ restaurantId:", restaurantId);
-		console.log("🚀 ~ POST ~ restaurantId:", restaurantId);
-		const numericRestaurantId = restaurantId?.replace(/\D/g, "");
+		
+		const restaurantId = extractRestaurantIdFromUrl(qrDataString);
+		console.log("🚀 ~ restaurantId extracted from URL:", restaurantId);
+		console.log("🚀 ~ URL parsing input:", qrDataString);
+		console.log("🚀 ~ URL parsing result:", restaurantId ? `Found ID: ${restaurantId}` : "No ID found");
+		
+		const numericRestaurantId = restaurantId;
 
 		console.log("🚀 ~ numericRestaurantId:", numericRestaurantId);
 
-		if (!numericRestaurantId) {
+		if (!numericRestaurantId || !isValidRestaurantId(numericRestaurantId)) {
+			console.log("🚀 ~ Restaurant ID validation failed:", {
+				numericRestaurantId,
+				isValid: numericRestaurantId ? isValidRestaurantId(numericRestaurantId) : false,
+				originalUrl: qrDataString
+			});
 			return {
 				error: "Missing restaurant ID",
 				message: "Restaurant ID is required",
@@ -63,11 +76,21 @@ export async function processQrScan(formData: {
 			};
 		}
 
-		if (!userId) {
+		if (!userId && !clerkUserId) {
+			console.log("🚀 ~ processQrScan ~ redirecting out-of-app user to restaurant page");
 			return {
-				redirect: `/restaurants/${numericRestaurantId}`,
-				message: "Please sign in to collect punches",
+				redirect: `https://experiencemaplegrove.app/restaurants/${numericRestaurantId}`,
+				message: "Please sign up to collect punch cards",
 				status: 302,
+			};
+		}
+
+		if (!userId && clerkUserId) {
+			console.log("🚀 ~ processQrScan ~ user authenticated via Clerk but no userId provided");
+			return {
+				error: "User ID is required",
+				message: "User ID is required for authenticated users",
+				status: 400,
 			};
 		}
 
