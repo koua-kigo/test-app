@@ -9,7 +9,8 @@ import {Toaster} from '@/components/ui/sonner'
 import {UserProvider} from '@/context/user-context'
 import './globals.css'
 import {StyleWrapper} from '@/context/style-wrapper'
-// import {StagewiseDevToolbar} from '@/components/dev/stagewise-dev-toolbar'
+// import {GoogleAnalytics} from '@next/third-parties/google-analytics'
+import {GoogleAnalytics} from '@next/third-parties/google'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -50,7 +51,7 @@ export default function RootLayout({
               className={`${geistSans.variable} ${geistMono.variable} antialiased relative h-screen overflow-scroll bg-[#faf9f6] overflow-x-hidden`}
             >
               {/* <StagewiseDevToolbar /> */}
-
+              <GoogleAnalytics gaId='G-SZWPFKRGP3' />
               <StyleWrapper>{children}</StyleWrapper>
               <Nav />
               <Toaster />
