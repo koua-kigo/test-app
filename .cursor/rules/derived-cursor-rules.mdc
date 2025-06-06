@@ -60,6 +60,10 @@ This document defines the rules and guidelines for the AI coding assistant. It c
 ## AUTHENTICATION & AUTHORIZATION
 
 -   (Deprecated) Authentication and authorization checks are no longer required for raffle entries API routes.
+-   When a new user is created, update the Clerk user's metadata with the Supabase user ID. Use `privateMetadata` to store this sensitive linking information, as it should only be accessible from the backend.
+    -   After creating a user in Supabase, update the corresponding Clerk user's `privateMetadata` with the Supabase user ID. This allows linking Clerk users to their database records.
+    -   Access the Supabase user ID from `user.privateMetadata.supabaseUserId` on the backend.
+    -   Ensure the bigint user ID is converted to a string for metadata storage.
 
 ## DEBUGGING
 
@@ -459,13 +463,6 @@ This document defines the rules and guidelines for the AI coding assistant. It c
         ),
         ]
         ```
--   **Bulk Operations**
-    -   **Bulk operations** should handle errors gracefully and maintain data consistency
-
-        ```typescript
-        // ✅ DO: Bulk operations with proper data preparation
-        export const bulkCreateRecords
-```
 
 ## SEO & METADATA
 
@@ -738,13 +735,4 @@ This document defines the rules and guidelines for the AI coding assistant. It c
         unique("users_clerk_id_unique").on(table.clerkId),
         uniqueIndex("unique_restaurant_user_idx").using(
             "btree",
-            table.userId.asc().nullsLast().op("int8_ops"),
-            table.restaurantId.asc().nullsLast().op("int8_ops"),
-        ),
-        ]
-        ```
--   **Bulk Operations**
-    -   **Bulk operations** should handle errors gracefully and maintain data consistency
-
-        ```typescript
-        // ✅ DO: Bulk operations
+            table

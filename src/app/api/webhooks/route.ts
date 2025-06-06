@@ -1,6 +1,5 @@
-import { Webhook } from "svix";
-import { headers } from "next/headers";
-import type { User, WebhookEvent } from "@clerk/nextjs/server";
+
+import { clerkClient } from "@clerk/nextjs/server";
 import { createUser } from "@/db/models/users";
 import { convertBigInts } from "@/lib/utils";
 
@@ -41,6 +40,7 @@ export async function POST(req: Request) {
 			const email = email_addresses[0].email_address;
 			const name = `${first_name} ${last_name}`;
 
+			// Create user in Supabase database
 			const user = await createUser({
 				clerkId,
 				name,
@@ -49,8 +49,18 @@ export async function POST(req: Request) {
 
 			console.log("🚀 ~ POST ~ user:", user);
 
+			// Update Clerk user's metadata with Supabase user ID
+			const client = await clerkClient();
+			await client.users.updateUserMetadata(clerkId, {
+				publicMetadata: {
+					databaseUserId: user[0].id.toString(),
+				},
+			});
+
+			console.log("✅ Updated Clerk user metadata with Supabase user ID:", user[0].id);
+
 			return Response.json({
-				message: "User created",
+				message: "User created and metadata updated",
 				data: convertBigInts(user),
 			});
 		}
