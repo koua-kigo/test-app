@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 
 import {Suspense} from 'react'
@@ -7,7 +5,6 @@ import {Suspense} from 'react'
 import {getRestaurantById} from '@/db/models'
 import {RestaurantLoading} from '@/features/restaurants/RestaurantLoading'
 
-import {AnimatePresence} from 'framer-motion'
 import {AdminRestaurantDetail} from '@/app/admin/restaurants/[id]/AdminRestaurantDetail'
 
 // Restaurant detail component
@@ -55,9 +52,7 @@ export default async function RestaurantPage({
       </div>
 
       <Suspense fallback={<RestaurantLoading />}>
-        <AnimatePresence>
-          {restaurant && <AdminRestaurantDetail restaurant={restaurant} />}
-        </AnimatePresence>
+        {restaurant && <AdminRestaurantDetail restaurant={restaurant} />}
       </Suspense>
     </div>
   )

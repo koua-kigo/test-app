@@ -461,3 +461,9 @@ td.data-cell > [role="checkbox"] {
 		overflow-y: scroll;
 	}
 }
+
+li,
+li a,
+a {
+	cursor: pointer;
+}
