@@ -60,9 +60,7 @@ export const useHandleQRCode = (props: UseHandleQRCodeProps) => {
   function getDefaultQrCodeValue(
     restaurantId: bigint | number | string
   ): string {
-    return `${
-      typeof window !== 'undefined' ? window.location.origin : ''
-    }/api/restaurants/${restaurantId}/scan`
+    return `https://experiencemaplegrove.app/restaurants/${restaurantId}`
   }
 
   // Single mode: Generate QR code and show save/cancel buttons

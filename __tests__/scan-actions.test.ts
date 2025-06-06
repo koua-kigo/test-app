@@ -22,20 +22,38 @@ vi.mock('@/db/models/raffle-entries/raffle-entries', () => ({
   createRaffleEntry: vi.fn(),
 }))
 
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: vi.fn().mockResolvedValue({ userId: null }),
+}))
+
+vi.mock('@/utils/url-parsing', () => ({
+  extractRestaurantIdFromUrl: vi.fn(),
+  isValidRestaurantId: vi.fn(),
+}))
+
 describe('processQrScan', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
+    
+    const { extractRestaurantIdFromUrl, isValidRestaurantId } = await import('@/utils/url-parsing')
+    vi.mocked(extractRestaurantIdFromUrl).mockImplementation((url: string) => {
+      const match = url.match(/restaurants\/(\d+)/)
+      return match ? match[1] : null
+    })
+    vi.mocked(isValidRestaurantId).mockImplementation((id: string) => {
+      return /^\d+$/.test(id)
+    })
   })
 
   it('should return redirect for missing userId', async () => {
     const result = await processQrScan({
-      qrData: 'https://example.com/restaurants/123/scan',
+      qrData: 'https://experiencemaplegrove.app/restaurants/123',
       userId: '',
     })
 
     expect(result).toEqual({
-      redirect: '/restaurants/123',
-      message: 'Please sign in to collect punches',
+      redirect: 'https://experiencemaplegrove.app/restaurants/123',
+      message: 'Please sign up to collect punch cards',
       status: 302,
     })
   })
@@ -64,8 +82,32 @@ describe('processQrScan', () => {
     const { getPunchCardsByUserId } = await import('@/db/models/punch-cards/punch-cards')
     const { createPunchCard } = await import('@/db/models/punch-cards/punch-cards')
 
-    vi.mocked(getUserByClerkId).mockResolvedValue({ id: mockUserId, name: 'Test User' })
-    vi.mocked(getRestaurantById).mockResolvedValue({ id: mockRestaurantId, name: 'Test Restaurant' })
+    vi.mocked(getUserByClerkId).mockResolvedValue({ 
+      id: mockUserId, 
+      clerkId: 'user-clerk-id',
+      name: 'Test User',
+      isStaff: false,
+      isAdmin: false,
+      email: 'test@example.com',
+      phone: null,
+      raffleEntries: [],
+      punchCards: []
+    })
+    vi.mocked(getRestaurantById).mockResolvedValue({ 
+      id: mockRestaurantId, 
+      name: 'Test Restaurant',
+      description: 'Test Description',
+      imageUrl: 'test-image.jpg',
+      address: 'Test Address',
+      qrCodeUrl: null,
+      code: null,
+      contactName: null,
+      contactPosition: null,
+      email: null,
+      phone: null,
+      website: null,
+      qrCodeSvg: null
+    })
     vi.mocked(getUserPunchCardForRestaurant).mockResolvedValue(null)
     vi.mocked(getPunchCardsByUserId).mockResolvedValue([])
     vi.mocked(createPunchCard).mockResolvedValue([{
@@ -74,12 +116,11 @@ describe('processQrScan', () => {
       restaurantId: mockRestaurantId,
       punches: 1,
       completed: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     }])
 
     const result = await processQrScan({
-      qrData: 'https://example.com/restaurants/456/scan',
+      qrData: 'https://experiencemaplegrove.app/restaurants/456',
       userId: 'user-clerk-id',
     })
 
@@ -88,6 +129,32 @@ describe('processQrScan', () => {
       data: expect.any(Object),
       restaurantName: 'Test Restaurant',
       isExisting: false,
+    })
+  })
+
+  it('should handle legacy QR code format with /scan suffix', async () => {
+    const result = await processQrScan({
+      qrData: 'https://experiencemaplegrove.app/restaurants/789/scan',
+      userId: '',
+    })
+
+    expect(result).toEqual({
+      redirect: 'https://experiencemaplegrove.app/restaurants/789',
+      message: 'Please sign up to collect punch cards',
+      status: 302,
+    })
+  })
+
+  it('should handle API route format', async () => {
+    const result = await processQrScan({
+      qrData: '/api/restaurants/999/scan',
+      userId: '',
+    })
+
+    expect(result).toEqual({
+      redirect: 'https://experiencemaplegrove.app/restaurants/999',
+      message: 'Please sign up to collect punch cards',
+      status: 302,
     })
   })
 })

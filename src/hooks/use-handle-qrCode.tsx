@@ -10,13 +10,13 @@ export const useHandleQRCode = ({ restaurant }: { restaurant: Restaurant }) => {
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(restaurant.qrCodeUrl || null);
-	const [qrCodeValue, setQrCodeValue] = useState<string>(`/api/restaurants/${restaurant.id}/scan`);	
+	const [qrCodeValue, setQrCodeValue] = useState<string>(`https://experiencemaplegrove.app/restaurants/${restaurant.id}`);	
 	const qrRef = useRef<HTMLDivElement>(null);
 
 	// Generate QR code and show save/cancel buttons
 	const handleGenerate = useCallback(() => {
 		// Simple QR code value without timestamp
-		const newQrCodeValue = `/api/restaurants/${restaurant.id}/scan`;
+		const newQrCodeValue = `https://experiencemaplegrove.app/restaurants/${restaurant.id}`;
 		
 		setQrCodeValue(newQrCodeValue);
 		setGenerating(true);
@@ -30,7 +30,7 @@ export const useHandleQRCode = ({ restaurant }: { restaurant: Restaurant }) => {
 		setGenerating(false);
 		setError(null);
 		// Reset to original QR code value if exists
-		setQrCodeValue(`/api/restaurants/${restaurant.id}/scan`);
+		setQrCodeValue(`https://experiencemaplegrove.app/restaurants/${restaurant.id}`);
 	}, [restaurant.id]);
 
 	// Download QR code as image with browser compatibility handling
@@ -216,7 +216,7 @@ export const useHandleQRCode = ({ restaurant }: { restaurant: Restaurant }) => {
 	// Set the initial QR code value when the component mounts
 	useEffect(() => {
 		if (restaurant?.id) {
-			setQrCodeValue(`/api/restaurants/${restaurant.id}/scan`);
+			setQrCodeValue(`https://experiencemaplegrove.app/restaurants/${restaurant.id}`);
 		}
 	}, [restaurant?.id]);
 

@@ -45,7 +45,7 @@ export function QRCodeGenerator({
 
   // Get default target URL for a restaurant
   function getDefaultTargetUrl(restaurantId: bigint | number | string): string {
-    return `${window.location.origin}/api/restaurants/${restaurantId}/scan`
+    return `https://experiencemaplegrove.app/restaurants/${restaurantId}`
   }
 
   // Generate QR code with the restaurant ID

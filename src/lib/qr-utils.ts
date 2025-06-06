@@ -3,6 +3,7 @@
  */
 
 import { isValidUrl } from './utils';
+import { extractRestaurantIdFromUrl, isValidRestaurantId } from '@/utils/url-parsing';
 
 /**
  * Generates the default target URL for a restaurant QR code
@@ -12,9 +13,9 @@ import { isValidUrl } from './utils';
 export function getRestaurantQrCodeUrl(restaurantId: string | number | bigint): string {
   const baseUrl = typeof window !== 'undefined' 
     ? window.location.origin 
-    : process.env.NEXT_PUBLIC_APP_URL || '';
+    : process.env.NEXT_PUBLIC_APP_URL || 'https://experiencemaplegrove.app';
   
-  return `${baseUrl}/api/restaurants/${restaurantId}/scan`;
+  return `${baseUrl}/restaurants/${restaurantId}`;
 }
 
 /**
@@ -30,11 +31,11 @@ export function isValidQrCodeUrl(url: string | null | undefined, restaurantId?: 
   if (!restaurantId) return true;
   
   try {
-    // Convert the restaurantId to string for comparison
-    const idString = restaurantId.toString();
+    const extractedId = extractRestaurantIdFromUrl(url!);
+    const expectedId = restaurantId.toString();
     
-    // Check if the URL is a valid restaurant scan endpoint
-    return url!.includes(`/api/restaurants/${idString}/scan`);
+    // Check if the extracted ID matches the expected restaurant ID
+    return extractedId === expectedId && isValidRestaurantId(extractedId);
   } catch (e) {
     return false;
   }
@@ -79,4 +80,4 @@ export function downloadQrCode(qrCodeElement: HTMLElement | null, restaurantName
     console.error('Download failed:', err);
     return false;
   }
-} 
+}  
