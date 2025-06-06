@@ -13,13 +13,13 @@ export function useQRCodeGenerator(restaurant: Restaurant) {
     restaurant.qrCodeUrl || null
   )
   const [qrCodeValue, setQrCodeValue] = useState<string>(
-    `/api/restaurants/${restaurant.id}/scan`
+    `https://experiencemaplegrove.app/restaurants/${restaurant.id}`
   )
   const qrRef = useRef<HTMLDivElement>(null)
 
   // Generate QR code and show save/cancel buttons
   const handleGenerate = useCallback(() => {
-    setQrCodeValue(`/api/restaurants/${restaurant.id}/scan`)
+    setQrCodeValue(`https://experiencemaplegrove.app/restaurants/${restaurant.id}`)
     setGenerating(true)
     setError(null)
     setSuccess(false)
