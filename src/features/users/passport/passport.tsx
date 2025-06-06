@@ -108,9 +108,9 @@ export function Passport({punches}: PassportProps) {
             <div
               className={cn(
                 'grid gap-2 mb-5',
-                MAX_PUNCH_THRESHOLD <= 5
+                MAX_PUNCH_THRESHOLD <= 4
                   ? 'grid-cols-5'
-                  : MAX_PUNCH_THRESHOLD <= 8
+                  : MAX_PUNCH_THRESHOLD <= 6
                   ? 'grid-cols-4'
                   : 'grid-cols-5'
               )}

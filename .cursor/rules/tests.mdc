@@ -960,7 +960,7 @@ describe('PunchCard Visual Test', () => {
         restaurantName: 'Test Restaurant',
         restaurantImage: '/test-image.jpg',
         currentPunches: 3,
-        MAX_PUNCH_THRESHOLD: 10,
+        MAX_PUNCH_THRESHOLD: 6,
         completed: false,
         lastUpdated: new Date().toISOString(),
       },
