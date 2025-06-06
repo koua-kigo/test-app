@@ -1,5 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
 
+
 export const createClient = () =>
 	createBrowserClient(
 		process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -7,6 +8,20 @@ export const createClient = () =>
 	);
 
 export const supabaseBrowserClient = createClient();
+
+// Service client for admin operations (bypasses RLS)
+export function createSupabaseServiceClient() {
+	return createBrowserClient(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.SUPABASE_SERVICE_ROLE_KEY!,
+		{
+			auth: {
+				autoRefreshToken: false,
+				persistSession: false
+			}
+		}
+	);
+}
 
 // // For client-side usage with a token from Clerk
 // export function createClerkSupabaseClient(

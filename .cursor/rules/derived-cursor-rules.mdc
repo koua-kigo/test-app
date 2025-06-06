@@ -47,6 +47,29 @@ This document defines the rules and guidelines for the AI coding assistant. It c
     - Remove any background gradient classes (e.g., `bg-gradient-to-*`, `from-*`, `to-*`) unless explicitly requested.
     - Apply the same typography classes as semantically similar elements (e.g., hero div) (e.g., `text-4xl font-bold text-gray-900`).
     - Ensure elements are positioned and styled consistently with the overall design.
+-   The `@restaurant-quick-view.tsx` component should display the restaurant's image from the `image_url` field on the restaurant database model. The image should be positioned prominently at the top of the restaurant information card in the BentoGrid layout. Use the Next.js `Image` component for optimized image handling. Ensure conditional rendering so that the image is only displayed if `restaurantData.imageUrl` exists. The image should have a fixed height (192px) and maintain its aspect ratio. Use rounded corners and proper overflow handling. Provide descriptive alt text using the restaurant name.
+-   The restaurant image in the quick view should be editable and updatable, allowing admins to upload new restaurant images using the `@storage.ts` module. The component should display an interactive image display with the following features:
+    - **Existing Image**: Hover overlay with "Change Image" button.
+    - **No Image**: Placeholder with "Upload Image" button.
+    - **Loading States**: Spinner and progress indicators during upload.
+    - Uses the `uploadRestaurantImage()` function from the `@storage.ts` module.
+    - Validates file types (JPEG, PNG, WebP, SVG only).
+    - Enforces 50MB file size limit.
+    - Generates public URLs for uploaded images.
+    - Updates local restaurant data after successful upload.
+    - Propagates changes to parent component via callback.
+    - Updates the database with the new image URL.
+    - Implements client-side file validation before upload.
+    - Displays toast notifications for success/error states.
+    - Provides comprehensive error logging and graceful failure handling.
+    - Uses smooth hover transitions and visual feedback.
+    - Uses a hidden file input for a clean UI.
+    - Implements loading states with spinner animations.
+    - Includes clear visual indicators for interactive elements.
+    - When no image is available, display a placeholder with an upload button.
+    - When an image is available, display an overlay with a "Change Image" button on hover.
+    - The `imageUrl` from `@db.ts @Restaurant` should get updated to the URL of the newly uploaded image on save in the `@restaurant-quick-view.tsx`.
+    - When the `imageUrl` is updated in the `@restaurant-quick-view.tsx` component, ensure that the component receives the new `imageUrl` from the server action, the local `restaurantData` state is updated with the new `imageUrl`, and the UI immediately reflects the newly uploaded image.
 
 ## DATA FETCHING & API
 
@@ -118,6 +141,12 @@ This document defines the rules and guidelines for the AI coding assistant. It c
 -   Configure Next.js Image component for external image sources.
 -   Use Next.js Image component for optimized image loading.
 -   The `domains` array in `next.config.js` should contain just the hostname portion, without protocols or trailing slashes.
+-   For admin operations like restaurant image uploads, use server-side upload instead of client-side uploads to prevent Row-Level Security (RLS) policy violations.
+    - To facilitate this, create a **server action** that handles image upload using **server-side storage functions** with proper permissions.
+    - Use `uploadFileServer` in server actions, as it has proper server-side permissions.
+    - The component should create `FormData` and call the server action.
+    - If you exclusively use Storage from trusted clients, such as your own servers, and need to bypass the RLS policies, you can use the service key in the Authorization header. Service keys entirely bypass RLS policies, granting you unrestricted access to all Storage APIs.
+    -   You must add the `SUPABASE_SERVICE_ROLE_KEY` environment variable to your `.env.local` file and restart your development server.
 
 ## TABLE DISPLAY
 
@@ -329,410 +358,346 @@ This document defines the rules and guidelines for the AI coding assistant. It c
         - Integrate reward logic post-signup.
         - Add analytics and error handling.
 
-## CURSOR RULES
+## SUPABASE STORAGE RULES
 
-- Use Cursor Rules to standardize development patterns.
-- Project structure includes `rules` and `features` directories within the `.cursor` directory.
+-   Use the `qr-codes` bucket for storing QR codes.
+-   Use the `restaurants` bucket for storing restaurant images and assets.
 
-## DRIZZLE ORM PATTERNS & DATABASE STANDARDS
+## STORAGE MODULE RULES
 
--   **Schema Design Patterns**
-    -   **Use bigserial for primary keys** with mode: "bigint"
+-   The Storage module provides a comprehensive interface for managing file storage operations in Supabase Storage. It supports two primary buckets:
+    -   `restaurants` - For restaurant images (logos, banners, gallery images)
+    -   `qr-codes` - For QR code images generated for restaurants
 
+-   **Key Components:**
+    -   `StorageResponse<T>` - Standardized response format with data, error, and success fields
+    -   `UploadOptions` - Configuration for file uploads (cache control, upsert, content type)
+    -   `ListOptions` - Configuration for file listing (pagination, sorting, search)
+    -   `BucketName` - Type-safe bucket names (`'qr-codes' | 'restaurants'`)
+    -   `FileObject` - Supabase file metadata structure
+    -   `FileInfo` - Detailed file information structure
+
+-   **Error Handling:**
+    -   `StorageError` - Custom error class with error codes and details
+    -   `StorageErrorCode` - Enumeration of specific error types
+    -   Comprehensive error handling with user-friendly messages
+
+-   **Security Features:**
+    -   Path validation to prevent directory traversal attacks
+    -   File type validation for images
+    -   File size limits (50MB max)
+    -   Content type validation
+
+-   **Dual Client Support:**
+    -   **Server Operations**: Use `createSupabaseServerClient()` for server-side operations
+    -   **Client Operations**: Use `supabaseBrowserClient` for client-side operations
+
+-   **Core Functions:**
+    -   **Server-Side Operations:**
+        -   **File Upload:**
+            ```typescript
+            uploadFileServer(
+              bucket: BucketName,
+              path: string,
+              file: File | ArrayBuffer,
+              options?: UploadOptions
+            ): Promise<StorageResponse>
+            ```
+        -   **File Download:**
+            ```typescript
+            downloadFileServer(
+              bucket: BucketName,
+              path: string
+            ): Promise<StorageResponse<Blob>>
+            ```
+        -   **List Files:**
+            ```typescript
+            listFilesServer(
+              bucket: BucketName,
+              folder?: string,
+              options?: ListOptions
+            ): Promise<StorageResponse<FileObject[]>>
+            ```
+        -   **File Deletion:**
+            ```typescript
+            deleteFileServer(bucket: BucketName, path: string): Promise<StorageResponse>
+            deleteFilesServer(bucket: BucketName, paths: string[]): Promise<StorageResponse>
+            ```
+        -   **File Management:**
+            ```typescript
+            moveFileServer(bucket: BucketName, fromPath: string, toPath: string): Promise<StorageResponse>
+            copyFileServer(bucket: BucketName, fromPath: string, toPath: string): Promise<StorageResponse>
+            ```
+        -   **Signed URLs:**
+            ```typescript
+            getSignedUrlServer(
+              bucket: BucketName,
+              path: string,
+              expiresIn?: number
+            ): Promise<StorageResponse<string>>
+            ```
+    -   **Client-Side Operations:**
+        -   **File Upload:**
+            ```typescript
+            uploadFileClient(
+              bucket: BucketName,
+              path: string,
+              file: File,
+              options?: UploadOptions
+            ): Promise<StorageResponse>
+            ```
+    -   **Universal Operations:**
+        -   **Public URL Generation:**
+            ```typescript
+            getPublicUrl(bucket: BucketName, path: string): string
+            ```
+
+-   **Convenience Functions:**
+    -   **Restaurant Image Management:**
+        -   **Upload Restaurant Image:**
+            ```typescript
+            uploadRestaurantImage(
+              restaurantId: string,
+              file: File,
+              imageType: 'logo' | 'banner' | 'gallery' = 'logo'
+            ): Promise<StorageResponse>
+            ```
+        -   **Get Restaurant Images:**
+            ```typescript
+            getRestaurantImages(
+              restaurantId: string,
+              imageType?: 'logo' | 'banner' | 'gallery'
+            ): Promise<StorageResponse<FileObject[]>>
+            ```
+        -   **Delete Restaurant Images:**
+            ```typescript
+            deleteRestaurantImages(
+              restaurantId: string,
+              imageType?: 'logo' | 'banner' | 'gallery'
+            ): Promise<StorageResponse>
+            ```
+    -   **QR Code Management:**
+        -   **Upload QR Code:**
+            ```typescript
+            uploadQRCode(
+              restaurantId: string,
+              qrType: 'menu' | 'contact' | 'referral' = 'menu',
+              qrCodeBuffer: ArrayBuffer
+            ): Promise<StorageResponse>
+            ```
+        -   **Get QR Codes:**
+            ```typescript
+            getQRCodes(
+              restaurantId: string,
+              qrType?: 'menu' | 'contact' | 'referral'
+            ): Promise<StorageResponse<FileObject[]>>
+            ```
+        -   **Delete QR Codes:**
+            ```typescript
+            deleteQRCodes(
+              restaurantId: string,
+              qrType?: 'menu' | 'contact' | 'referral'
+            ): Promise<StorageResponse>
+            ```
+
+-   **Utility Functions:**
+    -   **Path Management:**
+        -   `validatePath(path: string)` - Validates file paths for security
+        -   `normalizeFilePath(path: string)` - Normalizes file paths
+        -   `getFileExtension(filename: string)` - Extracts file extension
+    -   **File Validation:**
+        -   `validateFileType(file: File, allowedTypes: string[])` - Validates file MIME types
+        -   `validateFileSize(file: File, maxSize?: number)` - Validates file size
+
+-   **Data Flow:**
+    -   **Upload Process:**
+        1.  **Validation** - Path, file type, and size validation
+        2.  **Normalization** - Path normalization and sanitization
+        3.  **Client Selection** - Choose appropriate Supabase client (server/browser)
+        4.  **Upload** - Execute upload with specified options
+        5.  **Error Handling** - Comprehensive error handling and logging
+        6.  **Response** - Return standardized response format
+    -   **Download Process:**
+        1.  **Path Validation** - Ensure path security
+        2.  **Client Selection** - Use server client for downloads
+        3.  **Download** - Retrieve file as Blob
+        4.  **Error Handling** - Handle download failures
+        5.  **Response** - Return file data or error
+    -   **Listing Process:**
+        1.  **Folder Configuration** - Set up folder path and options
+        2.  **Query Execution** - Execute list query with pagination/sorting
+        3.  **Data Processing** - Process file metadata
+        4.  **Response** - Return file list or error
+
+-   **Security Features:**
+    -   **Path Security:**
+        -   Prevents directory traversal attacks (`../`)
+        -   Blocks absolute paths
+        -   Removes double slashes
+        -   Normalizes paths consistently
+    -   **File Validation:**
+        -   **Type Restrictions**: Only allows specified image types for restaurant bucket
+        -   **Size Limits**: 50MB maximum file size
+        -   **Content Type**: Validates MIME types
+    -   **Access Control:**
+        -   Server-side operations use authenticated client
+        -   Client-side operations use browser client with RLS policies
+        -   Signed URLs for temporary private access
+
+-   **Error Handling Strategy:**
+    -   **Error Types:**
+        -   `FILE_NOT_FOUND` - Requested file doesn't exist
+        -   `UPLOAD_FAILED` - Upload operation failed
+        -   `INVALID_PATH` - Path validation failed
+        -   `BUCKET_NOT_FOUND` - Specified bucket doesn't exist
+        -   `PERMISSION_DENIED` - Access denied
+        -   `FILE_TOO_LARGE` - File exceeds size limit
+        -   `INVALID_FILE_TYPE` - File type not allowed
+        -   `DOWNLOAD_FAILED` - Download operation failed
+        -   `DELETE_FAILED` - Delete operation failed
+        -   `LIST_FAILED` - List operation failed
+    -   **Error Response Format:**
         ```typescript
-        // ✅ DO: Standard primary key pattern
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-
-        // ❌ DON'T: Use regular serial or omit mode
-        id: serial().primaryKey(),
+        {
+          data: null,
+          error: "User-friendly error message",
+          success: false
+        }
         ```
-    -   **Foreign key relationships** must include explicit foreignKey constraints
 
+-   **Performance Considerations:**
+    -   **Optimization Features:**
+        -   **Caching**: Configurable cache control headers
+        -   **Compression**: Automatic content compression
+        -   **CDN Ready**: Public URLs support CDN integration
+        -   **Batch Operations**: Support for multiple file operations
+    -   **Best Practices:**
+        -   Use appropriate cache control settings
+        -   Implement pagination for large file lists
+        -   Use signed URLs for temporary access
+        -   Batch delete operations when possible
+
+-   **Usage Examples:**
+    -   **Upload Restaurant Logo:**
         ```typescript
-        // ✅ DO: Explicit foreign key with proper naming
-        foreignKey({
-        columns: [table.userId],
-        foreignColumns: [users.id],
-        name: "punch_cards_user_id_users_id_fk",
-        }),
-        ```
-    -   **Timestamp fields** should use consistent format with timezone
+        import { uploadRestaurantImage } from '@/db/storage';
 
-        ```typescript
-        // ✅ DO: Standard timestamp pattern
-        createdAt: timestamp("created_at", {
-        withTimezone: true,
-        mode: "string",
-        }).defaultNow(),
-        ```
--   **Model Function Patterns**
-    -   **All model functions** must use "use server" directive and follow naming conventions
+        const handleLogoUpload = async (file: File, restaurantId: string) => {
+          const { data, error, success } = await uploadRestaurantImage(
+            restaurantId,
+            file,
+            'logo'
+          );
 
-        ```typescript
-        // ✅ DO: Standard model file structure
-        "use server";
-
-        import { eq, desc, and } from "drizzle-orm";
-        import { db } from "../../db";
-        import { tableName } from "@/db/drizzle/schema";
-
-        // Get all records
-        export const getTableName = async () => {
-        return await db.query.tableName.findMany({
-            with: { relations: true },
-            orderBy: desc(tableName.createdAt),
-        });
-        };
-        ```
-    -   **CRUD operations** should include proper error handling and return types
-
-        ```typescript
-        // ✅ DO: Complete CRUD with timestamps
-        export const createRecord = async (data: CreateInput) => {
-        return await db
-            .insert(tableName)
-            .values({
-            ...data,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            })
-            .returning();
-        };
-
-        export const updateRecord = async (id: bigint, data: UpdateInput) => {
-        return await db
-            .update(tableName)
-            .set({
-            ...data,
-            updatedAt: new Date().toISOString(),
-            })
-            .where(eq(tableName.id, id))
-            .returning();
-        };
-        ```
--   **Query Patterns**
-    -   **Use query builder** for complex relations and prefer `db.query` over raw SQL
-
-        ```typescript
-        // ✅ DO: Use query builder with relations
-        return await db.query.punchCards.findMany({
-        where: eq(punchCards.userId, userId),
-        with: {
-            restaurant: true,
-            user: true,
-        },
-        });
-
-        // ❌ DON'T: Use raw SQL unless absolutely necessary
-        ```
-    -   **Filtering and pagination** should use consistent patterns
-
-        ```typescript
-        // ✅ DO: Standard filtering with bigint conversion
-        export const getRecordsByUserId = async (userId: bigint) => {
-        return await db.query.tableName.findMany({
-            where: eq(tableName.userId, userId),
-            orderBy: desc(tableName.createdAt),
-        });
-        };
-        ```
--   **Type Safety & Validation**
-    -   **BigInt handling** must be consistent across all database operations
-
-        ```typescript
-        // ✅ DO: Always convert string IDs to BigInt for database operations
-        const recordId = BigInt(stringId);
-        const result = await getRecordById(recordId);
-
-        // Use convertBigInts utility for API responses
-        return NextResponse.json({
-            success: true,
-            data: convertBigInts(result),
-        });
-        ```
-    -   **Unique constraints** should be properly defined in schema
-
-        ```typescript
-        // ✅ DO: Define unique constraints for business logic
-        (table) => [
-        unique("users_clerk_id_unique").on(table.clerkId),
-        uniqueIndex("unique_restaurant_user_idx").using(
-            "btree",
-            table.userId.asc().nullsLast().op("int8_ops"),
-            table.restaurantId.asc().nullsLast().op("int8_ops"),
-        ),
-        ]
-        ```
-
-## SEO & METADATA
-
--   Include the following links in the `<head>` of the HTML:
-    ```html
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    ```
--   In Next.js 13+ with the app router, add favicon and manifest links through the `metadata` configuration in `app/layout.tsx`:
-    ```typescript
-    export const metadata = {
-      icons: {
-        icon: [
-          { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-          { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' }],
-        apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
-      },
-      manifest: '/site.webmanifest',
-    };
-    ```
-    Ensure the corresponding favicon files are in the `public` directory.
-
-## STORYBOOK INTEGRATION & SERVER COMPONENT HANDLING
-
--   **General Strategy:** When integrating Storybook, ensure client components are isolated from server components, especially those that depend on database connections. This can be achieved through mocking database interactions or excluding server components from Storybook stories.
-
--   **Version Consistency:** Ensure all Storybook packages have matching versions. Use `npx storybook doctor` to diagnose and resolve version mismatches.
-
--   **Mocking Database Interactions:**
-    -   When server-side database code is imported into client components for Storybook stories, create mocks for the database interactions.
-    -   This allows client components to be rendered in Storybook without relying on a live database connection.
-
--   **Excluding Server Components:**
-    -   Identify server components that are incorrectly marked as `'use client'`.
-    -   Exclude these server components from Storybook stories to prevent errors in the client environment.
-
--   **Specific Cases:**
-    -   If a page component (e.g., `@src/app/admin/restaurants/[id]/page.tsx`) imports database models, ensure that the database interactions are mocked for Storybook.
-    -   When creating stories for components like `@ProfilePage.stories.tsx`, verify that server components are not being rendered directly.
-
--   **Implementation Techniques:**
-    -   Use Storybook's `decorators` to provide mock data or mock implementations of database functions.
-    -   Employ conditional imports or dynamic imports to load mock data only when running in Storybook.
-
--   **Component Annotations:**
-    -   Ensure that server components that perform database operations are not marked with the `'use client'` directive.
-
--   **Mocking Implementation Plan:**
-    -   Create a mocking layer that intercepts database calls in the Storybook environment.
-    -   Implement mock versions of `getPunchCardsByUserId`, `getRaffleEntriesByUserId`, and `supabaseBrowserClient` in `src/lib/storybook-mocks/database-mocks.ts` and `src/lib/storybook-mocks/supabase-mock.ts`.
-    -   Create Storybook-specific hooks in `src/hooks/storybook/` that return predefined mock data and don't import database functions.
-    -   Update `.storybook/main.ts` to use webpack aliases to redirect imports of database functions and hooks to the mock implementations.
-    -   Create a `MockDataProvider` component in `src/lib/storybook-mocks/mock-context.tsx` to provide mock data for users, restaurants, punch cards, and raffle entries.
-    -   Wrap stories in `ProfilePage.stories.tsx` with `MockDataProvider`, remove direct database mocking, and use context-provided mock data.
-    -   For components that import server components, extract client components for stories, provide mocked server data, or exclude them from Storybook.
-
--   **Webpack Aliasing:**
-    -   In the Storybook webpack config, alias `@/db/models/punch-cards`, `@/db/models/raffle-entries`, and `@/db/supabase/supabase.client` to their mock versions.
-    -   Ensure mock versions export the same function signatures, return `Promise.resolve(mockData)`, and don't import actual database code.
-
--   **Testing:**
-    -   Ensure mocks cover all database function signatures, possible return types, error conditions, loading states, and empty data states.
-    -   Test that Storybook builds without errors, stories render without server imports, components work with mock data, and real components still work with real data.
-
--   **Version Management:**
-    -   If encountering "No matching export" or SB_CORE-SERVER_0004 errors in Storybook, ensure all Storybook packages use compatible versions.
-    -   Use `npx storybook doctor` to identify and resolve version mismatches.
-    -   Consider downgrading all Storybook packages to the stable 8.x series (e.g., 8.6.14) if encountering compatibility issues with newer alpha or release candidate versions.
-    -   When downgrading, verify compatibility of `@storybook/nextjs-vite` and `@storybook/addon-vitest` as they may not have corresponding 8.x versions. Use the latest compatible versions for your Storybook setup.
-
-## PUNCH CARD UI ANIMATIONS
-
--   When implementing punch card UI, use Framer Motion for engaging and delightful animations to enhance the user experience.
-
--   **Card Entrance Animation:**
-    -   The entire card should fade in and slide up from below.
-    ```typescript
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-    ```
-
--   **Latest Punch "WOW" Effect:**
-    -   The newest punch should have a multi-phase animation:
-        -   Scale up dramatically (1.3x).
-        -   Rotate left and right.
-        -   Color changes from gray → green → darker green → back to gray.
-    ```typescript
-    animate={
-      index === currentPunches - 1
-        ? {
-            scale: [1, 1.3, 1.1, 1],
-            rotate: [0, 10, -5, 0],
-            backgroundColor: ['#ddd', '#10b981', '#059669', '#ddd']
+          if (success) {
+            console.log('Logo uploaded:', data);
+          } else {
+            console.error('Upload failed:', error);
           }
-        : {}
-    }
-    ```
-
--   **Stamp Drop Animation:**
-    -   Each stamp should spin in from a 180° rotation with bouncy spring physics and staggered timing for sequential reveals.
-    ```typescript
-    initial={{ scale: 0, opacity: 0, rotate: -180 }}
-    animate={{
-      scale: [0, 1.2, 1],
-      opacity: [0, 1, 1],
-      rotate: [-180, 10, 0]
-    }}
-    transition={{
-      type: 'spring',
-      stiffness: 400,
-      damping: 25,
-      delay: index === currentPunches - 1 ? 0.3 : 0,
-      duration: 0.6
-    }}
-    ```
-
--   **Ripple Effect:**
-    -   Use an expanding circle ripple effect on the newest punch to create a "pop" visual feedback.
-    ```typescript
-    <motion.div
-      className='absolute inset-0 rounded-full border-2 border-primary'
-      initial={{ scale: 1, opacity: 1 }}
-      animate={{
-        scale: [1, 2, 3],
-        opacity: [1, 0.5, 0]
-      }}
-      transition={{ duration: 0.6, delay: 0.2 }}
-    />
-    ```
-
--   **Progress Bar Animation:**
-    -   Use an animated progress bar that fills up with a delayed start for dramatic effect.
-    ```typescript
-    <motion.div
-      className='h-full bg-green-500 rounded-full w-0'
-      animate={{ width: `${percentageProgress}%` }}
-      transition={{ duration: 0.5, delay: 0.5 }}
-    />
-    ```
-
-## CURSOR RULES
-
-- Use Cursor Rules to standardize development patterns.
-- Project structure includes `rules` and `features` directories within the `.cursor` directory.
-
-## DRIZZLE ORM PATTERNS & DATABASE STANDARDS
-
--   **Schema Design Patterns**
-    -   **Use bigserial for primary keys** with mode: "bigint"
-
-        ```typescript
-        // ✅ DO: Standard primary key pattern
-        id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
-
-        // ❌ DON'T: Use regular serial or omit mode
-        id: serial().primaryKey(),
-        ```
-    -   **Foreign key relationships** must include explicit foreignKey constraints
-
-        ```typescript
-        // ✅ DO: Explicit foreign key with proper naming
-        foreignKey({
-        columns: [table.userId],
-        foreignColumns: [users.id],
-        name: "punch_cards_user_id_users_id_fk",
-        }),
-        ```
-    -   **Timestamp fields** should use consistent format with timezone
-
-        ```typescript
-        // ✅ DO: Standard timestamp pattern
-        createdAt: timestamp("created_at", {
-        withTimezone: true,
-        mode: "string",
-        }).defaultNow(),
-        ```
--   **Model Function Patterns**
-    -   **All model functions** must use "use server" directive and follow naming conventions
-
-        ```typescript
-        // ✅ DO: Standard model file structure
-        "use server";
-
-        import { eq, desc, and } from "drizzle-orm";
-        import { db } from "../../db";
-        import { tableName } from "@/db/drizzle/schema";
-
-        // Get all records
-        export const getTableName = async () => {
-        return await db.query.tableName.findMany({
-            with: { relations: true },
-            orderBy: desc(tableName.createdAt),
-        });
         };
         ```
-    -   **CRUD operations** should include proper error handling and return types
-
+    -   **Generate and Upload QR Code:**
         ```typescript
-        // ✅ DO: Complete CRUD with timestamps
-        export const createRecord = async (data: CreateInput) => {
-        return await db
-            .insert(tableName)
-            .values({
-            ...data,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            })
-            .returning();
-        };
+        import { uploadQRCode } from '@/db/storage';
 
-        export const updateRecord = async (id: bigint, data: UpdateInput) => {
-        return await db
-            .update(tableName)
-            .set({
-            ...data,
-            updatedAt: new Date().toISOString(),
-            })
-            .where(eq(tableName.id, id))
-            .returning();
+        const generateMenuQR = async (restaurantId: string, menuData: any) => {
+          // Generate QR code (implementation depends on QR library)
+          const qrCodeBuffer = await generateQRCodeBuffer(menuData);
+
+          const { data, error, success } = await uploadQRCode(
+            restaurantId,
+            'menu',
+            qrCodeBuffer
+          );
+
+          if (success) {
+            console.log('QR code uploaded:', data);
+          } else {
+            console.error('QR upload failed:', error);
+          }
         };
         ```
--   **Query Patterns**
-    -   **Use query builder** for complex relations and prefer `db.query` over raw SQL
-
+    -   **List Restaurant Images:**
         ```typescript
-        // ✅ DO: Use query builder with relations
-        return await db.query.punchCards.findMany({
-        where: eq(punchCards.userId, userId),
-        with: {
-            restaurant: true,
-            user: true,
-        },
-        });
+        import { getRestaurantImages, getPublicUrl } from '@/db/storage';
 
-        // ❌ DON'T: Use raw SQL unless absolutely necessary
-        ```
-    -   **Filtering and pagination** should use consistent patterns
+        const loadRestaurantGallery = async (restaurantId: string) => {
+          const { data: images, error, success } = await getRestaurantImages(
+            restaurantId,
+            'gallery'
+          );
 
-        ```typescript
-        // ✅ DO: Standard filtering with bigint conversion
-        export const getRecordsByUserId = async (userId: bigint) => {
-        return await db.query.tableName.findMany({
-            where: eq(tableName.userId, userId),
-            orderBy: desc(tableName.createdAt),
-        });
+          if (success && images) {
+            const imageUrls = images.map(image =>
+              getPublicUrl('restaurants', `gallery/${image.name}`)
+            );
+            return imageUrls;
+          } else {
+            console.error('Failed to load gallery:', error);
+            return [];
+          }
         };
         ```
--   **Type Safety & Validation**
-    -   **BigInt handling** must be consistent across all database operations
-
+    -   **Cleanup Old Files:**
         ```typescript
-        // ✅ DO: Always convert string IDs to BigInt for database operations
-        const recordId = BigInt(stringId);
-        const result = await getRecordById(recordId);
+        import { deleteQRCodes } from '@/db/storage';
 
-        // Use convertBigInts utility for API responses
-        return NextResponse.json({
-            success: true,
-            data: convertBigInts(result),
-        });
+        const cleanupOldQRCodes = async (restaurantId: string) => {
+          const { success, error } = await deleteQRCodes(restaurantId, 'menu');
+
+          if (success) {
+            console.log('Old QR codes cleaned up');
+          } else {
+            console.error('Cleanup failed:', error);
+          }
+        };
         ```
-    -   **Unique constraints** should be properly defined in schema
 
+-   **Module Integration:**
+    -   **Import Patterns:**
         ```typescript
-        // ✅ DO: Define unique constraints for business logic
-        (table) => [
-        unique("users_clerk_id_unique").on(table.clerkId),
-        uniqueIndex("unique_restaurant_user_idx").using(
-            "btree",
-            table
+        // Individual functions
+        import {
+          uploadFileClient,
+          getPublicUrl,
+          uploadRestaurantImage
+        } from '@/db/storage';
+
+        // Default export with all functions
+        import storage from '@/db/storage';
+        ```
+        -   **For resolving "Module '"@/db/storage"' has no exported member 'BUCKET_NAMES'." errors, import directly from specific storage modules instead of the main `@/db/storage` entry point.**
+    -   **Types and constants**
+        ```typescript
+        import {
+          BucketName,
+          StorageResponse,
+        } from '@/db/storage';
+        ```
+    -   **Server Actions Integration**
+-   **Important:**
+    - When using server-side storage operations in the Storage module (`storage-server.ts`), always use `createSupabaseServerClient()` and `await` its result. Do not use `createSupabaseServiceClient()`.
+    - To address RLS policy violations when uploading restaurant images, use server-side upload. To facilitate this, create a **server action** that handles image upload using **server-side storage functions** with proper permissions. Use the service key in the Authorization header. You must add the `SUPABASE_SERVICE_ROLE_KEY` environment variable to your `.env.local` file and restart your development server.
+
+## NEXT.JS
+
+-   Avoid calling client functions from the server (e.g., `getPublicUrl()`). Client functions can only be rendered as a Component or passed to props of a Client Component.
+-   When using server actions for image uploads, use the `getPublicUrl` function from `@/db/storage/storage-client` to generate the public URL of the uploaded image.
+    -   (Deprecated) Use `getPublicUrlServer()` instead. `getPublicUrl()` is client-side only and cannot be called from server actions.
+
+## SUPABASE
+
+-   For admin operations that require bypassing Row-Level Security (RLS) policies, use a service client.
+    - Create a `createSupabaseServiceClient()` function that uses the `SUPABASE_SERVICE_ROLE_KEY` environment variable.
+    - Use this service client within server-side storage functions for admin operations.
+    - Ensure the `SUPABASE_SERVICE_ROLE_KEY` environment variable is set in `.env.local` and the development server is restarted after adding this variable.
+
+## DATABASE UPDATES
+
+-   When new images are uploaded, update the `imageUrl` field in the restaurant database model to reflect the new image URL.
+-   When updating restaurant image URLs in the database, use a script that:
+    -   Connects to the Supabase database.
+    -   Fetches all restaurants from the database.
+    -   Uses a mapping array of updates, matching restaurant names (handling variations).
+    -   Executes batch or individual updates to the `imageUrl` field.
+    -   Logs update successes and failures.

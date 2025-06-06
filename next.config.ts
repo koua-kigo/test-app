@@ -57,6 +57,10 @@ const nextConfig: NextConfig = {
 				protocol: "https",
 				hostname: "www.experiencemaplegrove.app",
 			},
+			{
+				protocol: "https",
+				hostname: "*.com",
+			},
 		],
 	},
 };

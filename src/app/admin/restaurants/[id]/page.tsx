@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 import {Suspense} from 'react'
 
-import {getRestaurantById} from '@/db/models'
+import {getRestaurantById, getRestaurantByIdWithAll} from '@/db/models'
 import {RestaurantLoading} from '@/features/restaurants/RestaurantLoading'
 
 import {AdminRestaurantDetail} from '@/app/admin/restaurants/[id]/AdminRestaurantDetail'
@@ -20,7 +20,7 @@ export default async function RestaurantPage({
   const resolvedParams = await params
   const {id} = resolvedParams
 
-  const restaurant = id ? await getRestaurantById(BigInt(id)) : null
+  const restaurant = id ? await getRestaurantByIdWithAll(BigInt(id)) : null
 
   console.log('🚀 ~ restaurant ~ restaurant:', restaurant)
 

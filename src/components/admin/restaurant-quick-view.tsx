@@ -1,11 +1,12 @@
 'use client'
 
-import {useCallback, useEffect, useState, type ReactNode} from 'react'
+import {useCallback, useEffect, useState, useRef, type ReactNode} from 'react'
 import {Button} from '@/components/ui/button'
-import {Eye, Plus} from 'lucide-react'
+import {Eye, Plus, Upload, Camera, Loader2} from 'lucide-react'
 import {
   createRestaurantDeal,
   getRestaurantByIdWithAll,
+  updateRestaurant,
 } from '@/db/models/restaurants/restaurants'
 import type {Restaurant, Prize, PunchCard, Deal as DbDeal} from '@/types/db'
 import {toast} from 'sonner'
@@ -35,6 +36,14 @@ import {Checkbox} from '@/components/ui/checkbox'
 import {DealsList, EmptyDeals} from './restaurant-deals-display'
 import {QRCodeManager} from '@/app/admin/restaurants/qr-code-manager'
 import {QRCodeGenerator} from '@/components/qr-code/qr-code-generator'
+import Image from 'next/image'
+import {
+  validateFileType,
+  validateFileSize,
+  ALLOWED_IMAGE_TYPES,
+  MAX_FILE_SIZE,
+} from '@/db/storage/storage-types'
+import {uploadRestaurantImageAction} from '@/app/actions/upload-restaurant-image'
 
 // Define the BentoItem interface to match the BentoGrid component's expected types
 interface BentoItem {
@@ -86,6 +95,11 @@ export function RestaurantQuickView({
   const [isLoading, setIsLoading] = useState(false)
   const [restaurantData, setRestaurantData] =
     useState<DetailedRestaurant | null>(null)
+
+  // Image upload state
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [showImageUpload, setShowImageUpload] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Since we might receive either restaurant or restaurantId, initialize properly
   useEffect(() => {
@@ -199,6 +213,82 @@ export function RestaurantQuickView({
     toast.success('New deal created successfully')
   }
 
+  // Handle image file selection
+  const handleImageSelect = () => {
+    fileInputRef.current?.click()
+  }
+
+  // Handle image upload
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0]
+    if (!file || !restaurantData) return
+
+    // Validate file
+    if (!validateFileType(file, ALLOWED_IMAGE_TYPES)) {
+      toast.error(
+        'Invalid file type. Please upload a JPEG, PNG, WebP, or SVG image.'
+      )
+      return
+    }
+
+    if (!validateFileSize(file, MAX_FILE_SIZE)) {
+      toast.error(
+        `File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`
+      )
+      return
+    }
+
+    setIsUploadingImage(true)
+
+    try {
+      // Create FormData for server action
+      const formData = new FormData()
+      formData.append('image', file)
+
+      // Upload image using server action
+      const result = await uploadRestaurantImageAction(
+        restaurantData.id.toString(),
+        formData
+      )
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to upload image')
+      }
+
+      if (!result.data?.imageUrl) {
+        throw new Error('No image URL returned from upload')
+      }
+
+      // Update local state with the returned restaurant data
+      const updatedRestaurant = {
+        ...restaurantData,
+        imageUrl: result.data.imageUrl,
+      }
+      setRestaurantData(updatedRestaurant)
+
+      // Propagate update to parent if callback exists
+      if (onQRCodeUpdate) {
+        onQRCodeUpdate(updatedRestaurant)
+      }
+
+      setShowImageUpload(false)
+      toast.success('Restaurant image updated successfully!')
+    } catch (error) {
+      console.error('Image upload error:', error)
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to upload image'
+      )
+    } finally {
+      setIsUploadingImage(false)
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
   // QR code update handler that updates both local state and parent table
   const handleQRCodeUpdate = useCallback(
     (updatedRestaurant: any) => {
@@ -229,6 +319,71 @@ export function RestaurantQuickView({
         title: restaurantData.name,
         description: (
           <div className='py-4'>
+            {/* Restaurant Image with Edit Functionality */}
+            <div className='mb-4 relative w-full h-48 rounded-lg overflow-hidden group'>
+              {restaurantData.imageUrl ? (
+                <>
+                  <Image
+                    src={restaurantData.imageUrl}
+                    alt={`${restaurantData.name} restaurant image`}
+                    fill
+                    className='object-cover transition-all duration-200 group-hover:brightness-75'
+                    sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+                  />
+                  {/* Upload overlay */}
+                  <div className='absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center'>
+                    <Button
+                      variant='secondary'
+                      size='sm'
+                      onClick={handleImageSelect}
+                      disabled={isUploadingImage}
+                      className='flex items-center gap-2'
+                    >
+                      {isUploadingImage ? (
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      ) : (
+                        <Camera className='h-4 w-4' />
+                      )}
+                      {isUploadingImage ? 'Uploading...' : 'Change Image'}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                // No image placeholder with upload button
+                <div className='w-full h-full bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors'>
+                  <Camera className='h-8 w-8 text-gray-400 mb-2' />
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={handleImageSelect}
+                    disabled={isUploadingImage}
+                    className='text-gray-600'
+                  >
+                    {isUploadingImage ? (
+                      <>
+                        <Loader2 className='h-4 w-4 animate-spin mr-2' />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className='h-4 w-4 mr-2' />
+                        Upload Image
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type='file'
+                accept={ALLOWED_IMAGE_TYPES.join(',')}
+                onChange={handleImageUpload}
+                className='hidden'
+              />
+            </div>
+
             {restaurantData.description || 'No description available'}
             <br />
             <div className='mt-4'>
@@ -388,7 +543,7 @@ export function RestaurantQuickView({
     })
 
     return items
-  }, [restaurantData])
+  }, [restaurantData, isUploadingImage])
 
   return (
     <>
