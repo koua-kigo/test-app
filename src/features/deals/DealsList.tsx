@@ -8,6 +8,7 @@ import {motion} from 'framer-motion'
 import {cn, isValidUrl} from '@/lib/utils'
 import type {Deal} from '@/types/db'
 import {useDealsSubscription} from '@/hooks/useDealsSubscription'
+import {Deal as DealType} from '@/types/db'
 
 // This type represents the deal structure as it comes from the database
 interface DatabaseDeal {
@@ -70,7 +71,7 @@ export const DealsList = ({deals: initialDeals, className}: DealsListProps) => {
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-8'>
-        {deals.map((deal) => (
+        {deals.map((deal: any) => (
           <motion.div
             key={`${deal.id.toString()}-${deal.restaurantId.toString()}`}
             layout
@@ -111,7 +112,7 @@ export const DealsList = ({deals: initialDeals, className}: DealsListProps) => {
                   ) : (
                     <div className='relative w-12 h-12 mr-3 overflow-hidden rounded-full flex-shrink-0'>
                       <Image
-                        src={'/RWP.jpg'}
+                        src={deal?.restaurant?.imageUrl || '/RWP.jpg'}
                         alt={deal?.restaurant?.name || 'Restaurant'}
                         height={300}
                         width={300}

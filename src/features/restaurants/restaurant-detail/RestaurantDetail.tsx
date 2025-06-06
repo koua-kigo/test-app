@@ -89,7 +89,7 @@ export function RestaurantDetail({
       {/* Hero Section */}
       <div className='relative h-64 w-full rounded-xl overflow-hidden'>
         <Image
-          src={'/RWP.jpg'} //restaurant.imageUrl ||
+          src={restaurant?.imageUrl || '/RWP.jpg'} //restaurant.imageUrl ||
           alt={restaurant.name}
           className='object-cover'
           sizes='100vw'
@@ -236,7 +236,7 @@ export function RestaurantDetail({
                           ) : (
                             <div className='relative w-12 h-12 mr-3 overflow-hidden rounded-full flex-shrink-0'>
                               <Image
-                                src={'/RWP.jpg'}
+                                src={deal?.restaurant?.imageUrl || '/RWP.jpg'}
                                 alt={deal?.restaurant?.name || 'Restaurant'}
                                 height={300}
                                 width={300}

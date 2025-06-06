@@ -115,7 +115,7 @@ const PunchCard = React.forwardRef<HTMLDivElement, PunchCardProps>(
         {/* Restaurant Image */}
         <div className='relative h-36 sm:h-48 w-full'>
           <Image
-            src={'/RWP.jpg'}
+            src={restaurantImage || '/RWP.jpg'}
             alt={`${restaurantName}`}
             fill
             className='object-cover'

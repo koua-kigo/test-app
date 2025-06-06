@@ -140,3 +140,13 @@ export const bulkCreateDeals = async (
 		.values(dealsWithTimestamps)
 		.returning();
 };
+
+export type Deal = {
+	id: bigint;
+	restaurantId: bigint;
+	title: string;
+	content: string;
+	active: boolean;
+	createdAt: string;
+	updatedAt: string;
+};

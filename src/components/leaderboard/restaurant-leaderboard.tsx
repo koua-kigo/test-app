@@ -84,7 +84,7 @@ export function RestaurantLeaderboard({
                   >
                     <div className='relative h-10 w-10 overflow-hidden rounded-md'>
                       <Image
-                        src={'/RWP.jpg'}
+                        src={restaurant.imageUrl || '/RWP.jpg'}
                         alt={restaurant.restaurantName}
                         fill
                         className='object-cover'

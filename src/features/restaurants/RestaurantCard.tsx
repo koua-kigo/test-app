@@ -60,7 +60,7 @@ export function RestaurantCard({
       >
         <div className='relative h-[200px] w-full overflow-hidden'>
           <Image
-            src={'/RWP.jpg'}
+            src={restaurant.imageUrl || '/RWP.jpg'}
             alt={restaurant.name}
             fill
             className='object-cover h-full w-full'

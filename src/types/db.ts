@@ -189,6 +189,7 @@ export type Deal = {
 	imageUrl: string;
 	active: boolean;
 	restaurantId: bigint;
+	restaurant?: Restaurant;
 	createdAt: Date;
 	updatedAt: Date;
 };
