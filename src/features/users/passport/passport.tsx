@@ -54,8 +54,8 @@ export function Passport({punches}: PassportProps) {
     },
   ]
 
-  const punchesLeft = MAX_PUNCH_THRESHOLD - punches.length
-  const emptyPunches = Array(punchesLeft).fill(null)
+  const punchesLeft = Math.max(0, MAX_PUNCH_THRESHOLD - punches.length)
+  const emptyPunches = Array.from({length: punchesLeft}, () => null)
 
   const updateActivePunchCardData = (punchData: PunchCardWithRestaurant) => {
     setActivePunchCardData(punchData)
@@ -154,7 +154,7 @@ export function Passport({punches}: PassportProps) {
                   </motion.div>
                 </motion.div>
               ))}
-              {punchesLeft > 0
+              {punchesLeft > 0 && emptyPunches?.length
                 ? emptyPunches.map((emptyPunch, index) => (
                     <motion.div
                       key={`emptypunch-${index}`}
