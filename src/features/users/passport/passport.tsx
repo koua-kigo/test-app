@@ -24,33 +24,33 @@ export function Passport({punches}: PassportProps) {
   const icons = [
     {
       id: 'stamp',
-      icon: <Stamp className='h-5 w-5 stroke-black text-black' key='stamp' />,
+      icon: <Stamp className='h-4 w-4 stroke-black text-black' key='stamp' />,
     },
     {
       id: 'salad',
-      icon: <Salad className='h-5 w-5 stroke-black text-black' key='salad' />,
+      icon: <Salad className='h-4 w-4 stroke-black text-black' key='salad' />,
     },
     {
       id: 'martini',
       icon: (
-        <Martini className='h-5 w-5 stroke-black text-black' key='martini' />
+        <Martini className='h-4 w-4 stroke-black text-black' key='martini' />
       ),
     },
     {
       id: 'wine',
-      icon: <Wine className='h-5 w-5 stroke-black text-black' key='wine' />,
+      icon: <Wine className='h-4 w-4 stroke-black text-black' key='wine' />,
     },
     {
       id: 'coffee',
-      icon: <Coffee className='h-5 w-5 stroke-black text-black' key='coffee' />,
+      icon: <Coffee className='h-4 w-4 stroke-black text-black' key='coffee' />,
     },
     {
       id: 'pizza1',
-      icon: <Pizza className='h-5 w-5 stroke-black text-black' key='pizza1' />,
+      icon: <Pizza className='h-4 w-4 stroke-black text-black' key='pizza1' />,
     },
     {
       id: 'pizza2',
-      icon: <Pizza className='h-5 w-5 stroke-black text-black' key='pizza2' />,
+      icon: <Pizza className='h-4 w-4 stroke-black text-black' key='pizza2' />,
     },
   ]
 
@@ -69,7 +69,7 @@ export function Passport({punches}: PassportProps) {
         layout
         className={cn(
           'relative overflow-hidden rounded-xl bg-card shadow-lg passport',
-          'w-full flex flex-col'
+          'w-fit mx-auto flex flex-col'
         )}
         style={{perspective: 1000}}
       >
@@ -107,12 +107,7 @@ export function Passport({punches}: PassportProps) {
           <div className='space-y-4'>
             <div
               className={cn(
-                'grid gap-2 mb-5',
-                MAX_PUNCH_THRESHOLD <= 4
-                  ? 'grid-cols-5'
-                  : MAX_PUNCH_THRESHOLD <= 6
-                  ? 'grid-cols-4'
-                  : 'grid-cols-5'
+                'grid gap-4 mb-5 grid-cols-3 grid-rows-2 w-fit mx-auto'
               )}
             >
               {/* <AnimatePresence> */}
@@ -129,7 +124,7 @@ export function Passport({punches}: PassportProps) {
                         : 'none',
                   }}
                   className={
-                    'aspect-square rounded-lg border-2 flex items-center justify-center relative cursor-pointer'
+                    'aspect-square rounded-lg border-2 flex items-center justify-center relative cursor-pointer w-16 h-16'
                   }
                   onClick={() => updateActivePunchCardData(punchData)}
                   // initial={false}
@@ -168,7 +163,7 @@ export function Passport({punches}: PassportProps) {
                         border: '1px solid #ddd',
                       }}
                       className={
-                        'bg-gray aspect-square rounded-lg border-2 flex items-center justify-center relative'
+                        'bg-gray aspect-square rounded-lg border-2 flex items-center justify-center relative w-16 h-16'
                       }
                       // initial={false}
                       animate={{scale: [0, 1.2, 1], rotate: [0, 15, 0]}}
@@ -193,7 +188,7 @@ export function Passport({punches}: PassportProps) {
                         }}
                       >
                         <Stamp
-                          className='h-5 w-5 stroke-black text-black'
+                          className='h-4 w-4 stroke-black text-black'
                           key='stamp'
                         />
                       </motion.div>

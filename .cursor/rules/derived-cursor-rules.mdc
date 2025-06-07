@@ -21,6 +21,7 @@ This document defines the rules and guidelines for the AI coding assistant. It c
 -   zod
 -   bun
 -   `@yudiel/react-qr-scanner`
+-   `usehooks-ts`
 
 ## PROJECT DOCUMENTATION & CONTEXT SYSTEM
 
@@ -70,6 +71,23 @@ This document defines the rules and guidelines for the AI coding assistant. It c
     - When an image is available, display an overlay with a "Change Image" button on hover.
     - The `imageUrl` from `@db.ts @Restaurant` should get updated to the URL of the newly uploaded image on save in the `@restaurant-quick-view.tsx`.
     - When the `imageUrl` is updated in the `@restaurant-quick-view.tsx` component, ensure that the component receives the new `imageUrl` from the server action, the local `restaurantData` state is updated with the new `imageUrl`, and the UI immediately reflects the newly uploaded image.
+-   When styling the restaurant detail hero section in `@RestaurantDetail.tsx`, apply the hero styles from `@RestaurantsHero.tsx`, including enhanced styling, animations, and visual effects. This includes:
+    -   Wrapping the component in `<AnimatePresence>` for smooth transitions.
+    -   Adding fade-in effects with staggered timing using `motion` animations.
+    -   Including two animated sparkle elements that float and rotate.
+    -   Applying `BoxReveal` to text elements for dramatic reveal effects.
+    -   Using responsive design with better mobile/desktop breakpoints.
+    -   Enhancing image object positioning and brightness filter.
+    -   Using larger, more dramatic text with drop shadows.
+    -   Maintaining a color scheme consistent with the app's green branding (#208F54).
+    -   Adding a decorative SVG wave at the bottom.
+    -   Improving contrast and readability of overlays.
+    -   Integrating the distance display into the hero with attractive styling.
+    -   Using the `useMediaQuery` hook for responsive behavior.
+    -   Employing flexible heights for different screen sizes.
+    -   Improving spacing with better padding and margins across devices.
+    -   Centering content for better visual balance.
+    -   Staggering animations for smooth flow.
 
 ## DATA FETCHING & API
 
@@ -682,22 +700,4 @@ This document defines the rules and guidelines for the AI coding assistant. It c
 ## NEXT.JS
 
 -   Avoid calling client functions from the server (e.g., `getPublicUrl()`). Client functions can only be rendered as a Component or passed to props of a Client Component.
--   When using server actions for image uploads, use the `getPublicUrl` function from `@/db/storage/storage-client` to generate the public URL of the uploaded image.
-    -   (Deprecated) Use `getPublicUrlServer()` instead. `getPublicUrl()` is client-side only and cannot be called from server actions.
-
-## SUPABASE
-
--   For admin operations that require bypassing Row-Level Security (RLS) policies, use a service client.
-    - Create a `createSupabaseServiceClient()` function that uses the `SUPABASE_SERVICE_ROLE_KEY` environment variable.
-    - Use this service client within server-side storage functions for admin operations.
-    - Ensure the `SUPABASE_SERVICE_ROLE_KEY` environment variable is set in `.env.local` and the development server is restarted after adding this variable.
-
-## DATABASE UPDATES
-
--   When new images are uploaded, update the `imageUrl` field in the restaurant database model to reflect the new image URL.
--   When updating restaurant image URLs in the database, use a script that:
-    -   Connects to the Supabase database.
-    -   Fetches all restaurants from the database.
-    -   Uses a mapping array of updates, matching restaurant names (handling variations).
-    -   Executes batch or individual updates to the `imageUrl` field.
-    -   Logs update successes and failures.
+-   When using server actions for image uploads, use the `getPublic
