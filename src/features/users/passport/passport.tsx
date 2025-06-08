@@ -150,7 +150,14 @@ export function Passport({punches}: PassportProps) {
                       delay: index === currentPunches - 1 ? 0.2 : 0,
                     }}
                   >
-                    {icons[index].icon}
+                    {icons[index] ? (
+                      icons[index].icon
+                    ) : (
+                      <Stamp
+                        className='h-4 w-4 stroke-black text-black'
+                        key='stamp'
+                      />
+                    )}
                   </motion.div>
                 </motion.div>
               ))}
