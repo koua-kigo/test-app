@@ -48,14 +48,15 @@ export function Passport({punches}: PassportProps) {
       id: 'pizza1',
       icon: <Pizza className='h-4 w-4 stroke-black text-black' key='pizza1' />,
     },
-    {
-      id: 'pizza2',
-      icon: <Pizza className='h-4 w-4 stroke-black text-black' key='pizza2' />,
-    },
   ]
 
-  const punchesLeft = Math.max(0, MAX_PUNCH_THRESHOLD - punches.length)
+  const punchesLeft = Math.max(MAX_PUNCH_THRESHOLD - punches.length)
+
+  console.log('🚀 ~ Passport ~ punchesLeft:', punchesLeft)
+
   const emptyPunches = Array.from({length: punchesLeft}, () => null)
+
+  console.log('🚀 ~ Passport ~ emptyPunches:', emptyPunches)
 
   const updateActivePunchCardData = (punchData: PunchCardWithRestaurant) => {
     setActivePunchCardData(punchData)
@@ -77,7 +78,9 @@ export function Passport({punches}: PassportProps) {
         <div
           className='relative h-36 sm:h-48 w-full bg-gradient-to-r from-primary/80 to-primary'
           style={{
-            backgroundImage: activePunchCardData ? 'url("/RWP.jpg")' : '',
+            backgroundImage: activePunchCardData?.restaurant?.imageUrl
+              ? `url(${activePunchCardData?.restaurant?.imageUrl})`
+              : 'url("/RWP.jpg")',
             backgroundSize: 'contain',
           }}
         >
