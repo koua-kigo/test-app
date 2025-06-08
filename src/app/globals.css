@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
+@theme inline {
 	--font-geist-sans: var(--font-geist-sans);
 	--font-geist-mono: var(--font-geist-mono);
 
@@ -466,4 +466,8 @@ li,
 li a,
 a {
 	cursor: pointer;
+}
+
+thead, tr {
+	border-bottom: 1px solid #ddd !important;
 }
