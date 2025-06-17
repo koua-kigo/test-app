@@ -58,7 +58,10 @@ export const Home = () => {
         <div>
           <BoxReveal boxColor={'#E2FFE5'} duration={0.5} delay={0.85}>
             <div className='text-center '>
-              <h2 className='text-2xl md:text-3xl font-bold text-[#2d6444]' style={{ fontFamily: 'Poppins, sans-serif' }}>
+              <h2
+                className='text-2xl md:text-3xl font-bold text-[#2d6444]'
+                style={{fontFamily: 'Poppins, sans-serif'}}
+              >
                 Digital Passport
               </h2>
               <p
@@ -66,7 +69,8 @@ export const Home = () => {
                 style={{fontWeight: 500}}
               >
                 Scan the QR code at each restaurant to collect stamps and unlock
-                your chance to <span className="font-bold">win a shopping spree</span>.
+                your chance to{' '}
+                <span className='font-bold'>win a shopping spree</span>.
               </p>
             </div>
           </BoxReveal>
