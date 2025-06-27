@@ -1,0 +1,1 @@
+ALTER TABLE "restaurants" RENAME COLUMN "qr_code" TO "qr_code_svg";

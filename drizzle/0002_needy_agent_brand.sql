@@ -1,0 +1,1 @@
+ALTER TABLE "restaurant_deals" ADD COLUMN "active_date" timestamp with time zone;
